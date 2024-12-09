@@ -1,0 +1,330 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+/////// USERS GROUP ...
+model GroupUser {
+  userId    Int
+  groupId   Int      @unique
+  role      Role
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+  User      User     @relation(fields: [userId], references: [id])
+  Group     Group    @relation(fields: [groupId], references: [id])
+}
+
+model User {
+  id             Int      @id @default(autoincrement())
+  email          String   @unique
+  password       String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @default(now())
+  lastConnection DateTime @default(now())
+
+  GroupUser GroupUser[]
+  Event     Event[]
+
+  Post      Post[]
+  PostUser  PostUser[]
+  Flag      Flag[]
+  Vote      Vote[]
+  UserEvent UserEvent[]
+  Survey    Survey[]
+
+  userRespService Service[] @relation("userResp")
+  userService     Service[] @relation("user")
+
+  userModo     Issue[]   @relation("userModo")
+  userModoResp Issue[]   @relation("userModoResp")
+  Issue        Issue[]
+  userAuthor   Pool[]    @relation("userAuthor")
+  userBenef    Pool[]    @relation("userBenef")
+  user         Profile[] @relation("user")
+  userSp       Profile[] @relation("userSp")
+}
+
+model Group {
+  id        Int         @id @default(autoincrement())
+  addressId Int
+  area      Int
+  rules     String
+  name      String
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @default(now())
+  Address   Address     @relation(fields: [addressId], references: [id])
+  GroupUser GroupUser[]
+}
+
+model Address {
+  id        Int       @id @default(autoincrement())
+  zipcode   Int       @unique
+  city      String
+  address   String
+  lat       Decimal
+  long      Decimal
+  createdAt Int
+  updatedAt Int
+  Group     Group[]
+  Profile   Profile[]
+  Event     Event[]
+}
+
+model Profile {
+  id            Int        @id @default(autoincrement())
+  userId        Int
+  userIdSp      Int
+  addressId     Int
+  firstname     String
+  lastname      String
+  avatar        Bytes
+  phone         String?
+  addressShared Boolean    @default(false)
+  assistance    Assistance
+  points        Int
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @default(now())
+  Address       Address    @relation(fields: [addressId], references: [id])
+  User          User       @relation(fields: [userId], references: [id], name: "user")
+  UserSp        User       @relation(fields: [userIdSp], references: [id], name: "userSp")
+}
+
+enum Assistance {
+  NONE
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum Role {
+  ADMIN
+  MEMBER
+  GUEST
+}
+
+/////// EVENTS 
+model Event {
+  id             Int           @id @default(autoincrement())
+  userId         Int
+  addressId      Int
+  dateStart      DateTime
+  dateEnd        DateTime
+  title          String        @unique
+  description    String
+  category       EventCategory
+  participantMin Int
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @default(now())
+  User           User          @relation(fields: [userId], references: [id])
+  Address        Address       @relation(fields: [addressId], references: [id])
+  UserEvent      UserEvent[]
+  Flag           Flag[]        @relation(name: "flagEvent")
+}
+
+enum EventCategory {
+  CATEGORY_1
+  CATEGORY_2
+  CATEGORY_3
+  CATEGORY_4
+  CATEGORY_5
+}
+
+model UserEvent {
+  userId  Int
+  eventId Int   @unique
+  User    User  @relation(fields: [userId], references: [id])
+  Event   Event @relation(fields: [eventId], references: [id])
+}
+
+////// SERVICE 
+model Service {
+  id          Int             @id @default(autoincrement())
+  userId      Int
+  userIdResp  Int
+  type        ServiceType
+  title       String
+  description String
+  category    ServiceCategory
+  skillLevel  SkillLevel
+  hardLevel   HardLevel
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @default(now())
+  User        User            @relation(fields: [userId], references: [id], name: "user")
+  Issue       Issue[]
+  UserResp    User            @relation(fields: [userIdResp], references: [id], name: "userResp")
+}
+
+enum ServiceType {
+  GET
+  DO
+}
+
+enum ServiceCategory {
+  CATEGORY_1
+  CATEGORY_2
+  CATEGORY_3
+}
+
+enum SkillLevel {
+  BEGINNER
+  INTERMEDIATE
+  EXPERT
+  NONE
+}
+
+enum HardLevel {
+  EASY
+  MEDIUM
+  HARD
+  NONE
+}
+
+model Issue {
+  id             Int         @id @default(autoincrement())
+  servicesId     Int
+  description    String
+  date           DateTime
+  status         IssueStatus
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @default(now())
+  userIdModo     Int
+  userIdModoResp Int
+  UserModo       User        @relation(fields: [userIdModo], references: [id], name: "userModo")
+  UserModoResp   User        @relation(fields: [userIdModoResp], references: [id], name: "userModoResp")
+  Service        Service     @relation(fields: [servicesId], references: [id])
+  User           User?       @relation(fields: [userId], references: [id])
+  userId         Int?
+}
+
+enum IssueStatus {
+  SOLVED
+  PENDING
+}
+
+///// SURVEY POOL 
+model Survey {
+  id          Int            @id @default(autoincrement())
+  userId      Int
+  title       String
+  description String
+  category    SurveyCategory
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @default(now())
+  User        User           @relation(fields: [userId], references: [id])
+  Vote        Vote[]
+  Flag        Flag[]         @relation(name: "flagSurvey")
+}
+
+enum SurveyCategory {
+  CATEGORY_1
+  CATEGORY_2
+  CATEGORY_3
+}
+
+model Pool {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  userIdBenef Int
+  title       String
+  description String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now())
+  UserAuthor  User     @relation(fields: [userId], references: [id], name: "userAuthor")
+  UserBenef   User     @relation(fields: [userIdBenef], references: [id], name: "userBenef")
+  Vote        Vote[]
+}
+
+model Vote {
+  userId   Int
+  targetId Int
+  target   VoteTarget
+  opinion  VoteOpinion
+  User     User        @relation(fields: [userId], references: [id])
+  Survey   Survey?     @relation(fields: [surveyId], references: [id])
+  surveyId Int?
+  Pool     Pool?       @relation(fields: [poolId], references: [id])
+  poolId   Int?
+
+  @@id([userId, targetId])
+}
+
+enum VoteTarget {
+  SURVEY
+  POOL
+}
+
+enum VoteOpinion {
+  OK
+  NO
+  WO
+}
+
+///// POST 
+model Post {
+  id          Int          @id @default(autoincrement())
+  userId      Int
+  title       String
+  description String
+  category    PostCategory
+  image       String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  User        User         @relation(fields: [userId], references: [id])
+  PostUser    PostUser[]
+  Flag        Flag[]       @relation(name: "flagPost")
+}
+
+enum PostCategory {
+  CATEGORY_1
+  CATEGORY_2
+  CATEGORY_3
+  CATEGORY_4
+  CATEGORY_5
+}
+
+model PostUser {
+  userId Int
+  postId Int
+
+  User User @relation(fields: [userId], references: [id])
+  Post Post @relation(fields: [postId], references: [id])
+
+  @@id([userId, postId])
+}
+
+///// FLAG 
+
+model Flag {
+  targetId  Int
+  userId    Int
+  target    FlagTarget
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  User      User       @relation(fields: [userId], references: [id])
+
+  Event  Event  @relation(fields: [eventId], references: [id], name: "flagEvent")
+  Post   Post   @relation(fields: [postId], references: [id], name: "flagPost")
+  Survey Survey @relation(fields: [surveyId], references: [id], name: "flagSurvey")
+
+  eventId  Int
+  postId   Int
+  surveyId Int
+
+  @@id([userId, targetId])
+}
+
+enum FlagTarget {
+  EVENT
+  POST
+  SURVEY
+}
