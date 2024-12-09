@@ -4,23 +4,23 @@ export class User {
     id: number;
     email: string;
     password: string;
-    created_at: Date;
-    updated_at: Date;
+    createdAt: Date;
+    updatedAt: Date;
     lastConnection: Date;
 
     constructor(
         id: number,
         email: string,
         password: string,
-        created_at: Date,
-        updated_at: Date,
+        createdAt: Date,
+        updatedAt: Date,
         lastConnection: Date
     ) {
         this.id = id;
         this.email = email;
         this.password = password;
-        this.created_at = created_at;
-        this.updated_at = updated_at;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
         this.lastConnection = lastConnection;
     }
 }
@@ -31,10 +31,10 @@ export class UserEntity implements User {
   id: number;
 
   @ApiProperty()
-  created_at: Date;
+  createdAt: Date;
 
   @ApiProperty()
-  updated_at: Date;
+  updatedAt: Date;
 
   @ApiProperty()
   lastConnection: Date

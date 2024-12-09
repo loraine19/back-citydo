@@ -1,8 +1,7 @@
 import { ApiProperty, PartialType } from "@nestjs/swagger";
 
 export class CreateGroupDto {
-    @ApiProperty()
-    id: number;
+
     @ApiProperty()
     address_id: number;
     @ApiProperty()
@@ -12,7 +11,7 @@ export class CreateGroupDto {
     @ApiProperty()
     name: string;
     @ApiProperty()
-    created_at: Date;
+    createdAt: Date;
     @ApiProperty()
-    updated_at: Date;
+    updatedAt: Date;
 }

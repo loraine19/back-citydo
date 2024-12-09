@@ -25,33 +25,29 @@ model GroupUser {
 }
 
 model User {
-  id             Int      @id @default(autoincrement())
-  email          String   @unique
-  password       String
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @default(now())
-  lastConnection DateTime @default(now())
-
-  GroupUser GroupUser[]
-  Event     Event[]
-
-  Post      Post[]
-  PostUser  PostUser[]
-  Flag      Flag[]
-  Vote      Vote[]
-  UserEvent UserEvent[]
-  Survey    Survey[]
-
-  userRespService Service[] @relation("userResp")
-  userService     Service[] @relation("user")
-
-  userModo     Issue[]   @relation("userModo")
-  userModoResp Issue[]   @relation("userModoResp")
-  Issue        Issue[]
-  userAuthor   Pool[]    @relation("userAuthor")
-  userBenef    Pool[]    @relation("userBenef")
-  user         Profile[] @relation("user")
-  userSp       Profile[] @relation("userSp")
+  id              Int         @id @default(autoincrement())
+  email           String      @unique
+  password        String
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @default(now())
+  lastConnection  DateTime    @default(now())
+  GroupUser       GroupUser[]
+  Event           Event[]
+  Post            Post[]
+  PostUser        PostUser[]
+  Flag            Flag[]
+  Vote            Vote[]
+  UserEvent       UserEvent[]
+  Survey          Survey[]
+  userRespService Service[]   @relation("userResp")
+  userService     Service[]   @relation("user")
+  userModo        Issue[]     @relation("userModo")
+  userModoResp    Issue[]     @relation("userModoResp")
+  Issue           Issue[]
+  userAuthor      Pool[]      @relation("userAuthor")
+  userBenef       Pool[]      @relation("userBenef")
+  user            Profile[]   @relation("user")
+  userSp          Profile[]   @relation("userSp")
 }
 
 model Group {

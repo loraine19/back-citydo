@@ -4,20 +4,17 @@ import { isNumber } from "class-validator";
 import { IsDate } from "@nestjs/class-validator";
 
 export class CreateUserDto{
-    @ApiProperty()
-id: number;
-    @ApiProperty()
-        
-created_at: Date;
+  @ApiProperty()      
+createdAt: Date;
 
 @ApiProperty()
-updated_at: Date;
+updatedAt: Date;
 
 @ApiProperty()
 lastConnection: Date
 
 @ApiProperty()
 email: string;
-
+@ApiProperty()
 password: string;
 }

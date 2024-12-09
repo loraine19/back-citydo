@@ -7,8 +7,8 @@ export class Group {
     area: number;
     rules: string;
     name: string;
-    created_at: Date;
-    updated_at: Date;
+    createdAt: Date;
+    updatedAt: Date;
 
     constructor(
         id: number,
@@ -16,16 +16,16 @@ export class Group {
         area: number,
         rules: string,
         name: string,
-        created_at: Date,
-        updated_at: Date
+        createdAt: Date,
+        updatedAt: Date
     ) {
         this.id = id;
         this.address_id = address_id;
         this.area = area;
         this.rules = rules;
         this.name = name;
-        this.created_at = created_at;
-        this.updated_at = updated_at;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
     }
 }
 
@@ -42,9 +42,9 @@ export class GroupEntity implements Group {
     @ApiProperty()
     name: string;
     @ApiProperty()
-    created_at: Date;
+    createdAt: Date;
     @ApiProperty()
-    updated_at: Date;
+    updatedAt: Date;
       
 
   }
