@@ -1,3 +1,5 @@
+import { ApiProperty } from '@nestjs/swagger';
+
 export class User {
     id: number;
     email: string;
@@ -22,6 +24,34 @@ export class User {
         this.lastConnection = lastConnection;
     }
 }
+
+export class UserEntity implements User {
+
+  @ApiProperty()
+  id: number;
+
+  @ApiProperty()
+  created_at: Date;
+
+  @ApiProperty()
+  updated_at: Date;
+
+  @ApiProperty()
+  lastConnection: Date
+
+  @ApiProperty()
+  email: string;
+
+    @ApiProperty()
+        
+    password: string;
+    
+
+
+}
+
+
+
 
 
 

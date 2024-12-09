@@ -1,3 +1,6 @@
+import { ApiProperty } from "@nestjs/swagger";
+import { User } from "@prisma/client";
+
 export class Group {
     id: number;
     address_id: number;
@@ -25,3 +28,23 @@ export class Group {
         this.updated_at = updated_at;
     }
 }
+
+export class GroupEntity implements Group {
+
+    @ApiProperty()
+    id: number;
+    @ApiProperty()
+    address_id: number;
+    @ApiProperty()
+    area: number;
+    @ApiProperty()
+    rules: string;
+    @ApiProperty()
+    name: string;
+    @ApiProperty()
+    created_at: Date;
+    @ApiProperty()
+    updated_at: Date;
+      
+
+  }
