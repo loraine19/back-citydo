@@ -15,7 +15,7 @@ export class CreateAddressDto {
     @ApiProperty()
     long: number;
     @ApiProperty()
-    createdAt: number;
+    createdAt: Date;
     @ApiProperty()
-    updatedAt: number
+    updatedAt: Date
 }

@@ -11,8 +11,4 @@ export class CreateGroupDto {
     rules: string;
     @ApiProperty()
     name: string;
-    @ApiProperty()
-    createdAt: Date;
-    @ApiProperty()
-    updatedAt: Date;
 }

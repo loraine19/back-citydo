@@ -1,4 +1,4 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, PartialType } from "@nestjs/swagger";
 import { User } from "@prisma/client";
 
 export class Group {
@@ -29,8 +29,7 @@ export class Group {
     }
 }
 
-export class GroupEntity implements Group {
-
+export class GroupEntity extends PartialType(Group)  {
     @ApiProperty()
     id: number;
     @ApiProperty()
@@ -41,10 +40,4 @@ export class GroupEntity implements Group {
     rules: string;
     @ApiProperty()
     name: string;
-    @ApiProperty()
-    createdAt: Date;
-    @ApiProperty()
-    updatedAt: Date;
-      
-
   }

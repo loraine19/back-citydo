@@ -26,9 +26,12 @@ services:
     restart: always
     ports:
       - "8099:80"
+    env_file:
+      - .env
     environment:
-      PMA_HOST: mysql
-      MYSQL_ROOT_PASSWORD: password
+      PMA_HOST: ${MYSQL_HOST}
+      
+      MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD}
     networks:
       - nest-network
 
@@ -80,7 +83,6 @@ services:
 
 networks:
   nest-network:
-
 
 volumes:
   db_data:

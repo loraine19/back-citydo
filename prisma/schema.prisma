@@ -16,12 +16,14 @@ datasource db {
 /////// USERS GROUP ...
 model GroupUser {
   userId    Int
-  groupId   Int      @unique
+  groupId   Int
   role      Role
   createdAt DateTime @default(now())
-  updatedAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
   User      User     @relation(fields: [userId], references: [id])
   Group     Group    @relation(fields: [groupId], references: [id])
+
+  @@id([userId, groupId])
 }
 
 model User {
@@ -29,7 +31,7 @@ model User {
   email           String      @unique
   password        String
   createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
   lastConnection  DateTime    @default(now())
   GroupUser       GroupUser[]
   Event           Event[]
@@ -57,7 +59,7 @@ model Group {
   rules     String
   name      String
   createdAt DateTime    @default(now())
-  updatedAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
   Address   Address     @relation(fields: [addressId], references: [id])
   GroupUser GroupUser[]
 }
@@ -69,8 +71,8 @@ model Address {
   address   String
   lat       Decimal
   long      Decimal
-  createdAt Int
-  updatedAt Int
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
   Group     Group[]
   Profile   Profile[]
   Event     Event[]
@@ -89,7 +91,7 @@ model Profile {
   assistance    Assistance
   points        Int
   createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
   Address       Address    @relation(fields: [addressId], references: [id])
   User          User       @relation(fields: [userId], references: [id], name: "user")
   UserSp        User       @relation(fields: [userIdSp], references: [id], name: "userSp")
@@ -120,7 +122,7 @@ model Event {
   category       EventCategory
   participantMin Int
   createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
   User           User          @relation(fields: [userId], references: [id])
   Address        Address       @relation(fields: [addressId], references: [id])
   UserEvent      UserEvent[]
@@ -154,7 +156,7 @@ model Service {
   skillLevel  SkillLevel
   hardLevel   HardLevel
   createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
   User        User            @relation(fields: [userId], references: [id], name: "user")
   Issue       Issue[]
   UserResp    User            @relation(fields: [userIdResp], references: [id], name: "userResp")
@@ -192,7 +194,7 @@ model Issue {
   date           DateTime
   status         IssueStatus
   createdAt      DateTime    @default(now())
-  updatedAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
   userIdModo     Int
   userIdModoResp Int
   UserModo       User        @relation(fields: [userIdModo], references: [id], name: "userModo")
@@ -215,7 +217,7 @@ model Survey {
   description String
   category    SurveyCategory
   createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
   User        User           @relation(fields: [userId], references: [id])
   Vote        Vote[]
   Flag        Flag[]         @relation(name: "flagSurvey")
@@ -234,22 +236,23 @@ model Pool {
   title       String
   description String
   createdAt   DateTime @default(now())
-  updatedAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
   UserAuthor  User     @relation(fields: [userId], references: [id], name: "userAuthor")
   UserBenef   User     @relation(fields: [userIdBenef], references: [id], name: "userBenef")
   Vote        Vote[]
 }
 
 model Vote {
-  userId   Int
-  targetId Int
-  target   VoteTarget
-  opinion  VoteOpinion
-  User     User        @relation(fields: [userId], references: [id])
-  Survey   Survey?     @relation(fields: [surveyId], references: [id])
-  surveyId Int?
-  Pool     Pool?       @relation(fields: [poolId], references: [id])
-  poolId   Int?
+  userId    Int
+  targetId  Int
+  target    VoteTarget
+  opinion   VoteOpinion
+  User      User        @relation(fields: [userId], references: [id])
+  Survey    Survey?     @relation(fields: [surveyId], references: [id])
+  surveyId  Int?
+  Pool      Pool?       @relation(fields: [poolId], references: [id])
+  poolId    Int?
+  updatedAt DateTime    @updatedAt
 
   @@id([userId, targetId])
 }
@@ -289,11 +292,11 @@ enum PostCategory {
 }
 
 model PostUser {
-  userId Int
-  postId Int
-
-  User User @relation(fields: [userId], references: [id])
-  Post Post @relation(fields: [postId], references: [id])
+  userId    Int
+  postId    Int
+  User      User     @relation(fields: [userId], references: [id])
+  Post      Post     @relation(fields: [postId], references: [id])
+  updatedAt DateTime @updatedAt
 
   @@id([userId, postId])
 }
@@ -307,14 +310,12 @@ model Flag {
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
   User      User       @relation(fields: [userId], references: [id])
-
-  Event  Event  @relation(fields: [eventId], references: [id], name: "flagEvent")
-  Post   Post   @relation(fields: [postId], references: [id], name: "flagPost")
-  Survey Survey @relation(fields: [surveyId], references: [id], name: "flagSurvey")
-
-  eventId  Int
-  postId   Int
-  surveyId Int
+  Event     Event      @relation(fields: [eventId], references: [id], name: "flagEvent")
+  Post      Post       @relation(fields: [postId], references: [id], name: "flagPost")
+  Survey    Survey     @relation(fields: [surveyId], references: [id], name: "flagSurvey")
+  eventId   Int
+  postId    Int
+  surveyId  Int
 
   @@id([userId, targetId])
 }

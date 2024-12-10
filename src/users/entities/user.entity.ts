@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, PartialType } from '@nestjs/swagger';
 
 export class User {
     id: number;
@@ -25,28 +25,16 @@ export class User {
     }
 }
 
-export class UserEntity implements User {
-
-  @ApiProperty()
-  id: number;
-
-  @ApiProperty()
-  createdAt: Date;
-
-  @ApiProperty()
-  updatedAt: Date;
-
-  @ApiProperty()
-  lastConnection: Date
-
-  @ApiProperty()
-  email: string;
+export class UserEntity extends PartialType(User) {
 
     @ApiProperty()
-        
-    password: string;
-    
+    id: number;
 
+    @ApiProperty()
+    email: string;
+
+    @ApiProperty()
+    password: string;
 
 }
 

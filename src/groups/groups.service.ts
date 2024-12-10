@@ -22,11 +22,9 @@ export class GroupsService {
   async findOne(id: number): Promise<Group> {
     return await this.prisma.group.findUnique({
       where: { id },
-      include: { GroupUser: true },
+      include: { GroupUser: { include: { User: true } } },
     })
   }
-
-  
 
   async update(id: number, updateGroupDto: any):Promise<Group> {
     return await this.prisma.group.update({

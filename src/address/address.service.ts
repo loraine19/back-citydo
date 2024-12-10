@@ -15,18 +15,20 @@ export class AddressService {
     });
   }
   
- async findAll() :Promise <Address[]> {
+ async findAll() :Promise<Address[]> {
     return await this.prisma.address.findMany();
   }
 
   async findOne(id: number): Promise<Address> {
-    return await this.prisma.address.findUnique({ where: { id } });
+    return await this.prisma.address.findUnique({
+      where: { id },
+    include: { Group: true },});
   }
 
   async update(id: number, updateGroupDto: UpdateAddressDto):Promise<Address> {
     return await this.prisma.address.update({
       where: { id },
-      data: updateGroupDto
+      data: updateGroupDto,
     });
   }
 

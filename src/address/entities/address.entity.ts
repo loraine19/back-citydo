@@ -9,8 +9,8 @@ export class Address {
     address: string;
     lat: number;
     long: number;
-    createdAt: number;
-    updatedAt: number;
+    createdAt: Date;
+    updatedAt: Date;
 
     constructor(
         id: number,
@@ -20,8 +20,8 @@ export class Address {
         address: string,
         lat: number,
         long: number,
-        createdAt: number,
-        updatedAt: number
+        createdAt: Date,
+        updatedAt: Date
     ) {
         this.id = id;
         this.zipcode = zipcode;
@@ -52,9 +52,7 @@ export class AddressEntity implements Address {
     @ApiProperty()
     long: number;
     @ApiProperty()
-    createdAt: number;
+    createdAt: Date;
     @ApiProperty()
-        updatedAt: number
-      
-
+updatedAt: Date
   }
