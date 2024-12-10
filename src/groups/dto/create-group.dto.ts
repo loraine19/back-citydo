@@ -4,7 +4,7 @@ import { CreateUserDto } from "src/users/dto/create-user.dto";
 export class CreateGroupDto {
 
     @ApiProperty()
-    address_id:number
+    addressId:number
     @ApiProperty()
     area: number;
     @ApiProperty()

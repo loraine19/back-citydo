@@ -1,58 +1,45 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, PartialType } from '@nestjs/swagger';
 import { User } from "@prisma/client";
 
 export class Address {
     id: number;
-    zipcode: number;
+    zipcode: string;
     city: string;
-    country?: string;
     address: string;
     lat: number;
-    long: number;
+    lng: number;
     createdAt: Date;
     updatedAt: Date;
 
     constructor(
         id: number,
-        zipcode: number,
+        zipcode: string,
         city: string,
-        country: string,
         address: string,
         lat: number,
-        long: number,
+        lng: number,
         createdAt: Date,
         updatedAt: Date
     ) {
         this.id = id;
         this.zipcode = zipcode;
         this.city = city;
-        this.country = country;
         this.address = address;
         this.lat = lat;
-        this.long = long;
+        this.lng = lng;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
 }
-export class AddressEntity implements Address {
-
+export class AddressEntity extends PartialType(Address) {
     @ApiProperty()
-    id: number;
+    zipcode: string
     @ApiProperty()
-    zipcode: number
-    @ApiProperty()
-
     city: string;
-    @ApiProperty()
-    country: string;
     @ApiProperty()
     address: string;
     @ApiProperty()
     lat: number;
     @ApiProperty()
-    long: number;
-    @ApiProperty()
-    createdAt: Date;
-    @ApiProperty()
-updatedAt: Date
+    lng: number
   }

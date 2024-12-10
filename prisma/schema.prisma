@@ -17,7 +17,7 @@ datasource db {
 model GroupUser {
   userId    Int
   groupId   Int
-  role      Role
+  role      Role     @default(MEMBER)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   User      User     @relation(fields: [userId], references: [id])
@@ -66,11 +66,11 @@ model Group {
 
 model Address {
   id        Int       @id @default(autoincrement())
-  zipcode   Int       @unique
+  zipcode   String
   city      String
   address   String
   lat       Decimal
-  long      Decimal
+  lng       Decimal
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   Group     Group[]
@@ -105,28 +105,28 @@ enum Assistance {
 }
 
 enum Role {
-  ADMIN
   MEMBER
   GUEST
 }
 
-/////// EVENTS 
+/////// EVENTS // EventCategory
 model Event {
-  id             Int           @id @default(autoincrement())
-  userId         Int
-  addressId      Int
-  dateStart      DateTime
-  dateEnd        DateTime
-  title          String        @unique
-  description    String
-  category       EventCategory
-  participantMin Int
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
-  User           User          @relation(fields: [userId], references: [id])
-  Address        Address       @relation(fields: [addressId], references: [id])
-  UserEvent      UserEvent[]
-  Flag           Flag[]        @relation(name: "flagEvent")
+  id              Int         @id @default(autoincrement())
+  userId          Int
+  addressId       Int
+  start           DateTime
+  end             DateTime
+  title           String
+  description     String
+  category        String
+  participantsMin Int
+  image           String?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  User            User        @relation(fields: [userId], references: [id])
+  Address         Address     @relation(fields: [addressId], references: [id])
+  UserEvent       UserEvent[]
+  Flag            Flag[]      @relation(name: "flagEvent")
 }
 
 enum EventCategory {

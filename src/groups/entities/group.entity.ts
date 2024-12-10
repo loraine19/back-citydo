@@ -3,7 +3,7 @@ import { User } from "@prisma/client";
 
 export class Group {
     id: number;
-    address_id: number;
+    addressId: number;
     area: number;
     rules: string;
     name: string;
@@ -12,7 +12,7 @@ export class Group {
 
     constructor(
         id: number,
-        address_id: number,
+        addressId: number,
         area: number,
         rules: string,
         name: string,
@@ -20,7 +20,7 @@ export class Group {
         updatedAt: Date
     ) {
         this.id = id;
-        this.address_id = address_id;
+        this.addressId = addressId;
         this.area = area;
         this.rules = rules;
         this.name = name;
@@ -31,9 +31,7 @@ export class Group {
 
 export class GroupEntity extends PartialType(Group)  {
     @ApiProperty()
-    id: number;
-    @ApiProperty()
-    address_id: number;
+    addressId: number;
     @ApiProperty()
     area: number;
     @ApiProperty()

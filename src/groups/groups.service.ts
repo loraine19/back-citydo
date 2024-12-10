@@ -16,7 +16,8 @@ export class GroupsService {
   }
   
   async findAll(): Promise<Group[]> {
-    return await this.prisma.group.findMany();
+    return await this.prisma.group.findMany({
+      include: { GroupUser: { include: { User: true } } },});
   }
 
   async findOne(id: number): Promise<Group> {
