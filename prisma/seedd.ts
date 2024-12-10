@@ -1,13 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
-import { Body, Injectable} from '@nestjs/common';
-import { Group } from '@prisma/client';
-import { User } from 'src/users/entities/user.entity';
-import { UsersService } from 'src/users/users.service'
-import { PrismaService } from 'src/prisma/prisma.service';
 
 const prisma = new PrismaClient();
-
 const initialUsers: CreateUserDto[] =  [
   {
     email: "utilisateur1@exemple.fr",
