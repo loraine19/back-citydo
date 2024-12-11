@@ -6,7 +6,7 @@ import { UpdateEventDto } from './dto/update-event.dto';
 import { EventEntity } from './entities/event.entity';
 import { EventsService } from './events.service';
 
-const route = 'event'
+const route = 'events'
 @Controller(route)
 @ApiTags(route)
 export class EventsController {
