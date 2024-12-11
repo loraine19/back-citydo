@@ -30,18 +30,18 @@ export class ParticipantsController {
     return this.participantsService.findAll();
   }
 
-  @Get(':userId/:eventId')
+  @Get(':userId_:eventId')
   findOne(@Param('userId') userId: string, @Param('eventId') eventId: string) {
     return this.participantsService.findOne(+userId, +eventId);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateParticipantDto: UpdateParticipantDto) {
-    return this.participantsService.update(+id, +id, updateParticipantDto);
+  @Patch(':userId_:eventId')
+  update(@Param('userId') userId: string, @Param('eventId') eventId: string, @Body() updateParticipantDto: UpdateParticipantDto) {
+    return this.participantsService.update(+userId, +eventId, updateParticipantDto);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.participantsService.remove(+id, +id);
+  @Delete(':userId_:eventId')
+  remove(@Param('userId') userId: string, @Param('eventId') eventId: string) {
+    return this.participantsService.remove(+userId, +eventId);
   }
 }
