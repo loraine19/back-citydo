@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { CreateGroupDto } from './dto/create-group.dto';
-import { UpdateGroupDto } from './dto/update-group.dto';
+import { CreateDto } from './dto/create.dto';
+import { UpdateDto } from './dto/update.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Group } from '@prisma/client';
 
@@ -8,7 +8,7 @@ import { Group } from '@prisma/client';
 @Injectable()
 export class GroupsService {
   constructor(private prisma: PrismaService) { }
-  async create(data: CreateGroupDto): Promise<Group> {
+  async create(data: CreateDto): Promise<Group> {
     return await this.prisma.group.create({
      data
     });
@@ -26,10 +26,10 @@ export class GroupsService {
     })
   }
 
-  async update(id: number, updateGroupDto: any):Promise<Group> {
+  async update(id: number, data: UpdateDto):Promise<Group> {
     return await this.prisma.group.update({
       where: { id },
-      data: updateGroupDto,
+      data
     });
   }
 

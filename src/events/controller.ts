@@ -2,7 +2,6 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, HttpException, HttpS
 import { EventService } from './service';
 import { CreateDto } from './dto/create.dto';
 import { UpdateDto } from './dto/update.dto';
-import { GroupsService } from 'src/groups/groups.service';
 
   const route = 'event'  
   @Controller(route)

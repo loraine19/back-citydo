@@ -1,20 +1,17 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UsePipes, ValidationPipe, HttpException, HttpStatus } from '@nestjs/common';
-import { UsersService } from './users.service';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
-import { ApiBody, ApiCreatedResponse, ApiResponse } from '@nestjs/swagger';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpException, HttpStatus, ValidationPipe } from '@nestjs/common';
+import { CreateDto } from './dto/create.dto';
+import { UpdateDto } from './dto/update.dto';
+import { GroupsService } from './service';
 
 //// CONTROLLER DO ROUTE 
-const route = 'users'
-class classCreate extends CreateUserDto{};
-class classUpdate extends UpdateUserDto{ }
+const route = 'groups'
 
 @Controller(route)
-export class UsersController {
-  constructor(private readonly service: UsersService) {}
+export class GroupsController {
+  constructor(private readonly service: GroupsService) {}
 
   @Post()
-  create(@Body(new ValidationPipe()) data: classCreate) {
+  create(@Body(new ValidationPipe()) data: CreateDto) {
     const creat = this.service.create(data);
     if (!creat) throw new HttpException(`no ${route} created`, HttpStatus.NOT_IMPLEMENTED)
     return this.service.create(data);
@@ -35,7 +32,7 @@ export class UsersController {
     
   }
   @Patch(':id')
-  update(@Param('id') id: string, @Body() data: classUpdate) {
+  update(@Param('id') id: string, @Body() data: UpdateDto) {
     const find = this.service.findOne(+id)
     const update = this.service.update(+id, data)
     if (!find) throw new HttpException(`no ${id} find in ${route}`, HttpStatus.NOT_FOUND)
