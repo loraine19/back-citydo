@@ -152,7 +152,7 @@ export class Event {
     participants_min: number;
     createdAt: Date;
     updatedAt: Date;
-    image?: Blob |string;
+    image?: Blob | string;
 
     constructor(
         id: number,
@@ -166,7 +166,7 @@ export class Event {
         participants_min: number,
         createdAt: Date,
         updatedAt: Date,
-        image?: Blob |string 
+        image?: Blob | string
     ) {
         this.id = id;
         this.userId = userId;
@@ -208,7 +208,7 @@ export class Service {
         type: 'get' | 'do',
         title: string,
         description: string,
-        category:  1 | 2 | 3 | 4,
+        category: 1 | 2 | 3 | 4,
         skill: 1 | 2 | 3 | 0,
         hard: 1 | 2 | 3 | 0,
         status: 0 | 1 | 2 | 3 | 4,
@@ -261,7 +261,7 @@ export class Issue {
         status: "solved" | "pending",
         createdAt: Date,
         updatedAt: Date,
-        image?: Blob| string
+        image?: Blob | string
     ) {
         this.id = id;
         this.userId_M = userId_M;
@@ -346,7 +346,7 @@ export class Post {
     title: string;
     description: string;
     category: string;
-    share : ["phone"]|["email"]|["phone","email"];
+    share: ["phone"] | ["email"] | ["phone", "email"];
     createdAt: Date;
     updatedAt: Date;
     image?: Blob | string;
@@ -356,7 +356,7 @@ export class Post {
         title: string,
         description: string,
         category: string,
-        share : ["phone"]|["email"]|["phone","email"],
+        share: ["phone"] | ["email"] | ["phone", "email"],
         createdAt: Date,
         updatedAt: Date,
         image?: Blob | string,
@@ -420,20 +420,20 @@ export class PostUser {
 }
 
 //// PARTICPANTS EVENT 
-export class UserEvent {
+export class Participant {
     userId: number;
-    eventid: number;
+    eventId: number;
     createdAt: Date;
     updatedAt: Date;
 
     constructor(
         userId: number,
-        eventid: number,
+        eventId: number,
         createdAt: Date,
         updatedAt: Date,
     ) {
         this.userId = userId;
-        this.eventid = eventid;
+        this.eventId = eventId;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
@@ -478,8 +478,8 @@ export class Flag {
         target: string,
         active: boolean,
         reason: string,
-        createdAt: Date  | string, 
-        updatedAt: Date  | string
+        createdAt: Date | string,
+        updatedAt: Date | string
     ) {
         this.targetId = targetId;
         this.userId = userId;
