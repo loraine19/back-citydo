@@ -1,20 +1,18 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpException, HttpStatus, ValidationPipe } from '@nestjs/common';
-import { GroupsService } from './groups.service';
-import { CreateGroupDto } from './dto/create-group.dto';
-import { UpdateGroupDto } from './dto/update-group.dto';
-import { Group } from '@prisma/client';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UsePipes, ValidationPipe, HttpException, HttpStatus } from '@nestjs/common';
+import { UsersService } from './service';
+import { CreateDto } from './dto/create.dto';
+import { UpdateDto } from './dto/update.dto';
+import { ApiBody, ApiCreatedResponse, ApiResponse } from '@nestjs/swagger';
 
 //// CONTROLLER DO ROUTE 
-const route = 'groups'
-class classCreate extends CreateGroupDto{};
-class classUpdate extends UpdateGroupDto{ }
+const route = 'users'
 
 @Controller(route)
-export class GroupsController {
-  constructor(private readonly service: GroupsService) {}
+export class UsersController {
+  constructor(private readonly service: UsersService) {}
 
   @Post()
-  create(@Body(new ValidationPipe()) data: classCreate) {
+  create(@Body(new ValidationPipe()) data: CreateDto) {
     const creat = this.service.create(data);
     if (!creat) throw new HttpException(`no ${route} created`, HttpStatus.NOT_IMPLEMENTED)
     return this.service.create(data);
@@ -35,7 +33,7 @@ export class GroupsController {
     
   }
   @Patch(':id')
-  update(@Param('id') id: string, @Body() data: classUpdate) {
+  update(@Param('id') id: string, @Body() data: UpdateDto) {
     const find = this.service.findOne(+id)
     const update = this.service.update(+id, data)
     if (!find) throw new HttpException(`no ${id} find in ${route}`, HttpStatus.NOT_FOUND)

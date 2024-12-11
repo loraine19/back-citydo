@@ -1,5 +1,4 @@
 import { PrismaClient } from '@prisma/client';
-import { CreateUserDto } from 'src/users/dto/create-user.dto';
 
 const prisma = new PrismaClient();
 
