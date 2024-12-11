@@ -1,4 +1,5 @@
 import { ApiProperty, PartialType } from '@nestjs/swagger';
+import { isEmail, IsEmail } from 'class-validator';
 
 export class User {
     id: number;
@@ -30,7 +31,9 @@ export class UserEntity extends PartialType(User) {
     @ApiProperty()
     id: number;
 
-    @ApiProperty()
+    @ApiProperty ({
+        format: 'email',
+    })
     email: string;
 
     @ApiProperty()

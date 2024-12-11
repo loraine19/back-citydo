@@ -1,19 +1,16 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, HttpException, HttpStatus, ValidationPipe } from '@nestjs/common';
-import { AddressService } from './address.service';
-import { CreateAddressDto } from './dto/create-address.dto';
-import { UpdateAddressDto } from './dto/update-address.dto';
+import { EventService } from './service';
+import { CreateDto } from './dto/create.dto';
+import { UpdateDto } from './dto/update.dto';
 import { GroupsService } from 'src/groups/groups.service';
 
-  const route = 'address'
-  class classCreate extends CreateAddressDto{};
-  class classUpdate extends UpdateAddressDto{ }
-  
+  const route = 'event'  
   @Controller(route)
-  export class AddressController {
-    constructor(private readonly service: AddressService) {}
+  export class EventController {
+    constructor(private readonly service: EventService) {}
   
     @Post()
-    create(@Body(new ValidationPipe()) data: classCreate) {
+    create(@Body(new ValidationPipe()) data: CreateDto) {
       const creat = this.service.create(data);
       if (!creat) throw new HttpException(`no ${route} created`, HttpStatus.NOT_IMPLEMENTED)
       return this.service.create(data);
@@ -34,7 +31,7 @@ import { GroupsService } from 'src/groups/groups.service';
       
     }
     @Patch(':id')
-    update(@Param('id') id: string, @Body() data: classUpdate) {
+    update(@Param('id') id: string, @Body() data: UpdateDto) {
       const find = this.service.findOne(+id)
       const update = this.service.update(+id, data)
       if (!find) throw new HttpException(`no ${id} find in ${route}`, HttpStatus.NOT_FOUND)

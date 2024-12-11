@@ -5,13 +5,12 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { Group } from '@prisma/client';
 
 
-//// SERVICE MAKE ACTION
 @Injectable()
 export class GroupsService {
   constructor(private prisma: PrismaService) { }
-  async create(createGroupDto: any) {
+  async create(data: CreateGroupDto): Promise<Group> {
     return await this.prisma.group.create({
-      data: createGroupDto,
+     data
     });
   }
   

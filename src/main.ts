@@ -6,8 +6,8 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   const config = new DocumentBuilder()
-    .setTitle('First API')
-    .setDescription('users & groups ')
+    .setTitle('Collectif API ')
+    .setDescription('first api nest ')
     .setVersion('2')
     .build();
 
