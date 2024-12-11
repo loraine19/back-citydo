@@ -27,29 +27,29 @@ model GroupUser {
 }
 
 model User {
-  id              Int         @id @default(autoincrement())
-  email           String      @unique
+  id              Int           @id @default(autoincrement())
+  email           String        @unique
   password        String
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
-  lastConnection  DateTime    @default(now())
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  lastConnection  DateTime      @default(now())
   GroupUser       GroupUser[]
   Event           Event[]
   Post            Post[]
   PostUser        PostUser[]
   Flag            Flag[]
   Vote            Vote[]
-  UserEvent       UserEvent[]
+  Participant     Participant[]
   Survey          Survey[]
-  userRespService Service[]   @relation("userResp")
-  userService     Service[]   @relation("user")
-  userModo        Issue[]     @relation("userModo")
-  userModoResp    Issue[]     @relation("userModoResp")
+  userRespService Service[]     @relation("userResp")
+  userService     Service[]     @relation("user")
+  userModo        Issue[]       @relation("userModo")
+  userModoResp    Issue[]       @relation("userModoResp")
   Issue           Issue[]
-  userAuthor      Pool[]      @relation("userAuthor")
-  userBenef       Pool[]      @relation("userBenef")
-  user            Profile[]   @relation("user")
-  userSp          Profile[]   @relation("userSp")
+  userAuthor      Pool[]        @relation("userAuthor")
+  userBenef       Pool[]        @relation("userBenef")
+  user            Profile[]     @relation("user")
+  userSp          Profile[]     @relation("userSp")
 }
 
 model Group {
@@ -111,7 +111,7 @@ enum Role {
 
 /////// EVENTS // EventCategory
 model Event {
-  id              Int         @id @default(autoincrement())
+  id              Int           @id @default(autoincrement())
   userId          Int
   addressId       Int
   start           DateTime
@@ -121,12 +121,12 @@ model Event {
   category        String
   participantsMin Int
   image           String?
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
-  User            User        @relation(fields: [userId], references: [id])
-  Address         Address     @relation(fields: [addressId], references: [id])
-  UserEvent       UserEvent[]
-  Flag            Flag[]      @relation(name: "flagEvent")
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  User            User          @relation(fields: [userId], references: [id])
+  Address         Address       @relation(fields: [addressId], references: [id])
+  Participant     Participant[]
+  Flag            Flag[]        @relation(name: "flagEvent")
 }
 
 enum EventCategory {
@@ -137,11 +137,15 @@ enum EventCategory {
   CATEGORY_5
 }
 
-model UserEvent {
-  userId  Int
-  eventId Int   @unique
-  User    User  @relation(fields: [userId], references: [id])
-  Event   Event @relation(fields: [eventId], references: [id])
+model Participant {
+  userId    Int
+  eventId   Int
+  user      User     @relation(fields: [userId], references: [id])
+  event     Event    @relation(fields: [eventId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@id([userId, eventId])
 }
 
 ////// SERVICE 

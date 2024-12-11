@@ -1,19 +1,19 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, HttpException, HttpStatus, ValidationPipe, NotFoundException } from '@nestjs/common';
-import { ApiOkResponse } from '@nestjs/swagger';
-import { Entity } from 'src/participants/entities/participant.entity';
-import { AddressService } from './address.service';
-import { CreateAddressDto } from './dto/create-address.dto';
-import { UpdateAddressDto } from './dto/update-address.dto';
+import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import { CreateGroupDto } from './dto/create-group.dto';
+import { UpdateGroupDto } from './dto/update-group.dto';
+import { GroupEntity } from './entities/group.entity';
+import { GroupsService } from './groups.service';
 
-
-const route = 'address'
-
+//// CONTROLLER DO ROUTE 
+const route = 'groups'
 @Controller(route)
-export class AddressController {
-  constructor(private readonly service: AddressService) { }
+@ApiTags(route)
+export class GroupsController {
+  constructor(private readonly service: GroupsService) { }
 
   @Post()
-  create(@Body(new ValidationPipe()) data: CreateAddressDto) {
+  create(@Body(new ValidationPipe()) data: CreateGroupDto) {
     const creat = this.service.create(data);
     if (!creat) throw new NotFoundException(`no ${route} created`)
     return this.service.create(data);
@@ -27,7 +27,7 @@ export class AddressController {
   }
 
   @Get(':id')
-  @ApiOkResponse({ type: Entity })
+  @ApiOkResponse({ type: GroupEntity })
   async findOne(@Param('id') id: string) {
     const data = await this.service.findOne(+id)
     if (!data) throw new NotFoundException(`no ${id} find in ${route}`)
@@ -35,7 +35,7 @@ export class AddressController {
 
   }
   @Patch(':id')
-  update(@Param('id') id: string, @Body() data: UpdateAddressDto) {
+  update(@Param('id') id: string, @Body() data: UpdateGroupDto) {
     const find = this.service.findOne(+id)
     const update = this.service.update(+id, data)
     if (!find) throw new NotFoundException(`no ${id} find in ${route}`)

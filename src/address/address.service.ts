@@ -1,38 +1,40 @@
 import { Injectable } from '@nestjs/common';
-import { CreateDto } from './dto/create.dto';
-import { UpdateDto } from './dto/update.dto';
+
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Address } from '@prisma/client';
-
+import { CreateAddressDto } from './dto/create-address.dto';
+import { UpdateAddressDto } from './dto/update-address.dto';
 
 //// SERVICE MAKE ACTION
 @Injectable()
 export class AddressService {
-  constructor(private prisma: PrismaService) {}
-  async create(data: CreateDto ) {
+  constructor(private prisma: PrismaService) { }
+  async create(data: CreateAddressDto) {
     return await this.prisma.address.create({
-     data
+      data
     });
   }
-  
- async findAll() :Promise<Address[]> {
+
+  async findAll(): Promise<Address[]> {
     return await this.prisma.address.findMany();
   }
 
   async findOne(id: number): Promise<Address> {
     return await this.prisma.address.findUnique({
       where: { id },
-    include: { Group: true },});
+      include: { Group: true },
+    });
   }
 
-  async update(id: number, data: UpdateDto):Promise<Address> {
+  async update(id: number, data: UpdateAddressDto): Promise<Address> {
     return await this.prisma.address.update({
       where: { id },
       data
     });
   }
 
- async remove(id: number):Promise<Address> {
+  async remove(id: number): Promise<Address> {
     return await this.prisma.address.delete({ where: { id } });
   }
+
 }
