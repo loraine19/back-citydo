@@ -22,6 +22,12 @@ export class AddressService {
   async findOne(id: number): Promise<Address> {
     return await this.prisma.address.findUnique({
       where: { id },
+    });
+  }
+
+  async findOneUsers(id: number): Promise<Address> {
+    return await this.prisma.address.findUnique({
+      where: { id },
       include: { Group: true },
     });
   }

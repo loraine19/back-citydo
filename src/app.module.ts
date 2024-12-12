@@ -8,9 +8,16 @@ import { AddressModule } from './address/adress.module';
 import { EventsModule } from './events/events.module';
 import { ParticipantsModule } from './participants/participants.module';
 import { AuthModule } from './auth/auth.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
+
 
 @Module({
-  imports: [PrismaModule, UsersModule, GroupsModule, AddressModule, EventsModule, ParticipantsModule, AuthModule],
+  imports: [PrismaModule, UsersModule, GroupsModule, AddressModule, EventsModule, ParticipantsModule, AuthModule,
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '../home', 'client'),
+    })
+  ],
   controllers: [AppController],
   providers: [AppService],
 })

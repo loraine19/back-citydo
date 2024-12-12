@@ -20,6 +20,12 @@ export class EventsService {
   async findOne(id: number): Promise<Event> {
     return await this.prisma.event.findUnique({
       where: { id },
+    });
+  }
+
+  async findOneUser(id: number): Promise<Event> {
+    return await this.prisma.event.findUnique({
+      where: { id },
       include: { Participant: { include: { user: true } } },
     });
   }

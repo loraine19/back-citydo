@@ -1,10 +1,12 @@
 import { PartialType } from "@nestjs/swagger";
-import { Entity } from "../entities/participant.entity";
-import { IsNotEmpty } from "class-validator";
+import { ParticpantEntity } from "../entities/participant.entity";
+import { IsNotEmpty, IsNumber } from "class-validator";
 
-export class CreateParticipantDto extends PartialType(Entity) {
+export class CreateParticipantDto extends PartialType(ParticpantEntity) {
     @IsNotEmpty()
+    @IsNumber()
     userId: number;
     @IsNotEmpty()
+    @IsNumber()
     eventId: number;
 }

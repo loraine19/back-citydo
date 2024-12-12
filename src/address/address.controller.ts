@@ -1,9 +1,9 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, HttpException, HttpStatus, ValidationPipe, NotFoundException, ParseIntPipe, BadRequestException } from '@nestjs/common';
 import { ApiOkResponse } from '@nestjs/swagger';
-import { Entity } from 'src/participants/entities/participant.entity';
 import { AddressService } from './address.service';
 import { CreateAddressDto } from './dto/create-address.dto';
 import { UpdateAddressDto } from './dto/update-address.dto';
+import { AddressEntity } from './entities/address.entity';
 
 
 const route = 'address'
@@ -12,6 +12,7 @@ export class AddressController {
   constructor(private readonly service: AddressService) { }
 
   @Post()
+  @ApiOkResponse({ type: AddressEntity })
   create(@Body(new ValidationPipe()) data: CreateAddressDto) {
     const address = this.service.create(data);
     if (!address) throw new NotFoundException(`no ${route} created`)
@@ -19,6 +20,7 @@ export class AddressController {
   }
 
   @Get()
+  @ApiOkResponse({ type: AddressEntity, isArray: true })
   async findAll() {
     const address = await this.service.findAll()
     if (!address) throw new NotFoundException(`no ${route} find`)
@@ -26,14 +28,25 @@ export class AddressController {
   }
 
   @Get(':id')
-  @ApiOkResponse({ type: Entity })
+  @ApiOkResponse({ type: AddressEntity })
   async findOne(@Param('id', ParseIntPipe) id: number) {
     const address = await this.service.findOne(+id)
     if (!address) throw new NotFoundException(`no ${id} find in ${route}`)
     return { address };
 
   }
+
+  @Get(':id&users')
+  @ApiOkResponse({ type: AddressEntity })
+  async findOneUsers(@Param('id', ParseIntPipe) id: number) {
+    const address = await this.service.findOneUsers(+id)
+    if (!address) throw new NotFoundException(`no ${id} find in ${route}`)
+    return { address };
+  }
+
+
   @Patch(':id')
+  @ApiOkResponse({ type: AddressEntity })
   update(@Param('id', ParseIntPipe) id: number, @Body() data: UpdateAddressDto) {
     const find = this.service.findOne(+id)
     const address = this.service.update(+id, data)
@@ -43,6 +56,7 @@ export class AddressController {
   }
 
   @Delete(':id')
+  @ApiOkResponse({ type: AddressEntity })
   remove(@Param('id', ParseIntPipe) id: number) {
     const find = this.service.findOne(+id)
     if (!find) throw new BadRequestException(`no ${id} find in ${route}`)

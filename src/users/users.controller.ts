@@ -15,7 +15,10 @@ export class UsersController {
 
   @Post()
   @ApiCreatedResponse({ type: UserEntity })
+  //// FK ADDRESS   
   async create(@Body() data: CreateUserDto) {
+    const unique = await this.usersService.findUnique(data.email)
+    if (unique) return new BadRequestException(`user already exist`);
     const user = await this.usersService.create(data);
     if (!user) throw new BadRequestException(`no ${route} created`)
     return { user }

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpException, HttpStatus, ValidationPipe, NotFoundException, BadRequestException, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpException, HttpStatus, ValidationPipe, NotFoundException, BadRequestException, ParseIntPipe, ParseUUIDPipe } from '@nestjs/common';
 import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { UsersService } from 'src/users/users.service';
 import { CreateEventDto } from './dto/create-event.dto';
@@ -12,51 +12,59 @@ const route = 'events'
 export class EventsController {
   constructor(private readonly service: EventsService, private usersService: UsersService) { }
 
-
-  /// CHECK FK
   @Post()
+  @ApiOkResponse({ type: EventEntity })
   async create(@Body() data: CreateEventDto) {
-    try {
-      const find = await this.usersService.findOne(data.userId)
-      if (!find) throw new NotFoundException(`no ${route} find`)
-      return await this.service.create(data);
-    }
-    catch (error: any) {
-      console.log(error);
-      return new BadRequestException("error");
-    }
+    const user = await this.usersService.findOne(data.userId)
+    if (!user) throw new BadRequestException(`no ${data.userId} find in users`)
+    const event = await this.service.create(data)
+    if (!event) throw new BadRequestException(`no ${route} created`)
+    return { event }
   }
 
   @Get()
+  @ApiOkResponse({ type: EventEntity, isArray: true })
   async findAll() {
-    const data = await this.service.findAll()
-    if (!data) throw new NotFoundException(`no ${route} find`)
-    return data;
+    const events = await this.service.findAll()
+    if (!events) throw new NotFoundException(`no one ${route} find`)
+    return { events };
   }
 
   @Get(':id')
   @ApiOkResponse({ type: EventEntity })
   async findOne(@Param('id', ParseIntPipe) id: number) {
-    const data = await this.service.findOne(+id)
-    if (!data) throw new NotFoundException(`no ${id} find in ${route}`)
-    return data;
-
+    const event = await this.service.findOne(+id)
+    if (!event) throw new NotFoundException(`no ${id} find in ${route}`)
+    return { event }
   }
+
+  @Get(':id&users')
+  @ApiOkResponse({ type: EventEntity })
+  async findOneUser(@Param('id', ParseIntPipe) id: number) {
+    const event = await this.service.findOneUser(+id)
+    if (!event) throw new NotFoundException(`no ${id} find in ${route}`)
+    return { event };
+  }
+
   @Patch(':id')
-  update(@Param('id', ParseIntPipe) id: number, @Body() data: UpdateEventDto) {
-    const find = this.service.findOne(+id)
-    const update = this.service.update(+id, data)
+  @ApiOkResponse({ type: EventEntity })
+  async update(@Param('id', ParseIntPipe) id: number, @Body() data: UpdateEventDto): Promise<{ event: CreateEventDto }> {
+    const user = await this.usersService.findOne(data.userId)
+    if (!user) throw new BadRequestException(`no ${data.userId} find in users`)
+    const find = await this.service.findOne(+id)
     if (!find) throw new NotFoundException(`no ${id} find in ${route}`)
-    if (!update) throw new NotFoundException(`${route} ${id} not updated`)
-    return update;
+    const event = await this.service.update(+id, data)
+    if (!event) throw new BadRequestException(`${route} ${id} not updated`)
+    return { event };
   }
 
   @Delete(':id')
-  remove(@Param('id', ParseIntPipe) id: number) {
-    const find = this.service.findOne(+id)
-    const remove = this.service.remove(+id)
+  @ApiOkResponse({ type: EventEntity })
+  async remove(@Param('id', ParseIntPipe) id: number): Promise<{ event: CreateEventDto }> {
+    const find = await this.service.findOne(+id)
     if (!find) throw new NotFoundException(`no ${id} find in ${route}`)
-    if (!remove) throw new NotFoundException(`${route} ${id} not deleted`)
-    return this.service.remove(+id);
+    const event = await this.service.remove(+id)
+    if (!event) throw new BadRequestException(`${route} ${id} not deleted`)
+    return { event }
   }
 }

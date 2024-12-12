@@ -3,8 +3,6 @@ import { Event } from "@prisma/client";
 import { IsDate, isNotEmpty, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class EventEntity extends PartialType(Event) {
-    // @ApiProperty()
-    // id: number
     @ApiProperty()
     @IsNotEmpty({ message: 'Title is required' })
     @IsString()

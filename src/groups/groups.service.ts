@@ -24,6 +24,12 @@ export class GroupsService {
   async findOne(id: number): Promise<Group> {
     return await this.prisma.group.findUnique({
       where: { id },
+    })
+  }
+
+  async findOneUsers(id: number): Promise<Group> {
+    return await this.prisma.group.findUnique({
+      where: { id },
       include: { GroupUser: { include: { User: true } } },
     })
   }
