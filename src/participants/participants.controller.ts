@@ -26,8 +26,9 @@ export class ParticipantsController {
   }
 
   @Get()
-  findAll() {
-    return this.participantsService.findAll();
+  async findAll() {
+    const data = await this.participantsService.findAll()
+    return data ? data : new NotFoundException(`no ${route} find`);
   }
 
   @Get(':userId&:eventId')
