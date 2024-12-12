@@ -15,20 +15,12 @@ const route = "participants"
 export class ParticipantsController {
   constructor(private readonly participantsService: ParticipantsService, private usersService: UsersService, private eventsService: EventsService) { }
 
-
   @Post()
   @ApiResponse({ type: ParticpantEntity })
   /// FK user & event 
   async create(@Body() data: CreateParticipantDto) {
-    // const user = await this.usersService.findOne(data.userId)
-    // const event = await this.eventsService.findOne(data.eventId)
     const participation = { userId: data.userId, eventId: data.eventId }
-    // const find = await this.participantsService.findOne(data.userId, data.eventId)
-    // if (find) return new BadRequestException(`participation already exist`);
-    // if (!user || !event) throw new NotFoundException(`participation impossible`);
-
     return this.participantsService.create(participation)
-    // .catch(error => { console.log(error); throw new HttpException(error.meta.cause, error.code) })
   }
 
   @Get()
@@ -41,8 +33,8 @@ export class ParticipantsController {
 
   @Get('user:userId&event:eventId')
   @ApiResponse({ type: ParticpantEntity })
-  findOne(@Param('userId', ParseIntPipe) userId: number, @Param('eventId', ParseIntPipe) eventId: number) {
-    const participant = this.participantsService.findOne(userId, eventId)
+  async findOne(@Param('userId', ParseIntPipe) userId: number, @Param('eventId', ParseIntPipe) eventId: number) {
+    const participant = await this.participantsService.findOne(userId, eventId)
     if (!participant) throw new NotFoundException(`no ${route} found`);
     return participant
   }
@@ -50,21 +42,14 @@ export class ParticipantsController {
   @Patch('user:userId&event:eventId')
   @ApiResponse({ type: ParticpantEntity })
   async update(@Param('userId', ParseIntPipe) userId: number, @Param('eventId', ParseIntPipe) eventId: number, @Body() data: UpdateParticipantDto) {
-    const user = await this.usersService.findOne(data.userId)
-    const event = await this.eventsService.findOne(data.eventId)
-    if (!user || !event) throw new NotFoundException(`participation impossible`);
-    const find = await this.participantsService.findOne(data.userId, data.eventId)
-    if (find) return new BadRequestException(`participation already exist`);
     const participant = this.participantsService.update(+userId, +eventId, data);
-    if (!participant) throw new NotFoundException(`no ${route} found`);
-    return { participant }
+    return participant
   }
 
   @Delete('user:userId&event:eventId')
   @ApiResponse({ type: ParticpantEntity })
   remove(@Param('userId', ParseIntPipe) userId: number, @Param('eventId', ParseIntPipe) eventId: number) {
     const participant = this.participantsService.remove(+userId, +eventId);
-    if (!participant) throw new NotFoundException(`no ${route} found`);
-    return { participant }
+    return participant
   }
 }

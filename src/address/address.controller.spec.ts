@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { AddressController } from './controller';
-import { AddressService } from './service';
+import { AddressController } from './address.controller';
+import { AddressService } from './address.service';
 
 describe('AddressController', () => {
   let controller: AddressController;

@@ -15,10 +15,7 @@ export class EventsController {
   @Post()
   @ApiOkResponse({ type: EventEntity })
   async create(@Body() data: CreateEventDto) {
-    const user = await this.usersService.findOne(data.userId)
-    if (!user) throw new BadRequestException(`no ${data.userId} find in users`)
     const event = await this.service.create(data)
-    if (!event) throw new BadRequestException(`no ${route} created`)
     return { event }
   }
 
@@ -49,22 +46,14 @@ export class EventsController {
   @Patch(':id')
   @ApiOkResponse({ type: EventEntity })
   async update(@Param('id', ParseIntPipe) id: number, @Body() data: UpdateEventDto): Promise<{ event: CreateEventDto }> {
-    const user = await this.usersService.findOne(data.userId)
-    if (!user) throw new BadRequestException(`no ${data.userId} find in users`)
-    const find = await this.service.findOne(+id)
-    if (!find) throw new NotFoundException(`no ${id} find in ${route}`)
     const event = await this.service.update(+id, data)
-    if (!event) throw new BadRequestException(`${route} ${id} not updated`)
     return { event };
   }
 
   @Delete(':id')
   @ApiOkResponse({ type: EventEntity })
   async remove(@Param('id', ParseIntPipe) id: number): Promise<{ event: CreateEventDto }> {
-    const find = await this.service.findOne(+id)
-    if (!find) throw new NotFoundException(`no ${id} find in ${route}`)
     const event = await this.service.remove(+id)
-    if (!event) throw new BadRequestException(`${route} ${id} not deleted`)
     return { event }
   }
 }

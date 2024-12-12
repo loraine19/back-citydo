@@ -14,9 +14,7 @@ export class AddressController {
   @Post()
   @ApiOkResponse({ type: AddressEntity })
   create(@Body(new ValidationPipe()) data: CreateAddressDto) {
-    const address = this.service.create(data);
-    if (!address) throw new NotFoundException(`no ${route} created`)
-    return { address };
+    return this.service.create(data);
   }
 
   @Get()
@@ -47,21 +45,15 @@ export class AddressController {
 
   @Patch(':id')
   @ApiOkResponse({ type: AddressEntity })
-  update(@Param('id', ParseIntPipe) id: number, @Body() data: UpdateAddressDto) {
-    const find = this.service.findOne(+id)
-    const address = this.service.update(+id, data)
-    if (!find) throw new BadRequestException(`no ${id} find in ${route}`)
-    if (!address) throw new NotFoundException(`${route} ${id} not updated`)
-    return { address };
+  async update(@Param('id', ParseIntPipe) id: number, @Body() data: UpdateAddressDto) {
+    return this.service.update(+id, data)
+
   }
 
   @Delete(':id')
   @ApiOkResponse({ type: AddressEntity })
-  remove(@Param('id', ParseIntPipe) id: number) {
-    const find = this.service.findOne(+id)
-    if (!find) throw new BadRequestException(`no ${id} find in ${route}`)
+  async remove(@Param('id', ParseIntPipe) id: number) {
     const address = this.service.remove(+id)
-    if (!address) throw new NotFoundException(`${route} ${id} not deleted`)
     return { address, message: `${route} ${id} deleted` };
   }
 }
