@@ -6,5 +6,5 @@ export class CreateParticipantDto extends PartialType(Entity) {
     @IsNotEmpty()
     userId: number;
     @IsNotEmpty()
-    eventid: number;
+    eventId: number;
 }

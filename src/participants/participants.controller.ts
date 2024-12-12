@@ -5,6 +5,7 @@ import { UpdateParticipantDto } from './dto/update-participant.dto';
 import { ApiTags } from '@nestjs/swagger';
 import { UsersService } from 'src/users/users.service';
 import { EventsService } from 'src/events/events.service';
+import { Participant } from 'src/class';
 
 const route = "participants"
 @Controller(route)
@@ -18,12 +19,16 @@ export class ParticipantsController {
     try {
       const user = await this.usersService.findOne(data.userId)
       const event = await this.eventsService.findOne(data.eventId)
-      if (!user || !event) throw new NotFoundException(`participation impossible`);
-      return this.participantsService.create(data);
+      const participant = { userId: data.userId, eventId: data.eventId }
+      const find = await this.participantsService.findOne(data.userId, data.eventId)
+      if (find) return new BadRequestException(`participation already exist`);
+      if (user && event) return this.participantsService.create(participant)
+      else return new NotFoundException(`participation impossible`);
+
     }
     catch (error: any) {
       console.log(error);
-      return new BadRequestException("error");
+      return new BadRequestException(error.message);
     }
   }
 
