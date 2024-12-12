@@ -16,7 +16,7 @@ export class ParticipantsController {
   async create(@Body() data: CreateParticipantDto) {
     try {
       const find = await this.usersService.findOne(data.userId)
-      if (!find) throw new NotFoundException(`no ${route} find`)
+      if (!find) throw new NotFoundException(`no ${route} find`);
       return this.participantsService.create(data);
     }
     catch (error: any) {
@@ -30,17 +30,17 @@ export class ParticipantsController {
     return this.participantsService.findAll();
   }
 
-  @Get(':userId_:eventId')
+  @Get(':userId&:eventId')
   findOne(@Param('userId') userId: string, @Param('eventId') eventId: string) {
     return this.participantsService.findOne(+userId, +eventId);
   }
 
-  @Patch(':userId_:eventId')
+  @Patch(':userId&:eventId')
   update(@Param('userId') userId: string, @Param('eventId') eventId: string, @Body() updateParticipantDto: UpdateParticipantDto) {
     return this.participantsService.update(+userId, +eventId, updateParticipantDto);
   }
 
-  @Delete(':userId_:eventId')
+  @Delete(':userId&:eventId')
   remove(@Param('userId') userId: string, @Param('eventId') eventId: string) {
     return this.participantsService.remove(+userId, +eventId);
   }
