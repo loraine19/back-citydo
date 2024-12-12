@@ -152,7 +152,6 @@ const Data = {
       image: null
     }
   ],
-
   groupUsers: [
     {
       groupId: 1,

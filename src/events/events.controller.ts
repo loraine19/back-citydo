@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpException, HttpStatus, ValidationPipe, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpException, HttpStatus, ValidationPipe, NotFoundException, BadRequestException, ParseIntPipe } from '@nestjs/common';
 import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { UsersService } from 'src/users/users.service';
 import { CreateEventDto } from './dto/create-event.dto';
@@ -36,14 +36,14 @@ export class EventsController {
 
   @Get(':id')
   @ApiOkResponse({ type: EventEntity })
-  async findOne(@Param('id') id: string) {
+  async findOne(@Param('id', ParseIntPipe) id: number) {
     const data = await this.service.findOne(+id)
     if (!data) throw new NotFoundException(`no ${id} find in ${route}`)
     return data;
 
   }
   @Patch(':id')
-  update(@Param('id') id: string, @Body() data: UpdateEventDto) {
+  update(@Param('id', ParseIntPipe) id: number, @Body() data: UpdateEventDto) {
     const find = this.service.findOne(+id)
     const update = this.service.update(+id, data)
     if (!find) throw new NotFoundException(`no ${id} find in ${route}`)
@@ -52,7 +52,7 @@ export class EventsController {
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
+  remove(@Param('id', ParseIntPipe) id: number) {
     const find = this.service.findOne(+id)
     const remove = this.service.remove(+id)
     if (!find) throw new NotFoundException(`no ${id} find in ${route}`)

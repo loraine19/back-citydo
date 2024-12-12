@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpException, HttpStatus, ValidationPipe, NotFoundException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpException, HttpStatus, ValidationPipe, NotFoundException, ParseIntPipe, BadRequestException } from '@nestjs/common';
 import { ApiOkResponse } from '@nestjs/swagger';
 import { Entity } from 'src/participants/entities/participant.entity';
 import { AddressService } from './address.service';
@@ -7,48 +7,47 @@ import { UpdateAddressDto } from './dto/update-address.dto';
 
 
 const route = 'address'
-
 @Controller(route)
 export class AddressController {
   constructor(private readonly service: AddressService) { }
 
   @Post()
   create(@Body(new ValidationPipe()) data: CreateAddressDto) {
-    const creat = this.service.create(data);
-    if (!creat) throw new NotFoundException(`no ${route} created`)
-    return this.service.create(data);
+    const address = this.service.create(data);
+    if (!address) throw new NotFoundException(`no ${route} created`)
+    return { address };
   }
 
   @Get()
   async findAll() {
-    const data = await this.service.findAll()
-    if (!data) throw new NotFoundException(`no ${route} find`)
-    return data;
+    const address = await this.service.findAll()
+    if (!address) throw new NotFoundException(`no ${route} find`)
+    return { address };
   }
 
   @Get(':id')
   @ApiOkResponse({ type: Entity })
-  async findOne(@Param('id') id: string) {
-    const data = await this.service.findOne(+id)
-    if (!data) throw new NotFoundException(`no ${id} find in ${route}`)
-    return data;
+  async findOne(@Param('id', ParseIntPipe) id: number) {
+    const address = await this.service.findOne(+id)
+    if (!address) throw new NotFoundException(`no ${id} find in ${route}`)
+    return { address };
 
   }
   @Patch(':id')
-  update(@Param('id') id: string, @Body() data: UpdateAddressDto) {
+  update(@Param('id', ParseIntPipe) id: number, @Body() data: UpdateAddressDto) {
     const find = this.service.findOne(+id)
-    const update = this.service.update(+id, data)
-    if (!find) throw new NotFoundException(`no ${id} find in ${route}`)
-    if (!update) throw new NotFoundException(`${route} ${id} not updated`)
-    return update;
+    const address = this.service.update(+id, data)
+    if (!find) throw new BadRequestException(`no ${id} find in ${route}`)
+    if (!address) throw new NotFoundException(`${route} ${id} not updated`)
+    return { address };
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
+  remove(@Param('id', ParseIntPipe) id: number) {
     const find = this.service.findOne(+id)
-    const remove = this.service.remove(+id)
-    if (!find) throw new NotFoundException(`no ${id} find in ${route}`)
-    if (!remove) throw new NotFoundException(`${route} ${id} not deleted`)
-    return this.service.remove(+id);
+    if (!find) throw new BadRequestException(`no ${id} find in ${route}`)
+    const address = this.service.remove(+id)
+    if (!address) throw new NotFoundException(`${route} ${id} not deleted`)
+    return { address, message: `${route} ${id} deleted` };
   }
 }

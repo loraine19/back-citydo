@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, BadRequestException, NotFoundException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, BadRequestException, NotFoundException, ParseIntPipe } from '@nestjs/common';
 import { ParticipantsService } from './participants.service';
 import { CreateParticipantDto } from './dto/create-participant.dto';
 import { UpdateParticipantDto } from './dto/update-participant.dto';
@@ -16,40 +16,41 @@ export class ParticipantsController {
   /// FK 
   @Post()
   async create(@Body() data: CreateParticipantDto) {
-    try {
-      const user = await this.usersService.findOne(data.userId)
-      const event = await this.eventsService.findOne(data.eventId)
-      const participant = { userId: data.userId, eventId: data.eventId }
-      const find = await this.participantsService.findOne(data.userId, data.eventId)
-      if (find) return new BadRequestException(`participation already exist`);
-      if (user && event) return this.participantsService.create(participant)
-      else return new NotFoundException(`participation impossible`);
-
-    }
-    catch (error: any) {
-      console.log(error);
-      return new BadRequestException(error.message);
-    }
+    const user = await this.usersService.findOne(data.userId)
+    const event = await this.eventsService.findOne(data.eventId)
+    const participation = { userId: data.userId, eventId: data.eventId }
+    const find = await this.participantsService.findOne(data.userId, data.eventId)
+    if (find) return new BadRequestException(`participation already exist`);
+    if (!user || !event) throw new NotFoundException(`participation impossible`);
+    const participant = await this.participantsService.create(participation)
+    return { participant }
   }
 
   @Get()
   async findAll() {
-    const data = await this.participantsService.findAll()
-    return data ? data : new NotFoundException(`no ${route} find`);
+    const participant = await this.participantsService.findAll()
+    if (!participant) throw new NotFoundException(`no ${route} found`);
+    return { participant }
   }
 
   @Get(':userId&:eventId')
-  findOne(@Param('userId') userId: string, @Param('eventId') eventId: string) {
-    return this.participantsService.findOne(+userId, +eventId);
+  findOne(@Param('userId', ParseIntPipe) userId: number, @Param('eventId', ParseIntPipe) eventId: number) {
+    const participant = this.participantsService.findOne(+userId, +eventId)
+    if (!participant) throw new NotFoundException(`no ${route} found`);
+    return { participant }
   }
 
   @Patch(':userId&:eventId')
-  update(@Param('userId') userId: string, @Param('eventId') eventId: string, @Body() updateParticipantDto: UpdateParticipantDto) {
-    return this.participantsService.update(+userId, +eventId, updateParticipantDto);
+  update(@Param('userId', ParseIntPipe) userId: number, @Param('eventId', ParseIntPipe) eventId: number, @Body() updateParticipantDto: UpdateParticipantDto) {
+    const participant = this.participantsService.update(+userId, +eventId, updateParticipantDto);
+    if (!participant) throw new NotFoundException(`no ${route} found`);
+    return { participant }
   }
 
   @Delete(':userId&:eventId')
-  remove(@Param('userId') userId: string, @Param('eventId') eventId: string) {
-    return this.participantsService.remove(+userId, +eventId);
+  remove(@Param('userId', ParseIntPipe) userId: number, @Param('eventId', ParseIntPipe) eventId: number) {
+    const participant = this.participantsService.remove(+userId, +eventId);
+    if (!participant) throw new NotFoundException(`no ${route} found`);
+    return { participant }
   }
 }
