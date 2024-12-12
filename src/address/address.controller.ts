@@ -5,7 +5,6 @@ import { CreateAddressDto } from './dto/create-address.dto';
 import { UpdateAddressDto } from './dto/update-address.dto';
 import { AddressEntity } from './entities/address.entity';
 
-
 const route = 'address'
 @Controller(route)
 export class AddressController {

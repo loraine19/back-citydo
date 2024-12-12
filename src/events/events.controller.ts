@@ -24,7 +24,7 @@ export class EventsController {
   async findAll() {
     const events = await this.service.findAll()
     if (!events) throw new NotFoundException(`no one ${route} find`)
-    return { events };
+    return events;
   }
 
   @Get(':id')
