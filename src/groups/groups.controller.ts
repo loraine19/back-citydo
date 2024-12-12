@@ -40,7 +40,7 @@ export class GroupsController {
     return { group };
   }
 
-  @Get(':id&users')
+  @Get(':id/users')
   @ApiOkResponse({ type: GroupEntity })
   async findOneUsers(@Param('id', ParseIntPipe) id: number) {
     const group = await this.service.findOneUsers(+id)

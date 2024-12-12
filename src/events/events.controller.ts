@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpException, HttpStatus, ValidationPipe, NotFoundException, BadRequestException, ParseIntPipe, ParseUUIDPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpException, HttpStatus, ValidationPipe, NotFoundException, BadRequestException, ParseIntPipe, ParseUUIDPipe, PipeTransform } from '@nestjs/common';
 import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { UsersService } from 'src/users/users.service';
 import { CreateEventDto } from './dto/create-event.dto';
@@ -33,15 +33,17 @@ export class EventsController {
   @Get(':id')
   @ApiOkResponse({ type: EventEntity })
   async findOne(@Param('id', ParseIntPipe) id: number) {
-    const event = await this.service.findOne(+id)
+    const event = await this.service.findOne(id)
     if (!event) throw new NotFoundException(`no ${id} find in ${route}`)
     return { event }
   }
 
-  @Get(':id&users')
+
+  @Get(':id/withUsers')
   @ApiOkResponse({ type: EventEntity })
   async findOneUser(@Param('id', ParseIntPipe) id: number) {
-    const event = await this.service.findOneUser(+id)
+    console.log(id)
+    const event = await this.service.findOneUser(id)
     if (!event) throw new NotFoundException(`no ${id} find in ${route}`)
     return { event };
   }

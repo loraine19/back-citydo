@@ -36,15 +36,15 @@ export class ParticipantsController {
     return { participant }
   }
 
-  @Get(':userId&:eventId')
+  @Get('user:userId&event:eventId')
   @ApiResponse({ type: ParticpantEntity })
-  findOne(@Param('userId') userId: string, @Param('eventId') eventId: string) {
-    const participant = this.participantsService.findOne(+userId, +eventId)
+  findOne(@Param('userId', ParseIntPipe) userId: number, @Param('eventId', ParseIntPipe) eventId: number) {
+    const participant = this.participantsService.findOne(userId, eventId)
     if (!participant) throw new NotFoundException(`no ${route} found`);
-    return { participant }
+    return participant
   }
 
-  @Patch(':userId&:eventId')
+  @Patch('user:userId&event:eventId')
   @ApiResponse({ type: ParticpantEntity })
   async update(@Param('userId', ParseIntPipe) userId: number, @Param('eventId', ParseIntPipe) eventId: number, @Body() data: UpdateParticipantDto) {
     const user = await this.usersService.findOne(data.userId)
@@ -57,7 +57,7 @@ export class ParticipantsController {
     return { participant }
   }
 
-  @Delete(':userId&:eventId')
+  @Delete('user:userId&event:eventId')
   @ApiResponse({ type: ParticpantEntity })
   remove(@Param('userId', ParseIntPipe) userId: number, @Param('eventId', ParseIntPipe) eventId: number) {
     const participant = this.participantsService.remove(+userId, +eventId);
