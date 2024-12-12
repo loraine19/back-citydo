@@ -276,8 +276,6 @@ export class Issue {
     }
 }
 
-
-
 ////// SURVEY 
 export class Survey {
     id: number;
@@ -372,10 +370,6 @@ export class Post {
         this.image = image;
     }
 }
-
-
-
-
 
 
 ////// JOINCTION 

@@ -11,5 +11,5 @@ export class Entity extends PartialType(Participant) {
     @ApiProperty()
     @IsNotEmpty()
     @IsNotEmpty()
-    eventid: number;
+    eventId: number;
 }
