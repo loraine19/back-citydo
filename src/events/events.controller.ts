@@ -38,11 +38,9 @@ export class EventsController {
     return { event }
   }
 
-
   @Get(':id/withUsers')
   @ApiOkResponse({ type: EventEntity })
   async findOneUser(@Param('id', ParseIntPipe) id: number) {
-    console.log(id)
     const event = await this.service.findOneUser(id)
     if (!event) throw new NotFoundException(`no ${id} find in ${route}`)
     return { event };

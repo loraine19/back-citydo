@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, BadRequestException, NotFoundException, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, BadRequestException, NotFoundException, ParseIntPipe, HttpException } from '@nestjs/common';
 import { ParticipantsService } from './participants.service';
 import { CreateParticipantDto } from './dto/create-participant.dto';
 import { UpdateParticipantDto } from './dto/update-participant.dto';
@@ -6,6 +6,8 @@ import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import { UsersService } from 'src/users/users.service';
 import { EventsService } from 'src/events/events.service';
 import { ParticpantEntity } from './entities/participant.entity';
+import { PrismaFilter } from 'src/prisma/prisma-client-exception.filter';
+import { error } from 'console';
 
 const route = "participants"
 @Controller(route)
@@ -18,14 +20,15 @@ export class ParticipantsController {
   @ApiResponse({ type: ParticpantEntity })
   /// FK user & event 
   async create(@Body() data: CreateParticipantDto) {
-    const user = await this.usersService.findOne(data.userId)
-    const event = await this.eventsService.findOne(data.eventId)
+    // const user = await this.usersService.findOne(data.userId)
+    // const event = await this.eventsService.findOne(data.eventId)
     const participation = { userId: data.userId, eventId: data.eventId }
-    const find = await this.participantsService.findOne(data.userId, data.eventId)
-    if (find) return new BadRequestException(`participation already exist`);
-    if (!user || !event) throw new NotFoundException(`participation impossible`);
-    const participant = await this.participantsService.create(participation)
-    return { participant }
+    // const find = await this.participantsService.findOne(data.userId, data.eventId)
+    // if (find) return new BadRequestException(`participation already exist`);
+    // if (!user || !event) throw new NotFoundException(`participation impossible`);
+
+    return this.participantsService.create(participation)
+    // .catch(error => { console.log(error); throw new HttpException(error.meta.cause, error.code) })
   }
 
   @Get()

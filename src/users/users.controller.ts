@@ -6,6 +6,7 @@ import { UsersService } from './users.service';
 import { UserEntity } from './entities/user.entity';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 
+
 //// CONTROLLER DO ROUTE 
 const route = 'users'
 @Controller(route)

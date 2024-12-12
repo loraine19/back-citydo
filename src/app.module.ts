@@ -10,10 +10,11 @@ import { ParticipantsModule } from './participants/participants.module';
 import { AuthModule } from './auth/auth.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
+import { PrismaFilter } from './prisma/prisma-client-exception.filter';
 
 
 @Module({
-  imports: [PrismaModule, UsersModule, GroupsModule, AddressModule, EventsModule, ParticipantsModule, AuthModule,
+  imports: [UsersModule, GroupsModule, AddressModule, EventsModule, ParticipantsModule, AuthModule,
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '../home', 'client'),
     })
