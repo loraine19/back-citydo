@@ -4,19 +4,21 @@ import { CreateParticipantDto } from './dto/create-participant.dto';
 import { UpdateParticipantDto } from './dto/update-participant.dto';
 import { ApiTags } from '@nestjs/swagger';
 import { UsersService } from 'src/users/users.service';
+import { EventsService } from 'src/events/events.service';
 
 const route = "participants"
 @Controller(route)
 @ApiTags(route)
 export class ParticipantsController {
-  constructor(private readonly participantsService: ParticipantsService, private usersService: UsersService) { }
+  constructor(private readonly participantsService: ParticipantsService, private usersService: UsersService, private eventsService: EventsService) { }
 
   /// FK 
   @Post()
   async create(@Body() data: CreateParticipantDto) {
     try {
-      const find = await this.usersService.findOne(data.userId)
-      if (!find) throw new NotFoundException(`no ${route} find`);
+      const user = await this.usersService.findOne(data.userId)
+      const event = await this.eventsService.findOne(data.eventId)
+      if (!user || !event) throw new NotFoundException(`participation impossible`);
       return this.participantsService.create(data);
     }
     catch (error: any) {
