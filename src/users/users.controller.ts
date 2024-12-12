@@ -26,7 +26,7 @@ export class UsersController {
   async findAll() {
     const user = await this.usersService.findAll()
     if (!user) throw new NotFoundException(`no ${route} find`)
-    return { user }
+    return user
   }
 
   @Get(':id')
