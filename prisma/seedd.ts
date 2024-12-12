@@ -1,6 +1,8 @@
 import { PrismaClient } from '@prisma/client';
-
+import * as bcrypt from 'bcrypt';
 const prisma = new PrismaClient();
+
+const roundsOfHashing = 10;
 
 const Data = {
   address: [
@@ -58,25 +60,29 @@ const Data = {
   users:
     [
       {
+        email: "test@mail.com",
+        password: "passwordtest"
+      },
+      {
         email: "utilisateur1@exemple.fr",
-        password: "motdepassefort123",
+        password: "passwordj"
       },
       {
         email: "utilisateur2@exemple.fr",
-        password: "motdepassefort456",
+        password: "passwordtest"
       },
       {
         email: "utilisateur3@exemple.fr",
-        password: "motdepassefort789",
+        password: "passwordtest"
       },
       {
         email: "utilisateur4@exemple.fr",
-        password: "motdepassefort012",
+        password: "passwordtest"
       },
       {
         email: "utilisateur9@exemple.fr",
-        password: "motdepassefort345",
-      }
+        password: "passwordtest"
+      },
     ],
   events: [
     {
@@ -146,7 +152,6 @@ const Data = {
       image: null
     }
   ],
-
   groupUsers: [
     {
       groupId: 1,
@@ -226,7 +231,11 @@ const Data = {
 const seed = async () => {
   for (const data of Data.address) { await prisma.address.create({ data }) }
   for (const data of Data.groups) { await prisma.group.create({ data }) }
-  for (const data of Data.users) { await prisma.user.create({ data }) }
+  for (const data of Data.users) {
+    data.password = await bcrypt.hash(data.password, roundsOfHashing);
+    await prisma.user.update({ where: { email: data.email }, data });
+    // { await prisma.user.create({ data }) }
+  }
   for (const data of Data.groupUsers) { await prisma.groupUser.create({ data }) }
   for (const data of Data.events) { await prisma.event.create({ data }) }
   for (const data of Data.participants) { await prisma.participant.create({ data }) }

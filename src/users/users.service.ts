@@ -3,6 +3,8 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { User } from '@prisma/client';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import * as bcrypt from 'bcrypt';
+export const roundsOfHashing = 10;
 
 
 //// SERVICE MAKE ACTION
@@ -10,10 +12,12 @@ import { UpdateUserDto } from './dto/update-user.dto';
 @Injectable()
 export class UsersService {
   constructor(private prisma: PrismaService) { }
-  create(data: CreateUserDto): Promise<User> {
-    return this.prisma.user.create({
-      data
-    });
+
+
+  async create(data: CreateUserDto): Promise<User> {
+    const hashedPassword = await bcrypt.hash(data.password, roundsOfHashing);
+    data.password = hashedPassword;
+    return await this.prisma.user.create({ data })
   }
 
   async findAll(): Promise<User[]> {
@@ -24,10 +28,16 @@ export class UsersService {
     return await this.prisma.user.findUnique({ where: { id } });
   }
 
-  async update(id: number, UserupdateDto: UpdateUserDto): Promise<User> {
+  async update(id: number, user: UpdateUserDto): Promise<User> {
+    if (user.password) {
+      user.password = await bcrypt.hash(
+        user.password,
+        roundsOfHashing,
+      );
+    }
     return await this.prisma.user.update({
       where: { id },
-      data: UserupdateDto,
+      data: { ...user, password: user.password },
     });
   }
 

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpException, HttpStatus, ValidationPipe, NotFoundException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpException, HttpStatus, ValidationPipe, NotFoundException, ParseIntPipe, BadRequestException } from '@nestjs/common';
 import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { CreateGroupDto } from './dto/create-group.dto';
 import { UpdateGroupDto } from './dto/update-group.dto';
@@ -14,41 +14,41 @@ export class GroupsController {
 
   @Post()
   create(@Body(new ValidationPipe()) data: CreateGroupDto) {
-    const creat = this.service.create(data);
-    if (!creat) throw new NotFoundException(`no ${route} created`)
-    return this.service.create(data);
+    const group = this.service.create(data);
+    if (!group) throw new NotFoundException(`no ${route} created`)
+    return { group };
   }
 
   @Get()
   async findAll() {
-    const data = await this.service.findAll()
-    if (!data) throw new NotFoundException(`no ${route} find`)
-    return data;
+    const group = await this.service.findAll()
+    if (!group) throw new NotFoundException(`no ${route} find`)
+    return { group };
   }
 
   @Get(':id')
   @ApiOkResponse({ type: GroupEntity })
-  async findOne(@Param('id') id: string) {
-    const data = await this.service.findOne(+id)
-    if (!data) throw new NotFoundException(`no ${id} find in ${route}`)
-    return data;
+  async findOne(@Param('id', ParseIntPipe) id: number) {
+    const group = await this.service.findOne(+id)
+    if (!group) throw new NotFoundException(`no ${id} find in ${route}`)
+    return { group };
 
   }
   @Patch(':id')
-  update(@Param('id') id: string, @Body() data: UpdateGroupDto) {
+  update(@Param('id', ParseIntPipe) id: number, @Body() data: UpdateGroupDto) {
     const find = this.service.findOne(+id)
-    const update = this.service.update(+id, data)
-    if (!find) throw new NotFoundException(`no ${id} find in ${route}`)
-    if (!update) throw new NotFoundException(`${route} ${id} not updated`)
-    return update;
+    if (!find) throw new BadRequestException(`no ${id} find in ${route}`)
+    const group = this.service.update(+id, data)
+    if (!group) throw new NotFoundException(`${route} ${id} not updated`)
+    return { group };
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
+  remove(@Param('id', ParseIntPipe) id: number) {
     const find = this.service.findOne(+id)
-    const remove = this.service.remove(+id)
-    if (!find) throw new NotFoundException(`no ${id} find in ${route}`)
-    if (!remove) throw new NotFoundException(`${route} ${id} not deleted`)
-    return this.service.remove(+id);
+    if (!find) throw new BadRequestException(`no ${id} find in ${route}`)
+    const group = this.service.remove(+id)
+    if (!group) throw new NotFoundException(`${route} ${id} not deleted`)
+    return { group, message: `${route} ${id} deleted` };
   }
 }

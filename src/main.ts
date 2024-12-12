@@ -10,7 +10,8 @@ async function bootstrap() {
   const config = new DocumentBuilder()
     .setTitle('Collectif API ')
     .setDescription('first api nest ')
-    .setVersion('2')
+    .setVersion('1')
+    .addBearerAuth()
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
