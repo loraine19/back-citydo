@@ -41,14 +41,14 @@ model User {
   Vote            Vote[]
   Participant     Participant[]
   Survey          Survey[]
-  userRespService Service[]     @relation("userResp")
-  userService     Service[]     @relation("user")
+  userService     Service[]     @relation("userService")
+  userServiceResp Service[]     @relation("userServiceResp")
   userModo        Issue[]       @relation("userModo")
   userModoResp    Issue[]       @relation("userModoResp")
-  Issue           Issue[]
+  userIssue       Issue[]       @relation("userIssue")
   userAuthor      Pool[]        @relation("userAuthor")
   userBenef       Pool[]        @relation("userBenef")
-  user            Profile[]     @relation("user")
+  user            Profile[]     @relation("userProfile")
   userSp          Profile[]     @relation("userSp")
 }
 
@@ -83,17 +83,17 @@ model Profile {
   userId        Int
   userIdSp      Int
   addressId     Int
-  firstname     String
-  lastname      String
-  avatar        Bytes
+  firstName     String
+  lastName      String
+  avatar        String?
   phone         String?
   addressShared Boolean    @default(false)
-  assistance    Assistance
+  assistance    Assistance @default(NONE)
   points        Int
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
   Address       Address    @relation(fields: [addressId], references: [id])
-  User          User       @relation(fields: [userId], references: [id], name: "user")
+  User          User       @relation(fields: [userId], references: [id], name: "userProfile")
   UserSp        User       @relation(fields: [userIdSp], references: [id], name: "userSp")
 }
 
@@ -150,20 +150,22 @@ model Participant {
 
 ////// SERVICE 
 model Service {
-  id          Int             @id @default(autoincrement())
-  userId      Int
-  userIdResp  Int
-  type        ServiceType
-  title       String
-  description String
-  category    ServiceCategory
-  skillLevel  SkillLevel
-  hardLevel   HardLevel
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
-  User        User            @relation(fields: [userId], references: [id], name: "user")
-  Issue       Issue[]
-  UserResp    User            @relation(fields: [userIdResp], references: [id], name: "userResp")
+  id              Int             @id @default(autoincrement())
+  userId          Int
+  UserService     User            @relation(fields: [userId], references: [id], name: "userService")
+  userIdResp      Int?
+  UserServiceResp User?           @relation(fields: [userIdResp], references: [id], name: "userServiceResp")
+  type            ServiceType
+  title           String
+  description     String
+  category        ServiceCategory
+  skill           SkillLevel
+  hard            HardLevel
+  status          ServiceStatus
+  image           String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  Issue           Issue[]
 }
 
 enum ServiceType {
@@ -171,41 +173,50 @@ enum ServiceType {
   DO
 }
 
+enum ServiceStatus {
+  POST
+  RESP
+  VALIDATE
+  FINISH
+  ISSUE
+}
+
 enum ServiceCategory {
   CATEGORY_1
   CATEGORY_2
   CATEGORY_3
+  CATEGORY_4
 }
 
 enum SkillLevel {
-  BEGINNER
-  INTERMEDIATE
-  EXPERT
-  NONE
+  SKILL_0
+  SKILL_1
+  SKILL_2
+  SKILL_3
 }
 
 enum HardLevel {
-  EASY
-  MEDIUM
-  HARD
-  NONE
+  HARD_0
+  HARD_1
+  HARD_2
+  HARD_3
 }
 
 model Issue {
-  id             Int         @id @default(autoincrement())
-  servicesId     Int
-  description    String
-  date           DateTime
-  status         IssueStatus
-  createdAt      DateTime    @default(now())
-  updatedAt      DateTime    @updatedAt
-  userIdModo     Int
-  userIdModoResp Int
-  UserModo       User        @relation(fields: [userIdModo], references: [id], name: "userModo")
-  UserModoResp   User        @relation(fields: [userIdModoResp], references: [id], name: "userModoResp")
-  Service        Service     @relation(fields: [servicesId], references: [id])
-  User           User?       @relation(fields: [userId], references: [id])
-  userId         Int?
+  id              Int         @id @default(autoincrement())
+  serviceId       Int
+  description     String
+  date            DateTime
+  status          IssueStatus
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  userId_Modo     Int
+  userId_ModoResp Int
+  UserModo        User        @relation(fields: [userId_Modo], references: [id], name: "userModo")
+  UserModoResp    User        @relation(fields: [userId_ModoResp], references: [id], name: "userModoResp")
+  Service         Service     @relation(fields: [serviceId], references: [id])
+  User            User        @relation(fields: [userId], references: [id], name: "userIssue")
+  userId          Int
 }
 
 enum IssueStatus {

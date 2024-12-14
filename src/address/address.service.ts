@@ -1,10 +1,12 @@
 import { Injectable } from '@nestjs/common';
-
 import { PrismaService } from 'src/prisma/prisma.service';
-import { Address } from '@prisma/client';
+import { Address, PrismaClient } from '@prisma/client';
 import { CreateAddressDto } from './dto/create-address.dto';
 import { UpdateAddressDto } from './dto/update-address.dto';
 
+const prisma = new PrismaClient({
+  errorFormat: 'minimal',
+});
 //// SERVICE MAKE ACTION
 @Injectable()
 export class AddressService {

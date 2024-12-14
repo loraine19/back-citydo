@@ -13,7 +13,6 @@ export const roundsOfHashing = 10;
 export class UsersService {
   constructor(private prisma: PrismaService) { }
 
-
   async create(data: CreateUserDto): Promise<User> {
     const hashedPassword = await bcrypt.hash(data.password, roundsOfHashing);
     data.password = hashedPassword;
@@ -25,7 +24,7 @@ export class UsersService {
   }
 
   async findOne(id: number): Promise<User> {
-    return await this.prisma.user.findUnique({ where: { id } });
+    return await this.prisma.user.findUniqueOrThrow({ where: { id } });
   }
   async findUnique(email: string): Promise<User> {
     return await this.prisma.user.findUnique({ where: { email: email } });

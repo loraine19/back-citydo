@@ -1,8 +1,22 @@
-import { ApiProperty, PartialType } from '@nestjs/swagger';
-import { Event } from "@prisma/client";
+import { ApiProperty, PartialType } from '@nestjs/swagger';;
 import { IsDate, isNotEmpty, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import { Event } from 'src/class';
 
-export class EventEntity extends PartialType(Event) {
+export class EventEntity implements Event {
+    @ApiProperty()
+    @IsNotEmpty()
+    @IsNumber()
+    id: number;
+
+    @ApiProperty()
+    @IsDate()
+    createdAt: Date;
+
+    @ApiProperty()
+    @IsDate()
+    updatedAt: Date;
+
+
     @ApiProperty()
     @IsNotEmpty({ message: 'Title is required' })
     @IsString()
@@ -15,18 +29,22 @@ export class EventEntity extends PartialType(Event) {
 
     @ApiProperty()
     @IsDate({ message: 'Start date is required' })
-    start: Date | string
+    @IsNotEmpty({ message: 'Start date is required' })
+    start: Date
 
     @ApiProperty()
+    @IsNotEmpty({ message: 'End date is required' })
     @IsDate({ message: 'End date is required' })
-    end: Date | string
+    end: Date
 
     @ApiProperty()
     @IsNumber()
+    @IsNotEmpty({ message: 'Address id is required' })
     addressId: number
 
     @ApiProperty()
     @IsNumber()
+    @IsNotEmpty({ message: 'User id is required' })
     userId: number
 
     @ApiProperty()
@@ -38,6 +56,7 @@ export class EventEntity extends PartialType(Event) {
     image: string | null
 
     @ApiProperty()
+    @IsNumber()
     @IsNotEmpty({ message: 'Participants min is required' })
     participantsMin: number
 }

@@ -1,8 +1,17 @@
 import { ApiProperty, PartialType } from "@nestjs/swagger";
-import { IsNotEmpty, IsNumber } from "class-validator";
+import { IsDate, IsNotEmpty, IsNumber } from "class-validator";
 import { Participant } from "src/class";
 
-export class ParticpantEntity extends PartialType(Participant) {
+export class ParticpantEntity implements Participant {
+
+    @ApiProperty()
+    @IsDate()
+    createdAt: Date;
+
+    @ApiProperty()
+    @IsDate()
+    updatedAt: Date;
+
     @ApiProperty()
     @IsNotEmpty()
     userId: number;

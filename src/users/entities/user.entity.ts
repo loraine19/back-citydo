@@ -1,9 +1,20 @@
 import { ApiProperty, PartialType } from '@nestjs/swagger';
-import { IsEmail, IsNotEmpty, IsString, MinLength } from 'class-validator';
+import { IsDate, isDate, IsEmail, IsNotEmpty, IsNumber, isNumber, IsString, MinLength } from 'class-validator';
 import { User } from '../../class'
 
-export class UserEntity extends PartialType(User) {
+export class UserEntity implements User {
+    @ApiProperty()
+    @IsNotEmpty()
+    @IsNumber()
+    id: number;
 
+    @ApiProperty()
+    @IsDate()
+    createdAt: Date;
+
+    @ApiProperty()
+    @IsDate()
+    updatedAt: Date;
 
     @ApiProperty()
     @IsEmail()
@@ -16,6 +27,5 @@ export class UserEntity extends PartialType(User) {
     @IsString()
     @MinLength(6)
     password: string;
-
 }
 

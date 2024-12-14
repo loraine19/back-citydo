@@ -17,6 +17,7 @@ export class UsersController {
   @Post()
   @ApiCreatedResponse({ type: UserEntity })
   async create(@Body() data: CreateUserDto) {
+    const user = await this.usersService.findUnique(data.email)
     return await this.usersService.create(data);
   }
 

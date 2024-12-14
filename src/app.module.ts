@@ -11,13 +11,17 @@ import { AuthModule } from './auth/auth.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { PrismaFilter } from './prisma/prisma-client-exception.filter';
+import { ServiceModule } from './service/service.module';
+import { ProfilesModule } from './profiles/profiles.module';
 
 
 @Module({
   imports: [UsersModule, GroupsModule, AddressModule, EventsModule, ParticipantsModule, AuthModule,
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '../home', 'client'),
-    })
+    }),
+    ServiceModule,
+    ProfilesModule
   ],
   controllers: [AppController],
   providers: [AppService],
