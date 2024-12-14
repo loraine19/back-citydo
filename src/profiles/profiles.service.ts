@@ -6,7 +6,7 @@ import { UpdateProfileDto } from './dto/update-profile.dto';
 
 //// SERVICE MAKE ACTION
 @Injectable()
-export class ServicesService {
+export class ProfilesService {
   constructor(private prisma: PrismaService) { }
   async create(data: CreateProfileDto): Promise<Profile> {
     const { userId, addressId, userIdSp, ...profile } = data
