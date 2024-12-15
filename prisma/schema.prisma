@@ -27,29 +27,29 @@ model GroupUser {
 }
 
 model User {
-  id              Int           @id @default(autoincrement())
-  email           String        @unique
-  password        String
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-  lastConnection  DateTime      @default(now())
-  GroupUser       GroupUser[]
-  Event           Event[]
-  Post            Post[]
-  PostUser        PostUser[]
-  Flag            Flag[]
-  Vote            Vote[]
-  Participant     Participant[]
-  Survey          Survey[]
-  userService     Service[]     @relation("userService")
-  userServiceResp Service[]     @relation("userServiceResp")
-  userModo        Issue[]       @relation("userModo")
-  userModoResp    Issue[]       @relation("userModoResp")
-  userIssue       Issue[]       @relation("userIssue")
-  userAuthor      Pool[]        @relation("userAuthor")
-  userBenef       Pool[]        @relation("userBenef")
-  user            Profile[]     @relation("userProfile")
-  userSp          Profile[]     @relation("userSp")
+  id             Int           @id @default(autoincrement())
+  email          String        @unique
+  password       String
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  lastConnection DateTime      @default(now())
+  GroupUser      GroupUser[]
+  Event          Event[]
+  Post           Post[]
+  PostUser       PostUser[]
+  Flag           Flag[]
+  Vote           Vote[]
+  Participant    Participant[]
+  Survey         Survey[]
+  Service        Service[]     @relation("Service")
+  ServiceResp    Service[]     @relation("ServiceResp")
+  IssueModo      Issue[]       @relation("Modo")
+  IssueModoResp  Issue[]       @relation("ModoResp")
+  Issue          Issue[]       @relation("Issue")
+  Pool           Pool[]        @relation("Pool")
+  Benef          Pool[]        @relation("PoolBenef")
+  User           Profile[]     @relation("Profile")
+  UserSp         Profile[]     @relation("Sponsor")
 }
 
 model Group {
@@ -85,16 +85,16 @@ model Profile {
   addressId     Int
   firstName     String
   lastName      String
-  avatar        String?
-  phone         String?
+  avatar        String
+  phone         String
   addressShared Boolean    @default(false)
   assistance    Assistance @default(NONE)
   points        Int
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
   Address       Address    @relation(fields: [addressId], references: [id])
-  User          User       @relation(fields: [userId], references: [id], name: "userProfile")
-  UserSp        User       @relation(fields: [userIdSp], references: [id], name: "userSp")
+  User          User       @relation(fields: [userId], references: [id], name: "Profile")
+  UserSp        User       @relation(fields: [userIdSp], references: [id], name: "Sponsor")
 }
 
 enum Assistance {
@@ -140,8 +140,8 @@ enum EventCategory {
 model Participant {
   userId    Int
   eventId   Int
-  user      User     @relation(fields: [userId], references: [id])
-  event     Event    @relation(fields: [eventId], references: [id])
+  User      User     @relation(fields: [userId], references: [id])
+  Event     Event    @relation(fields: [eventId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -152,9 +152,9 @@ model Participant {
 model Service {
   id              Int             @id @default(autoincrement())
   userId          Int
-  UserService     User            @relation(fields: [userId], references: [id], name: "userService")
+  UserService     User            @relation(fields: [userId], references: [id], name: "Service")
   userIdResp      Int?
-  UserServiceResp User?           @relation(fields: [userIdResp], references: [id], name: "userServiceResp")
+  UserServiceResp User?           @relation(fields: [userIdResp], references: [id], name: "ServiceResp")
   type            ServiceType
   title           String
   description     String
@@ -212,10 +212,10 @@ model Issue {
   updatedAt       DateTime    @updatedAt
   userId_Modo     Int
   userId_ModoResp Int
-  UserModo        User        @relation(fields: [userId_Modo], references: [id], name: "userModo")
-  UserModoResp    User        @relation(fields: [userId_ModoResp], references: [id], name: "userModoResp")
+  UserModo        User        @relation(fields: [userId_Modo], references: [id], name: "Modo")
+  UserModoResp    User        @relation(fields: [userId_ModoResp], references: [id], name: "ModoResp")
   Service         Service     @relation(fields: [serviceId], references: [id])
-  User            User        @relation(fields: [userId], references: [id], name: "userIssue")
+  User            User        @relation(fields: [userId], references: [id], name: "Issue")
   userId          Int
 }
 
@@ -252,8 +252,8 @@ model Pool {
   description String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  UserAuthor  User     @relation(fields: [userId], references: [id], name: "userAuthor")
-  UserBenef   User     @relation(fields: [userIdBenef], references: [id], name: "userBenef")
+  UserAuthor  User     @relation(fields: [userId], references: [id], name: "Pool")
+  UserBenef   User     @relation(fields: [userIdBenef], references: [id], name: "PoolBenef")
   Vote        Vote[]
 }
 

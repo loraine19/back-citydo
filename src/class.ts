@@ -160,9 +160,9 @@ export class Post {
 //// GOUPUSERS
 export class GroupUser {
     constructor(
-        public readonly groupid: number,
-        public readonly userid: number,
-        public readonly role: string,
+        public readonly groupId: number,
+        public readonly userId: number,
+        public readonly role: 'MEMBER' | 'GUEST',
         public readonly createdAt: Date,
         public readonly updatedAt: Date
     ) { }
