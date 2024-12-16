@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { CreateServiceDto } from 'src/routes/service/dto/create-service.dto';
-import { fr, base, Faker } from '@faker-js/faker';
+import { fr, base, Faker, PhoneModule } from '@faker-js/faker';
 import type { LocaleDefinition } from '@faker-js/faker';
 import { CreateAddressDto } from 'src/routes/address/dto/create-address.dto';
 import { CreateGroupDto } from 'src/routes/groups/dto/create-group.dto';
@@ -9,19 +9,24 @@ import { CreateProfileDto } from 'src/routes/profiles/dto/create-profile.dto';
 import { CreateEventDto } from 'src/routes/events/dto/create-event.dto';
 import { CreateGroupUserDto } from 'src/routes/group-users/dto/create-group-user.dto';
 import { CreateParticipantDto } from 'src/routes/participants/dto/create-participant.dto';
+import { connect } from 'http2';
+const faker = require('@faker-js/faker/locale/fr');
 
 const prisma = new PrismaClient();
 const customLocale: LocaleDefinition = {
-  internet: {
-    domainSuffix: ['collectif'],
-  },
+  local: {
+    city_pattern: ['Marseille'],
+    street_name: ['boulevard de la corderie', 'rue de la république', 'rue de la canebière', 'traverse du moulin de la villette', 'stade vélodrome', 'vieux port', 'cours julien', 'rue de la palud', 'rue de la loge'],
+    street_address: ['{{street_name}} {{building_number}}'],
+    PhoneModule: ['+33'],
+  }
 };
 
 export const newFaker = new Faker({
   locale: [customLocale, fr, fr, fr, base],
 });
 
-const max = 10;
+const max = 1;
 const roundsOfHashing = 10;
 const Hashing = {
   length: roundsOfHashing,
@@ -41,7 +46,7 @@ const CreateRandomAddress = (): CreateAddressDto => {
 
 const CreateRandomGroup = (): CreateGroupDto => {
   return {
-    addressId: newFaker.number.int({ min: 1, max }),
+    addressId: newFaker.number.int({ min: 1, max: 4 }),
     area: newFaker.number.int({ min: 1, max }),
     rules: newFaker.lorem.lines({ min: 1, max: 3 }),
     name: newFaker.lorem.words({ min: 1, max: 3 }),
@@ -57,7 +62,7 @@ const CreateRandomUser = (): CreateUserDto => {
 
 const CreateRandomGroupUser = (): CreateGroupUserDto => {
   return {
-    groupId: newFaker.number.int({ min: 1, max }),
+    groupId: newFaker.number.int({ min: 31, max: 40 }),
     userId: newFaker.number.int({ min: 1, max }),
     role: newFaker.helpers.arrayElement(['GUEST', 'MEMBER']),
   }
@@ -66,11 +71,11 @@ const CreateRandomGroupUser = (): CreateGroupUserDto => {
 const CreateRandomProfile = (): CreateProfileDto => {
   return {
     userId: newFaker.number.int({ min: 1, max }),
-    addressId: newFaker.number.int({ min: 1, max }),
+    addressId: newFaker.number.int({ min: 1, max: 10 }),
     userIdSp: newFaker.number.int({ min: 1, max }),
     firstName: newFaker.person.firstName(),
     lastName: newFaker.person.lastName(),
-    phone: newFaker.phone.number(),
+    phone: "+33" + newFaker.phone.number(),
     avatar: newFaker.image.avatar(),
     addressShared: newFaker.datatype.boolean(),
     assistance: newFaker.helpers.arrayElement(['NONE', 'LOW', 'MEDIUM', 'HIGH']),
@@ -102,8 +107,8 @@ const CreateRandomParticipant = (): CreateParticipantDto => {
 
 const CreateRandomService = (): CreateServiceDto => {
   return {
-    userId: newFaker.number.int({ min: 5, max: 10 }),
-    userIdResp: newFaker.number.int({ min: 1, max: 5 }),
+    userId: newFaker.number.int({ min: 5, max }),
+    userIdResp: newFaker.number.int({ min: 1, max }),
     type: newFaker.helpers.arrayElement(['GET', 'DO']),
     title: newFaker.lorem.word(),
     description: newFaker.lorem.word(),
@@ -115,25 +120,41 @@ const CreateRandomService = (): CreateServiceDto => {
 }
 
 
-async function rawSql() {
-  const result = await prisma.$executeRaw`Truncate TABLE "Address"`
-  console.log({ result })
-  // const deletePosts = prisma.post.deleteMany()
+async function reset() {
+  await prisma.event.deleteMany({ where: { id: { gt: 0 } } })
+  await prisma.participant.deleteMany({ where: { userId: { gt: 0 } } })
+  await prisma.service.deleteMany({ where: { id: { gt: 0 } } })
+  await prisma.profile.deleteMany({ where: { id: { gt: 0 } } })
+  await prisma.groupUser.deleteMany({ where: { userId: { gt: 0 } } })
+  await prisma.user.deleteMany({ where: { id: { gt: 0 } } })
+  await prisma.group.deleteMany({ where: { id: { gt: 0 } } })
+  await prisma.address.deleteMany({ where: { id: { gt: 0 } } })
 }
 
 const seed = async () => {
+  await reset()
   // ADDRESS no fk 
-  for (let i = 0; i < max; i++) {
-    await prisma.address.create({ data: CreateRandomAddress() });
+  const address = async () => {
+    while (await prisma.address.count() < 10) {
+      await prisma.address.create({ data: CreateRandomAddress() });
+      console.log("hello ", await prisma.address.findMany())
+    }
   }
+  await address();
 
   // GROUP fk address
-  for (let i = 0; i < max; i++) {
-    const { addressId, ...group } = CreateRandomGroup();
-    await prisma.group.create({ data: { ...group, Address: { connect: { id: addressId } } } })
+  const group = async () => {
+    const ad = await prisma.address.findMany();
+    console.log(ad)
+    while (await prisma.group.count() < 10) {
+      const { addressId, ...group } = await CreateRandomGroup();
+      await prisma.group.create({ data: { ...group, Address: { connect: { id: addressId } } } })
+    }
   }
+  await group();
 
   // USER no fk 
+  await prisma.user.create({ data: { email: 'test@mail.com', password: 'pawwordtest' } })
   for (let i = 0; i < max; i++) { await prisma.user.create({ data: CreateRandomUser() }) }
 
   // GROUPUSER fk user fk group
@@ -146,7 +167,6 @@ const seed = async () => {
 
   // PROFILE fk user fk address fk userSP
   for (let i = 0; i < max; i++) {
-    await prisma.profile.create({ data: CreateRandomProfile() })
     {
       const { userId, addressId, userIdSp, ...profile } = CreateRandomProfile();
       await prisma.profile.create({ data: { ...profile, User: { connect: { id: userId } }, Address: { connect: { id: addressId } }, UserSp: { connect: { id: userIdSp } } } })

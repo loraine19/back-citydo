@@ -1,0 +1,15 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "npm",
+			"script": "prisma-seed",
+			"group": "build",
+			"problemMatcher": [],
+			"label": "npm: prisma-seed",
+			"presentation": {
+				"reveal": "silent"
+			}
+		}
+	]
+}

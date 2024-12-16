@@ -15,7 +15,7 @@ export class PrismaFilter extends BaseExceptionFilter {
       case 'P2002':
       case 'P2003':
       case 'P2004':
-      case 'P014': {
+      case 'P1014': {
         const status = HttpStatus.CONFLICT;
         response.status(status).json({
           statusCode: status,
@@ -34,8 +34,8 @@ export class PrismaFilter extends BaseExceptionFilter {
       }
       case 'P2000':
       case 'P2025':
-      case '2006':
-      case '2036':
+      case 'P2006':
+      case 'P2036':
       case 'P2021':
       case 'P2021':
       case 'P2020':
