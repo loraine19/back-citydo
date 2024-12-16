@@ -140,7 +140,7 @@ export class Pool {
 }
 
 //// POST 
-export class Post {
+export class Post implements Post {
     constructor(
         public readonly id: number,
         public readonly userId: number,

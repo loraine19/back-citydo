@@ -13,6 +13,12 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// generator nestgraphql {
+//   provider = "node node_modules/prisma-nestjs-graphql"
+//   output   = "../src/@generated"
+//   reExport = Directories
+// }
+
 /////// USERS GROUP ...
 model GroupUser {
   userId    Int
@@ -36,7 +42,7 @@ model User {
   GroupUser      GroupUser[]
   Event          Event[]
   Post           Post[]
-  PostUser       PostUser[]
+  Like           Like[]
   Flag           Flag[]
   Vote           Vote[]
   Participant    Participant[]
@@ -56,7 +62,7 @@ model Group {
   id        Int         @id @default(autoincrement())
   addressId Int
   area      Int
-  rules     String
+  rules     String      @db.LongText
   name      String
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
@@ -85,12 +91,12 @@ model Profile {
   addressId     Int
   firstName     String
   lastName      String
-  avatar        String
+  avatar        String     @db.LongText
   phone         String
   addressShared Boolean    @default(false)
   assistance    Assistance @default(NONE)
   points        Int
-  skills        String
+  skills        String     @db.MediumText
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
   Address       Address    @relation(fields: [addressId], references: [id])
@@ -121,7 +127,7 @@ model Event {
   description     String
   category        String
   participantsMin Int
-  image           String?
+  image           String?       @db.LongText
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
   User            User          @relation(fields: [userId], references: [id])
@@ -163,7 +169,7 @@ model Service {
   skill           SkillLevel
   hard            HardLevel
   status          ServiceStatus
-  image           String?
+  image           String?         @db.LongText
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
   Issue           Issue[]
@@ -213,6 +219,7 @@ model Issue {
   updatedAt       DateTime    @updatedAt
   userId_Modo     Int
   userId_ModoResp Int
+  image           String      @db.LongText
   UserModo        User        @relation(fields: [userId_Modo], references: [id], name: "Modo")
   UserModoResp    User        @relation(fields: [userId_ModoResp], references: [id], name: "ModoResp")
   Service         Service     @relation(fields: [serviceId], references: [id])
@@ -230,8 +237,9 @@ model Survey {
   id          Int            @id @default(autoincrement())
   userId      Int
   title       String
-  description String
+  description String         @db.MediumText
   category    SurveyCategory
+  image       String         @db.LongText
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
   User        User           @relation(fields: [userId], references: [id])
@@ -250,7 +258,7 @@ model Pool {
   userId      Int
   userIdBenef Int
   title       String
-  description String
+  description String   @db.MediumText
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   UserAuthor  User     @relation(fields: [userId], references: [id], name: "Pool")
@@ -259,16 +267,17 @@ model Pool {
 }
 
 model Vote {
-  userId    Int
-  targetId  Int
-  target    VoteTarget
-  opinion   VoteOpinion
-  User      User        @relation(fields: [userId], references: [id])
-  Survey    Survey?     @relation(fields: [surveyId], references: [id])
+  userId   Int
+  targetId Int
+  target   VoteTarget
+  opinion  VoteOpinion
+
+  User      User     @relation(fields: [userId], references: [id])
+  Survey    Survey?  @relation(fields: [surveyId], references: [id])
   surveyId  Int?
-  Pool      Pool?       @relation(fields: [poolId], references: [id])
+  Pool      Pool?    @relation(fields: [poolId], references: [id])
   poolId    Int?
-  updatedAt DateTime    @updatedAt
+  updatedAt DateTime @updatedAt
 
   @@id([userId, targetId])
 }
@@ -289,14 +298,21 @@ model Post {
   id          Int          @id @default(autoincrement())
   userId      Int
   title       String
-  description String
+  description String       @db.MediumText
   category    PostCategory
-  image       String?
+  image       String?      @db.LongText
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
   User        User         @relation(fields: [userId], references: [id])
-  PostUser    PostUser[]
+  Like        Like[]
   Flag        Flag[]       @relation(name: "flagPost")
+  share       Share        @default(EMAIL)
+}
+
+enum Share {
+  EMAIL
+  PHONE
+  BOTH
 }
 
 enum PostCategory {
@@ -307,7 +323,7 @@ enum PostCategory {
   CATEGORY_5
 }
 
-model PostUser {
+model Like {
   userId    Int
   postId    Int
   User      User     @relation(fields: [userId], references: [id])

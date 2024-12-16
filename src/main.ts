@@ -2,7 +2,9 @@ import { NestFactory, HttpAdapterHost } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
-import { PrismaFilter } from './prisma/prisma-client-exception.filter';
+import { PrismaFilter } from '../utils/filter/prisma.filter';
+import { HttpExeptionFilter } from '../utils/filter/http.filter';
+import { ErrorFilter } from '../utils/filter/error.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -18,7 +20,7 @@ async function bootstrap() {
 
   SwaggerModule.setup('api', app, document);
   const { httpAdapter } = app.get(HttpAdapterHost);
-  app.useGlobalFilters(new PrismaFilter(httpAdapter));
+  app.useGlobalFilters(new PrismaFilter(httpAdapter), new HttpExeptionFilter(), new ErrorFilter());
   app.enableCors(
     {
       origin:
@@ -31,5 +33,6 @@ async function bootstrap() {
 
 
   await app.listen(3000);
+  console.log(`Application is running on: ${await app.getUrl()}`);
 }
 bootstrap();
