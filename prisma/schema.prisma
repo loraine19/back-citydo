@@ -90,16 +90,12 @@ model Profile {
   addressShared Boolean    @default(false)
   assistance    Assistance @default(NONE)
   points        Int
-  skills        Skills[]
+  skills        String
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
   Address       Address    @relation(fields: [addressId], references: [id])
   User          User       @relation(fields: [userId], references: [id], name: "Profile")
   UserSp        User       @relation(fields: [userIdSp], references: [id], name: "Sponsor")
-}
-
-enum Skills {
-  String
 }
 
 enum Assistance {

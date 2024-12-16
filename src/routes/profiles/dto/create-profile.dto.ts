@@ -38,5 +38,5 @@ export class CreateProfileDto {
     points: number;
     @ApiProperty()
     @IsArray()
-    skills: string[];
+    skills: string;
 }

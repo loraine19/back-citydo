@@ -80,7 +80,7 @@ const CreateRandomProfile = (): CreateProfileDto => {
     addressShared: newFaker.datatype.boolean(),
     assistance: newFaker.helpers.arrayElement(['NONE', 'LOW', 'MEDIUM', 'HIGH']),
     points: newFaker.number.int({ min: 0, max: 30 }),
-    skills: newFaker.helpers.arrayElements([newFaker.lorem.word(), newFaker.lorem.word(), newFaker.lorem.word(), newFaker.lorem.word()])
+    skills: newFaker.lorem.words({ min: 1, max: 3 }),
   }
 }
 
@@ -121,14 +121,19 @@ const CreateRandomService = (): CreateServiceDto => {
 
 
 async function reset() {
-  await prisma.event.deleteMany({ where: { id: { gt: 0 } } })
-  await prisma.participant.deleteMany({ where: { userId: { gt: 0 } } })
-  await prisma.service.deleteMany({ where: { id: { gt: 0 } } })
-  await prisma.profile.deleteMany({ where: { id: { gt: 0 } } })
-  await prisma.groupUser.deleteMany({ where: { userId: { gt: 0 } } })
-  await prisma.user.deleteMany({ where: { id: { gt: 0 } } })
-  await prisma.group.deleteMany({ where: { id: { gt: 0 } } })
-  await prisma.address.deleteMany({ where: { id: { gt: 0 } } })
+  const db =
+    // Reset the identity columns
+    await prisma.$executeRaw`TRUNCATE TABLE Event`;
+  await prisma.$executeRaw`ALTER TABLE Event AUTO_INCREMENT = 1`;
+  await prisma.$executeRaw`TRUNCATE TABLE Event`;
+  await prisma.$executeRaw`ALTER TABLE Event AUTO_INCREMENT = 1`;
+  await prisma.$executeRaw`TRUNCATE TABLE "Participant" RESTART IDENTITY CASCADE`;
+  await prisma.$executeRaw`TRUNCATE TABLE "Service" RESTART IDENTITY CASCADE`;
+  await prisma.$executeRaw`TRUNCATE TABLE "Profile" RESTART IDENTITY CASCADE`;
+  await prisma.$executeRaw`TRUNCATE TABLE "GroupUser" RESTART IDENTITY CASCADE`;
+  await prisma.$executeRaw`TRUNCATE TABLE "User" RESTART IDENTITY CASCADE`;
+  await prisma.$executeRaw`TRUNCATE TABLE "Group" RESTART IDENTITY CASCADE`;
+  await prisma.$executeRaw`TRUNCATE TABLE "Address" RESTART IDENTITY CASCADE`;
 }
 
 const seed = async () => {

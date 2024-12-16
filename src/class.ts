@@ -36,7 +36,7 @@ export class Profile {
         public readonly addressShared: boolean = false,
         public readonly assistance: "NONE" | "LOW" | "MEDIUM" | "HIGH" = "NONE",
         public readonly points: number = 0,
-        public readonly skills: string[] = [],
+        public readonly skills: string,
         public readonly createdAt: Date = new Date(),
         public readonly updatedAt: Date = new Date(),
         public readonly avatar: any,

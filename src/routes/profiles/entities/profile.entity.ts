@@ -48,5 +48,5 @@ export class ProfileEntity implements Profile {
     points: number;
     @ApiProperty()
     @IsArray()
-    skills: string[];
+    skills: string;
 }

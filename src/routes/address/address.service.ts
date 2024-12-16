@@ -11,7 +11,7 @@ const prisma = new PrismaClient({
 @Injectable()
 export class AddressService {
   constructor(private prisma: PrismaService) { }
-  async create(data: CreateAddressDto) {
+  async create(data: CreateAddressDto): Promise<Address> {
     return await this.prisma.address.create({
       data
     });
