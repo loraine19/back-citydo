@@ -1,9 +1,9 @@
 import { ApiProperty, PartialType } from "@nestjs/swagger";
 import { IsNotEmpty, IsNumber, IsDate } from "class-validator";
-import { Group } from "src/class";
+import { Group } from "@prisma/client";
 
-
-export class GroupEntity implements Group {
+export
+  class GroupEntity implements Group {
   @ApiProperty()
   @IsNotEmpty()
   @IsNumber()

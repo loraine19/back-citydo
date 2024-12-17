@@ -75,8 +75,8 @@ model Address {
   zipcode   String
   city      String
   address   String
-  lat       Decimal
-  lng       Decimal
+  lat       Decimal   @db.Decimal()
+  lng       Decimal   @db.Decimal()
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   Group     Group[]
@@ -133,7 +133,6 @@ model Event {
   User            User          @relation(fields: [userId], references: [id])
   Address         Address       @relation(fields: [addressId], references: [id])
   Participant     Participant[]
-  Flag            Flag[]        @relation(name: "flagEvent")
 }
 
 enum EventCategory {
@@ -164,7 +163,7 @@ model Service {
   UserServiceResp User?           @relation(fields: [userIdResp], references: [id], name: "ServiceResp")
   type            ServiceType
   title           String
-  description     String
+  description     String          @db.LongText
   category        ServiceCategory
   skill           SkillLevel
   hard            HardLevel
@@ -212,7 +211,7 @@ enum HardLevel {
 model Issue {
   id              Int         @id @default(autoincrement())
   serviceId       Int
-  description     String
+  description     String      @db.LongText
   date            DateTime
   status          IssueStatus
   createdAt       DateTime    @default(now())
@@ -243,8 +242,6 @@ model Survey {
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
   User        User           @relation(fields: [userId], references: [id])
-  Vote        Vote[]
-  Flag        Flag[]         @relation(name: "flagSurvey")
 }
 
 enum SurveyCategory {
@@ -261,25 +258,20 @@ model Pool {
   description String   @db.MediumText
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  UserAuthor  User     @relation(fields: [userId], references: [id], name: "Pool")
+  User        User     @relation(fields: [userId], references: [id], name: "Pool")
   UserBenef   User     @relation(fields: [userIdBenef], references: [id], name: "PoolBenef")
-  Vote        Vote[]
 }
 
 model Vote {
-  userId   Int
-  targetId Int
-  target   VoteTarget
-  opinion  VoteOpinion
+  userId    Int
+  targetId  Int
+  target    VoteTarget
+  opinion   VoteOpinion
+  User      User        @relation(fields: [userId], references: [id])
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
 
-  User      User     @relation(fields: [userId], references: [id])
-  Survey    Survey?  @relation(fields: [surveyId], references: [id])
-  surveyId  Int?
-  Pool      Pool?    @relation(fields: [poolId], references: [id])
-  poolId    Int?
-  updatedAt DateTime @updatedAt
-
-  @@id([userId, targetId])
+  @@id([userId, target, targetId])
 }
 
 enum VoteTarget {
@@ -305,7 +297,6 @@ model Post {
   updatedAt   DateTime     @updatedAt
   User        User         @relation(fields: [userId], references: [id])
   Like        Like[]
-  Flag        Flag[]       @relation(name: "flagPost")
   share       Share        @default(EMAIL)
 }
 
@@ -342,14 +333,8 @@ model Flag {
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
   User      User       @relation(fields: [userId], references: [id])
-  Event     Event      @relation(fields: [eventId], references: [id], name: "flagEvent")
-  Post      Post       @relation(fields: [postId], references: [id], name: "flagPost")
-  Survey    Survey     @relation(fields: [surveyId], references: [id], name: "flagSurvey")
-  eventId   Int
-  postId    Int
-  surveyId  Int
 
-  @@id([userId, targetId])
+  @@id([userId, target, targetId])
 }
 
 enum FlagTarget {

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, NotFoundException, BadRequestException, UseGuards, ParseIntPipe, HttpException, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, NotFoundException, BadRequestException, UseGuards, ParseIntPipe, HttpException, HttpStatus, Header, Req } from '@nestjs/common';
 import { ApiCreatedResponse, ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -11,6 +11,7 @@ import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 const route = 'users'
 @Controller(route)
 @ApiTags(route)
+@UseGuards(JwtAuthGuard)
 export class UsersController {
   constructor(private readonly usersService: UsersService) { }
 
@@ -22,7 +23,6 @@ export class UsersController {
   }
 
   @Get()
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   async findAll() {
     const users = await this.usersService.findAll()
@@ -30,8 +30,16 @@ export class UsersController {
     return users
   }
 
+  @Get('me')
+  @ApiBearerAuth()
+  @ApiOkResponse({ type: UserEntity })
+  async getProfile(@Req() req: any) {
+    console.log('req', req.user)
+    const userId = req.user.id
+    return this.usersService.findOne(+userId)
+  }
+
   @Get(':id')
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOkResponse({ type: UserEntity })
   async findOne(@Param('id', ParseIntPipe) id: number) {
@@ -40,14 +48,12 @@ export class UsersController {
 
 
   @Patch(':id')
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   async update(@Param('id', ParseIntPipe) id: number, @Body() data: UpdateUserDto) {
     return this.usersService.update(+id, data)
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   async remove(@Param('id', ParseIntPipe) id: number) {
     const user = await this.usersService.remove(+id)

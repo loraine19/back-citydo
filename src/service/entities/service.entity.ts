@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsDate, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
-import { Service } from "@prisma/client";
+import { $Enums, Service } from "@prisma/client";
 
 export class ServiceEntity implements Service {
     @ApiProperty()
@@ -19,7 +19,7 @@ export class ServiceEntity implements Service {
     ///FOR DTO
 
     @ApiProperty()
-    @IsNotEmpty({ message: 'user idis required' })
+    @IsNotEmpty({ message: 'user id is required' })
     @IsNumber()
     userId: number;
 
@@ -29,8 +29,8 @@ export class ServiceEntity implements Service {
 
     @ApiProperty()
     @IsNotEmpty({ message: 'Type is required' })
-    @IsEnum(['GET', 'DO'])
-    type: 'GET' | 'DO';
+    @IsEnum($Enums.ServiceType, { message: 'Type must be part of ' + $Enums.ServiceType })
+    type: $Enums.ServiceType;
 
     @ApiProperty()
     @IsNotEmpty({ message: 'title is required' })
@@ -44,23 +44,23 @@ export class ServiceEntity implements Service {
 
     @ApiProperty()
     @IsNotEmpty({ message: 'category is required' })
-    @IsEnum(['CATEGORY_1', 'CATEGORY_2', 'CATEGORY_3', 'CATEGORY_4'])
-    category: "CATEGORY_1" | "CATEGORY_2" | "CATEGORY_3" | "CATEGORY_4";
+    @IsEnum($Enums.ServiceCategory, { message: 'category must be part of ' + $Enums.ServiceCategory })
+    category: $Enums.ServiceCategory;
 
     @ApiProperty()
     @IsNotEmpty({ message: 'skill is required' })
-    @IsEnum(['SKILL_0', 'SKILL_1', 'SKILL_2', 'SKILL_3'])
-    skill: "SKILL_0" | "SKILL_1" | "SKILL_2" | "SKILL_3";
+    @IsEnum($Enums.SkillLevel, { message: 'skill must be part of ' + $Enums.SkillLevel })
+    skill: $Enums.SkillLevel;
 
     @ApiProperty()
     @IsNotEmpty({ message: 'hard is required' })
-    @IsEnum(['HARD_0', 'HARD_1', 'HARD_2', 'HARD_3'])
-    hard: "HARD_0" | "HARD_1" | "HARD_2" | "HARD_3";
+    @IsEnum($Enums.HardLevel, { message: 'hard must be part of ' + $Enums.HardLevel })
+    hard: $Enums.HardLevel;
 
     @ApiProperty()
     @IsNotEmpty({ message: 'is required' })
-    @IsEnum(['POST', 'RESP', 'VALIDATE', 'FINISH', 'ISSUE'])
-    status: "POST" | "RESP" | "VALIDATE" | "FINISH" | "ISSUE";
+    @IsEnum($Enums.ServiceStatus, { message: 'status must be part of ' + $Enums.ServiceStatus })
+    status: $Enums.ServiceStatus;
 
     @ApiProperty()
     @IsOptional()

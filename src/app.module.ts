@@ -8,12 +8,15 @@ import { AddressModule } from './address/adress.module';
 import { EventsModule } from './events/events.module';
 import { ParticipantsModule } from './participants/participants.module';
 import { AuthModule } from './auth/auth.module';
-import { PrismaFilter } from '../utils/filter/prisma.filter';
 import { ServiceModule } from './service/service.module';
 import { ProfilesModule } from './profiles/profiles.module';
 import { GroupUsersModule } from './group-users/group-users.module';
 import { PostsModule } from './posts/posts.module';
 import { LikesModule } from './likes/likes.module';
+import { MailerModule } from 'utils/mailer/mailer.module';
+import { PoolsModule } from './pools/pools.module';
+import { SurveysModule } from './surveys/surveys.module';
+import { VotesModule } from './votes/votes.module';
 
 
 
@@ -31,6 +34,10 @@ import { LikesModule } from './likes/likes.module';
     ServiceModule,
     PostsModule,
     LikesModule,
+    MailerModule,
+    PoolsModule,
+    SurveysModule,
+    VotesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

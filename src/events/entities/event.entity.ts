@@ -1,5 +1,6 @@
-import { ApiProperty } from '@nestjs/swagger';;
-import { IsDate, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger'; import { $Enums } from '@prisma/client';
+;
+import { IsDate, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 import { Event } from 'src/class';
 
 export class EventEntity implements Event {
@@ -50,7 +51,8 @@ export class EventEntity implements Event {
 
     @ApiProperty()
     @IsNotEmpty()
-    category: string
+    @IsEnum($Enums.EventCategory, { message: 'Category mus be part of ' + Object.values($Enums.EventCategory).join(', ') })
+    category: $Enums.EventCategory
 
     @ApiProperty()
     @IsOptional()

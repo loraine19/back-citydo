@@ -1,6 +1,7 @@
 import { ApiProperty, PartialType } from '@nestjs/swagger';
 import { IsDate, IsNotEmpty, IsNumber, IsString } from 'class-validator';
-import { Address } from 'src/class';
+import { Address } from '@prisma/client';
+import { Decimal } from '@prisma/client/runtime/library';
 
 export class AddressEntity implements Address {
 
@@ -17,6 +18,7 @@ export class AddressEntity implements Address {
   @IsDate()
   updatedAt: Date;
 
+  //FOR DTO
   @ApiProperty()
   @IsNotEmpty()
   @IsString()
@@ -31,11 +33,9 @@ export class AddressEntity implements Address {
 
   @IsNotEmpty()
   @ApiProperty()
-  lat: number
+  lat: Decimal
 
   @IsNotEmpty()
   @ApiProperty()
-  lng: number
-
+  lng: Decimal
 }
-// extends PartialType(Address)

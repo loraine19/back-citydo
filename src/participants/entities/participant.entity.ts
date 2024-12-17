@@ -1,6 +1,6 @@
-import { ApiProperty, PartialType } from "@nestjs/swagger";
-import { IsDate, IsNotEmpty, IsNumber } from "class-validator";
-import { Participant } from "src/class";
+import { ApiProperty } from "@nestjs/swagger";
+import { Participant } from "@prisma/client";
+import { IsDate, IsNotEmpty } from "class-validator";
 
 export class ParticpantEntity implements Participant {
 

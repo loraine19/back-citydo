@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { $Enums, PrismaClient } from '@prisma/client';
 import { CreateServiceDto } from 'src/service/dto/create-service.dto';
 import { fr, base, Faker, PhoneModule } from '@faker-js/faker';
 import type { LocaleDefinition } from '@faker-js/faker';
@@ -9,10 +9,13 @@ import { CreateProfileDto } from 'src/profiles/dto/create-profile.dto';
 import { CreateEventDto } from 'src/events/dto/create-event.dto';
 import { CreateGroupUserDto } from 'src/group-users/dto/create-group-user.dto';
 import { CreateParticipantDto } from 'src/participants/dto/create-participant.dto';
-import { connect } from 'http2';
 import { CreatePostDto } from 'src/posts/dto/create-post.dto';
 import { CreateLikeDto } from 'src/likes/dto/create-like.dto';
-import { arrayBuffer } from 'stream/consumers';
+import * as argon2 from 'argon2';
+import { CreatePoolDto } from 'src/pools/dto/create-pool.dto';
+import { CreateSurveyDto } from 'src/surveys/dto/create-survey.dto';
+import { Survey } from '../src/class';
+import { CreateVoteDto } from 'src/votes/dto/create-vote.dto';
 const faker = require('@faker-js/faker/locale/fr');
 
 const prisma = new PrismaClient();
@@ -30,12 +33,6 @@ export const newFaker = new Faker({
 });
 
 const max = 10;
-const roundsOfHashing = 10;
-const Hashing = {
-  length: roundsOfHashing,
-  memorabale: true,
-  algorithm: 'bcrypt',
-};
 
 const CreateRandomAddress = (): CreateAddressDto => {
   return {
@@ -56,19 +53,21 @@ const CreateRandomGroup = (): CreateGroupDto => {
   }
 }
 
-const CreateRandomUser = (): CreateUserDto => {
+const CreateRandomUser = async (): Promise<CreateUserDto> => {
+  const password = await argon2.hash(newFaker.internet.password());
   return {
     email: newFaker.internet.email(),
-    password: newFaker.internet.password(Hashing),
+    password
   }
 }
 
 const CreateRandomGroupUser = (): CreateGroupUserDto => {
   return {
-    groupId: newFaker.number.int({ min: 1, max }),
-    userId: newFaker.helpers.uniqueArray([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 1)[0],
+    groupId: newFaker.number.int({ min: 1, max: 2 }),
+    userId: newFaker.number.int({ min: 1, max }),
     role: newFaker.helpers.arrayElement(['GUEST', 'MEMBER', 'MEMBER']),
   }
+
 }
 
 const CreateRandomProfile = (): CreateProfileDto => {
@@ -103,7 +102,7 @@ const CreateRandomEvent = (): CreateEventDto => {
 
 const CreateRandomParticipant = (): CreateParticipantDto => {
   return {
-    eventId: newFaker.helpers.uniqueArray([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 1)[0],
+    eventId: newFaker.number.int({ min: 1, max }),
     userId: newFaker.number.int({ min: 1, max }),
   }
 }
@@ -112,13 +111,14 @@ const CreateRandomService = (): CreateServiceDto => {
   return {
     userId: newFaker.number.int({ min: 1, max }),
     userIdResp: newFaker.number.int({ min: 1, max }),
-    type: newFaker.helpers.arrayElement(['GET', 'DO']),
+    type: newFaker.helpers.arrayElement(Object.values($Enums.ServiceType)),
     title: 'Service ' + newFaker.lorem.words({ min: 3, max: 6 }),
     description: newFaker.lorem.lines({ min: 1, max: 3 }),
-    category: newFaker.helpers.arrayElement(['CATEGORY_1', 'CATEGORY_2', 'CATEGORY_3', 'CATEGORY_4']),
-    skill: newFaker.helpers.arrayElement(['SKILL_0', 'SKILL_1', 'SKILL_2', 'SKILL_3']),
-    hard: newFaker.helpers.arrayElement(['HARD_0', 'HARD_1', 'HARD_2', 'HARD_3']),
-    status: newFaker.helpers.arrayElement(['POST', 'RESP', 'VALIDATE', 'FINISH', 'ISSUE'])
+    category: newFaker.helpers.arrayElement(Object.values($Enums.ServiceCategory)),
+    skill: newFaker.helpers.arrayElement(Object.values($Enums.SkillLevel)),
+    hard: newFaker.helpers.arrayElement(Object.values($Enums.HardLevel)),
+    status: newFaker.helpers.arrayElement(Object.values($Enums.ServiceStatus)),
+    image: Buffer.from(newFaker.image.urlLoremFlickr({ category: 'service' })).toString('base64'),
   }
 }
 
@@ -127,21 +127,60 @@ const CreateRandomPost = (): CreatePostDto => {
     userId: newFaker.number.int({ min: 1, max }),
     title: 'Post ' + newFaker.lorem.words({ min: 3, max: 6 }),
     description: newFaker.lorem.lines({ min: 1, max: 3 }),
-    category: newFaker.helpers.arrayElement(['CATEGORY_1', 'CATEGORY_2', 'CATEGORY_3', 'CATEGORY_4', 'CATEGORY_5']),
-    image: Buffer.from(newFaker.image.urlLoremFlickr({ category: 'social' })).toString('base64'),
-    share: newFaker.helpers.arrayElement(['PHONE', 'EMAIL', 'BOTH'])
+    category: newFaker.helpers.arrayElement(Object.values($Enums.PostCategory)),
+    image: Buffer.from(newFaker.image.urlLoremFlickr({ category: 'fun' })).toString('base64'),
+    share: newFaker.helpers.arrayElement(Object.values($Enums.Share)),
   }
 }
 
 const CreateRandomLike = (): CreateLikeDto => {
   return {
     userId: newFaker.number.int({ min: 1, max }),
-    postId: newFaker.helpers.uniqueArray([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 1)[0],
+    postId: newFaker.number.int({ min: 1, max }),
   }
 }
 
+
+const CreateRandomPool = (): CreatePoolDto => {
+  return {
+    userId: newFaker.number.int({ min: 1, max }),
+    userIdBenef: newFaker.number.int({ min: 1, max }),
+    title: 'Pool ' + newFaker.lorem.words({ min: 3, max: 6 }),
+    description: newFaker.lorem.lines({ min: 1, max: 3 }),
+  }
+}
+
+const CreateRandomSurvey = (): CreateSurveyDto => {
+  return {
+    userId: newFaker.number.int({ min: 1, max }),
+    title: 'Survey ' + newFaker.lorem.words({ min: 3, max: 6 }),
+    description: newFaker.lorem.lines({ min: 1, max: 3 }),
+    category: newFaker.helpers.arrayElement(Object.values($Enums.SurveyCategory)),
+    image: Buffer.from(newFaker.image.urlLoremFlickr({ category: 'survey' })).toString('base64'),
+  }
+}
+
+
+
+const CreateRandomVote = (): CreateVoteDto => {
+  return {
+    userId: newFaker.number.int({ min: 1, max }),
+    targetId: newFaker.number.int({ min: 1, max }),
+    target: newFaker.helpers.arrayElement(Object.values($Enums.VoteTarget)),
+    opinion: newFaker.helpers.arrayElement(Object.values($Enums.VoteOpinion)),
+  }
+}
+
+
+
 async function reset() {
   // Reset the identity columns
+  await prisma.$executeRawUnsafe("DELETE FROM `Vote`")
+  await prisma.$executeRawUnsafe("ALTER TABLE `Vote` AUTO_INCREMENT = 1")
+  await prisma.$executeRawUnsafe("DELETE FROM `Survey`")
+  await prisma.$executeRawUnsafe("ALTER TABLE `Survey` AUTO_INCREMENT = 1")
+  await prisma.$executeRawUnsafe("DELETE FROM `Pool`")
+  await prisma.$executeRawUnsafe("ALTER TABLE `Pool` AUTO_INCREMENT = 1")
   await prisma.$executeRawUnsafe("DELETE FROM `Like`")
   await prisma.$executeRawUnsafe("ALTER TABLE `Like` AUTO_INCREMENT = 1")
   await prisma.$executeRawUnsafe("DELETE FROM `Post`")
@@ -178,10 +217,10 @@ const seed = async () => {
 
   // GROUP fk address
   const group = async () => {
-    while (await prisma.group.count() < max) {
+    while (await prisma.group.count() < 2) {
       const { addressId, ...group } = CreateRandomGroup();
-      await prisma.group.create({ data: { ...group, Address: { connect: { id: addressId } } } })
-
+      const cond = await prisma.address.findUnique({ where: { id: addressId } });
+      if (cond) await prisma.group.create({ data: { ...group, Address: { connect: { id: addressId } } } })
     }
     const group = await prisma.group.findMany();
   }
@@ -190,8 +229,8 @@ const seed = async () => {
   // USER no fk 
   const User = async () => {
     await prisma.user.deleteMany({ where: { email: 'test@mail.com' } });
-    await prisma.user.create({ data: { email: 'test@mail.com', password: 'pawwordtest' } })
-    while (await prisma.user.count() < max) { await prisma.user.create({ data: CreateRandomUser() }) }
+    await prisma.user.create({ data: { email: 'test@mail.com', password: await argon2.hash('passwordtest') } })
+    while (await prisma.user.count() < max) { await prisma.user.create({ data: await CreateRandomUser() }) }
     const user = await prisma.user.findMany();
   }
   await User();
@@ -200,8 +239,8 @@ const seed = async () => {
   const groupUser = async () => {
     while (await prisma.groupUser.count() < max) {
       const { userId, groupId, ...groupUser } = CreateRandomGroupUser();
-      console.log({ ...groupUser, User: { connect: { id: userId } }, Group: { connect: { id: groupId } } })
-      await prisma.groupUser.create({ data: { ...groupUser, User: { connect: { id: userId } }, Group: { connect: { id: groupId } } } })
+      const cond = await prisma.groupUser.findUnique({ where: { userId_groupId: { userId, groupId } } });
+      if (!cond) await prisma.groupUser.create({ data: { ...groupUser, User: { connect: { id: userId } }, Group: { connect: { id: groupId } } } })
 
     }
   }
@@ -212,7 +251,8 @@ const seed = async () => {
     while (await prisma.profile.count() < max) {
       {
         const { userId, addressId, userIdSp, ...profile } = CreateRandomProfile();
-        await prisma.profile.create({ data: { ...profile, User: { connect: { id: userId } }, Address: { connect: { id: addressId } }, UserSp: { connect: { id: userIdSp } } } })
+        const cond = await prisma.profile.findFirst({ where: { userId: userId } });
+        if (!cond) await prisma.profile.create({ data: { ...profile, User: { connect: { id: userId } }, Address: { connect: { id: addressId } }, UserSp: { connect: { id: userIdSp } } } })
       }
     }
   }
@@ -222,7 +262,7 @@ const seed = async () => {
   // EVENT fk address fk user 
   const event = async () => {
     while (await prisma.event.count() < max) {
-      const { userId, addressId, ...event } = CreateRandomEvent();
+      const { userId, addressId, ...event } = CreateRandomEvent()
       await prisma.event.create({ data: { ...event, Address: { connect: { id: addressId } }, User: { connect: { id: userId } } } })
     }
   }
@@ -230,13 +270,11 @@ const seed = async () => {
 
   //  PARTICIPANT fk user fk event
   const participant = async () => {
-    while (await prisma.participant.count() < max) {
+    while (await prisma.participant.count() < max * 3) {
       {
         const { userId, eventId, ...participant } = CreateRandomParticipant();
-        const user = await prisma.user.findUnique({ where: { id: userId } });
-        const event = await prisma.event.findUnique({ where: { id: eventId } });
-        console.log(user, event)
-        await prisma.participant.create({ data: { ...participant, User: { connect: { id: userId } }, Event: { connect: { id: eventId } } } })
+        const cond = await prisma.participant.findUnique({ where: { userId_eventId: { userId, eventId } } });
+        if (!cond) await prisma.participant.create({ data: { ...participant, User: { connect: { id: userId } }, Event: { connect: { id: eventId } } } })
       }
     }
   }
@@ -247,7 +285,7 @@ const seed = async () => {
   const service = async () => {
     while (await prisma.service.count() < max) {
       const { userId, userIdResp, ...service } = CreateRandomService();
-      await prisma.service.create({ data: { ...service, UserService: { connect: { id: userId } }, UserServiceResp: { connect: { id: userIdResp } } } })
+      if (userId !== userIdResp) await prisma.service.create({ data: { ...service, UserService: { connect: { id: userId } }, UserServiceResp: { connect: { id: userIdResp } } } })
     }
   }
   await service();
@@ -263,12 +301,43 @@ const seed = async () => {
 
   // LIKE fk user fk post 
   const like = async () => {
-    while (await prisma.like.count() < max + 10) {
+    while (await prisma.like.count() < max * 2) {
       const { userId, postId, ...like } = CreateRandomLike();
-      await prisma.like.create({ data: { ...like, User: { connect: { id: userId } }, Post: { connect: { id: postId } } } })
+      const cond = await prisma.like.findUnique({ where: { userId_postId: { userId, postId } } });
+      if (!cond) await prisma.like.create({ data: { ...like, User: { connect: { id: userId } }, Post: { connect: { id: postId } } } })
     }
   }
   await like();
+
+  // POOL fk user fk userBenef 
+  const pool = async () => {
+    while (await prisma.pool.count() < max) {
+      const { userId, userIdBenef, ...pool } = CreateRandomPool();
+      const cond = await prisma.pool.findFirst({ where: { userId: userId, userIdBenef: userIdBenef } })
+      if (!cond && (userId !== userIdBenef)) await prisma.pool.create({ data: { ...pool, User: { connect: { id: userId } }, UserBenef: { connect: { id: userIdBenef } } } })
+    }
+  }
+  await pool();
+
+  // POOL fk user fk userBenef 
+  const survey = async () => {
+    while (await prisma.survey.count() < max) {
+      const { userId, ...survey } = CreateRandomSurvey();
+      await prisma.survey.create({ data: { ...survey, User: { connect: { id: userId } } } })
+    }
+  }
+  await survey();
+
+
+  // VOTE fk user 
+  const vote = async () => {
+    while (await prisma.vote.count() < max * 2) {
+      const { userId, ...vote } = CreateRandomVote();
+      const cond = await prisma.vote.findUnique({ where: { userId_target_targetId: { userId, target: vote.target, targetId: vote.targetId } } });
+      if (!cond) await prisma.vote.create({ data: { ...vote, User: { connect: { id: userId } } } })
+    }
+  }
+  await survey();
 }
 
 

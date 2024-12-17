@@ -8,17 +8,15 @@ import { PrismaModule } from 'src/prisma/prisma.module';
 import { UsersModule } from 'src/users/users.module';
 import { JwtStrategy } from './jwt.strategy';
 import { UsersService } from 'src/users/users.service';
-
-
-export const jwtSecret = 'zjP9h6ZI5LoSKCRj';
+import { JwtConstants } from './jwtConstants';
 
 @Module({
   imports: [
     PrismaModule,
     PassportModule,
     JwtModule.register({
-      secret: jwtSecret,
-      signOptions: { expiresIn: '5m' }
+      secret: JwtConstants.secret,
+      signOptions: { expiresIn: '20m' }
     }),
     UsersModule
   ],

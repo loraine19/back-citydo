@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { Post } from "@prisma/client";
-import { IsArray, IsDate, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
+import { $Enums, Post } from "@prisma/client";
+import { IsDate, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
 
 export class PostEntity implements Post {
     @ApiProperty()
@@ -34,14 +34,14 @@ export class PostEntity implements Post {
 
     @ApiProperty()
     @IsNotEmpty({ message: 'category is required' })
-    @IsEnum(['CATEGORY_1', 'CATEGORY_2', 'CATEGORY_3', 'CATEGORY_4', 'CATEGORY_5'])
-    category: "CATEGORY_1" | "CATEGORY_2" | "CATEGORY_3" | "CATEGORY_4" | "CATEGORY_5"
+    @IsEnum($Enums.PostCategory)
+    category: $Enums.PostCategory;
 
     @ApiProperty()
     @IsOptional()
     image: string;
 
     @ApiProperty()
-    @IsEnum(['PHONE', 'EMAIL', 'BOTH'])
-    share: "PHONE" | "EMAIL" | "BOTH";
+    @IsEnum($Enums.Share)
+    share: $Enums.Share;
 }
