@@ -125,7 +125,7 @@ model Event {
   end             DateTime
   title           String
   description     String
-  category        String
+  category        EventCategory
   participantsMin Int
   image           Bytes?
   createdAt       DateTime      @default(now())

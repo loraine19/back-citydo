@@ -49,6 +49,6 @@ export class EventsController {
   @Delete(':id')
   @ApiOkResponse({ type: EventEntity })
   async remove(@Param('id', ParseIntPipe) id: number): Promise<CreateEventDto> {
-    return this.service.remove(+id)
+    return this.service.remove(id)
   }
 }

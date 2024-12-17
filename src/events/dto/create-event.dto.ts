@@ -19,12 +19,12 @@ export class CreateEventDto {
     @ApiProperty()
     @IsDate({ message: 'Start date is required' })
     @IsNotEmpty({ message: 'Start date is required' })
-    start: Date | string
+    start: Date
 
     @ApiProperty()
     @IsNotEmpty({ message: 'End date is required' })
     @IsDate({ message: 'End date is required' })
-    end: Date | string
+    end: Date
 
     @ApiProperty()
     @IsNumber()

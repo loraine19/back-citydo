@@ -12,7 +12,7 @@ const route = "votes"
 @Controller(route)
 @ApiTags(route)
 export class VotesController {
-  constructor(private readonly votesService: VotesService, private usersService: UsersService, private postService: PostsService) { }
+  constructor(private readonly votesService: VotesService, private usersService: UsersService) { }
 
   @Post()
   @ApiResponse({ type: VoteEntity })

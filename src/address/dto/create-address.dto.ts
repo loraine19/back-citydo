@@ -1,11 +1,7 @@
-import { ApiProperty, PartialType } from "@nestjs/swagger";
-import { AddressEntity } from "../entities/address.entity";
-import { IsDate, IsNotEmpty, IsNumber, IsString } from "class-validator";
-
-
+import { ApiProperty } from "@nestjs/swagger";
+import { IsNotEmpty, IsNumber, IsString } from "class-validator";
 
 export class CreateAddressDto {
-
 
     @ApiProperty()
     @IsNotEmpty()

@@ -87,7 +87,7 @@ const CreateRandomProfile = async (): Promise<CreateProfileDto> => {
     firstName: newFaker.person.firstName(),
     lastName: newFaker.person.lastName(),
     phone: "+33" + newFaker.phone.number(),
-    avatar: await getImageBlob(newFaker.image.avatar()),
+    avatar: await getImageBlob(newFaker.image.urlLoremFlickr({ category: 'people' })),
     addressShared: newFaker.datatype.boolean(),
     assistance: newFaker.helpers.arrayElement(Object.values($Enums.Assistance)),
     points: newFaker.number.int({ min: 0, max: 30 }),

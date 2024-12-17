@@ -4,8 +4,6 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateGroupUserDto } from './dto/create-group-user.dto';
 import { UpdateGroupUserDto } from './dto/update-group-user.dto';
 
-
-
 //// SERVICE MAKE ACTION
 @Injectable()
 export class GroupUsersService {
