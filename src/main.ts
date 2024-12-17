@@ -26,7 +26,9 @@ async function bootstrap() {
       origin:
         ['http://localhost:5173/',
           'http://51.210.106.127:8080/',
-          'https://imagindev-app.fr'
+          'https://imagindev-app.fr',
+          'http://5.51.122.204',
+          'https://5.51.122.204'
         ]
     }
   );
