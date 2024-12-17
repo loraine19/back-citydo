@@ -43,9 +43,7 @@ services:
       dockerfile: Dockerfile.nest
       context: .
     ports:
-      - 5000:5000
       - 3001:3000
-      - "3333:3333"
       - "5557:5557"
     networks:
       - nest-network

@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { Query, Resolver } from '@nestjs/graphql';
 
 @Injectable()
 export class AppService {
