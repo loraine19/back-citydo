@@ -1,6 +1,6 @@
 import { $Enums, PrismaClient } from '@prisma/client';
 import { CreateServiceDto } from 'src/service/dto/create-service.dto';
-import { fr, base, Faker, PhoneModule } from '@faker-js/faker';
+import { fr, base, Faker, } from '@faker-js/faker';
 import type { LocaleDefinition } from '@faker-js/faker';
 import { CreateAddressDto } from 'src/address/dto/create-address.dto';
 import { CreateGroupDto } from 'src/groups/dto/create-group.dto';
@@ -14,17 +14,17 @@ import { CreateLikeDto } from 'src/likes/dto/create-like.dto';
 import * as argon2 from 'argon2';
 import { CreatePoolDto } from 'src/pools/dto/create-pool.dto';
 import { CreateSurveyDto } from 'src/surveys/dto/create-survey.dto';
-import { Survey } from '../src/class';
 import { CreateVoteDto } from 'src/votes/dto/create-vote.dto';
+import { FileReader } from '@tanker/file-reader';
 const faker = require('@faker-js/faker/locale/fr');
 
 const prisma = new PrismaClient();
 const customLocale: LocaleDefinition = {
   location: {
     city_pattern: ['Marseille'],
-    street_name: ['boulevard de la corderie', 'rue de la république', 'rue de la canebière', 'traverse du moulin de la villette', 'stade vélodrome', 'vieux port', 'cours julien', 'rue de la palud', 'rue de la loge'],
+    street_pattern: ['boulevard de la corderie', 'rue de la république', 'rue de la canebière', 'traverse du moulin de la villette', 'stade vélodrome', 'vieux port', 'cours julien', 'rue de la palud', 'rue de la loge'],
     PhoneModule: ['+33'],
-    postcode: ['13001', '13002', '13003', '13004', '13005', '13006', '13007', '13008', '13009', '13010', '13011', '13012', '13013', '13014', '13015', '13016']
+    postcode: ['13001', '13002', '13003', '13004', '13005', '13006', '13007', '13008', '13009', '13010', '13011', '13012', '13013', '13014', '13015', '13016'],
   }
 };
 
@@ -39,8 +39,8 @@ const CreateRandomAddress = (): CreateAddressDto => {
     zipcode: newFaker.location.zipCode(),
     city: newFaker.location.city(),
     address: newFaker.location.streetAddress(),
-    lat: newFaker.location.latitude(),
-    lng: newFaker.location.longitude()
+    lat: newFaker.location.latitude({ min: 42.8384, max: 48.8399 }),
+    lng: newFaker.location.longitude({ min: 5.2219, max: 5.3621 }),
   }
 }
 
@@ -65,28 +65,37 @@ const CreateRandomGroupUser = (): CreateGroupUserDto => {
   return {
     groupId: newFaker.number.int({ min: 1, max: 2 }),
     userId: newFaker.number.int({ min: 1, max }),
-    role: newFaker.helpers.arrayElement(['GUEST', 'MEMBER', 'MEMBER']),
+    role: newFaker.helpers.arrayElement(Object.values($Enums.Role)),
   }
-
 }
 
-const CreateRandomProfile = (): CreateProfileDto => {
+
+export const getImageBlob = async (url: any): Promise<any> => {
+  let response = await fetch(url);
+  let blob = await response.blob();
+  let buffer = Buffer.from(await blob.arrayBuffer());
+  // return "data:" + blob.type + ';base64,' + buffer.toString('base64');
+  return buffer.toString('base64');
+}
+
+
+const CreateRandomProfile = async (): Promise<CreateProfileDto> => {
   return {
-    userId: newFaker.helpers.uniqueArray([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 1)[0],
+    userId: newFaker.number.int({ min: 1, max }),
     addressId: newFaker.number.int({ min: 1, max: 10 }),
     userIdSp: newFaker.number.int({ min: 1, max }),
     firstName: newFaker.person.firstName(),
     lastName: newFaker.person.lastName(),
     phone: "+33" + newFaker.phone.number(),
-    avatar: (Buffer.from(newFaker.image.avatar())).toString('base64'),
+    avatar: await getImageBlob(newFaker.image.avatar()),
     addressShared: newFaker.datatype.boolean(),
-    assistance: newFaker.helpers.arrayElement(['NONE', 'LOW', 'MEDIUM', 'HIGH']),
+    assistance: newFaker.helpers.arrayElement(Object.values($Enums.Assistance)),
     points: newFaker.number.int({ min: 0, max: 30 }),
     skills: newFaker.lorem.words({ min: 0, max: 3 }),
   }
 }
 
-const CreateRandomEvent = (): CreateEventDto => {
+const CreateRandomEvent = async (): Promise<CreateEventDto> => {
   return {
     userId: newFaker.number.int({ min: 1, max }),
     addressId: newFaker.number.int({ min: 1, max }),
@@ -94,9 +103,9 @@ const CreateRandomEvent = (): CreateEventDto => {
     description: newFaker.lorem.lines({ min: 1, max: 2 }),
     start: newFaker.date.future(),
     end: newFaker.date.future(),
-    category: newFaker.helpers.arrayElement(['CATEGORY_1', 'CATEGORY_2', 'CATEGORY_3', 'CATEGORY_4']),
+    category: newFaker.helpers.arrayElement(Object.values($Enums.EventCategory)),
     participantsMin: newFaker.number.int({ min: 1, max: 20 }),
-    image: Buffer.from(newFaker.image.urlLoremFlickr({ category: 'social' })).toString('base64'),
+    image: await getImageBlob((newFaker.image.urlLoremFlickr({ category: 'social' }))),
   }
 }
 
@@ -107,7 +116,7 @@ const CreateRandomParticipant = (): CreateParticipantDto => {
   }
 }
 
-const CreateRandomService = (): CreateServiceDto => {
+const CreateRandomService = async (): Promise<CreateServiceDto> => {
   return {
     userId: newFaker.number.int({ min: 1, max }),
     userIdResp: newFaker.number.int({ min: 1, max }),
@@ -118,17 +127,17 @@ const CreateRandomService = (): CreateServiceDto => {
     skill: newFaker.helpers.arrayElement(Object.values($Enums.SkillLevel)),
     hard: newFaker.helpers.arrayElement(Object.values($Enums.HardLevel)),
     status: newFaker.helpers.arrayElement(Object.values($Enums.ServiceStatus)),
-    image: Buffer.from(newFaker.image.urlLoremFlickr({ category: 'service' })).toString('base64'),
+    image: await getImageBlob(newFaker.image.urlLoremFlickr({ category: 'service' })),
   }
 }
 
-const CreateRandomPost = (): CreatePostDto => {
+const CreateRandomPost = async (): Promise<CreatePostDto> => {
   return {
     userId: newFaker.number.int({ min: 1, max }),
     title: 'Post ' + newFaker.lorem.words({ min: 3, max: 6 }),
     description: newFaker.lorem.lines({ min: 1, max: 3 }),
     category: newFaker.helpers.arrayElement(Object.values($Enums.PostCategory)),
-    image: Buffer.from(newFaker.image.urlLoremFlickr({ category: 'fun' })).toString('base64'),
+    image: await getImageBlob(newFaker.image.urlLoremFlickr({ category: 'fun' })),
     share: newFaker.helpers.arrayElement(Object.values($Enums.Share)),
   }
 }
@@ -150,13 +159,13 @@ const CreateRandomPool = (): CreatePoolDto => {
   }
 }
 
-const CreateRandomSurvey = (): CreateSurveyDto => {
+const CreateRandomSurvey = async (): Promise<CreateSurveyDto> => {
   return {
     userId: newFaker.number.int({ min: 1, max }),
     title: 'Survey ' + newFaker.lorem.words({ min: 3, max: 6 }),
     description: newFaker.lorem.lines({ min: 1, max: 3 }),
     category: newFaker.helpers.arrayElement(Object.values($Enums.SurveyCategory)),
-    image: Buffer.from(newFaker.image.urlLoremFlickr({ category: 'survey' })).toString('base64'),
+    image: await getImageBlob(newFaker.image.urlLoremFlickr({ category: 'survey' })),
   }
 }
 
@@ -250,7 +259,7 @@ const seed = async () => {
   const profile = async () => {
     while (await prisma.profile.count() < max) {
       {
-        const { userId, addressId, userIdSp, ...profile } = CreateRandomProfile();
+        const { userId, addressId, userIdSp, ...profile } = await CreateRandomProfile();
         const cond = await prisma.profile.findFirst({ where: { userId: userId } });
         if (!cond) await prisma.profile.create({ data: { ...profile, User: { connect: { id: userId } }, Address: { connect: { id: addressId } }, UserSp: { connect: { id: userIdSp } } } })
       }
@@ -262,7 +271,7 @@ const seed = async () => {
   // EVENT fk address fk user 
   const event = async () => {
     while (await prisma.event.count() < max) {
-      const { userId, addressId, ...event } = CreateRandomEvent()
+      const { userId, addressId, ...event } = await CreateRandomEvent()
       await prisma.event.create({ data: { ...event, Address: { connect: { id: addressId } }, User: { connect: { id: userId } } } })
     }
   }
@@ -284,7 +293,7 @@ const seed = async () => {
   // SERVICE fk user fk userResp
   const service = async () => {
     while (await prisma.service.count() < max) {
-      const { userId, userIdResp, ...service } = CreateRandomService();
+      const { userId, userIdResp, ...service } = await CreateRandomService();
       if (userId !== userIdResp) await prisma.service.create({ data: { ...service, UserService: { connect: { id: userId } }, UserServiceResp: { connect: { id: userIdResp } } } })
     }
   }
@@ -293,7 +302,7 @@ const seed = async () => {
   // POST fk user 
   const post = async () => {
     while (await prisma.post.count() < max) {
-      const { userId, ...post } = CreateRandomPost();
+      const { userId, ...post } = await CreateRandomPost();
       await prisma.post.create({ data: { ...post, User: { connect: { id: userId } } } })
     }
   }
@@ -322,7 +331,7 @@ const seed = async () => {
   // POOL fk user fk userBenef 
   const survey = async () => {
     while (await prisma.survey.count() < max) {
-      const { userId, ...survey } = CreateRandomSurvey();
+      const { userId, ...survey } = await CreateRandomSurvey();
       await prisma.survey.create({ data: { ...survey, User: { connect: { id: userId } } } })
     }
   }

@@ -1,7 +1,7 @@
-import { ApiProperty } from '@nestjs/swagger'; import { $Enums } from '@prisma/client';
+import { ApiProperty } from '@nestjs/swagger';
+import { $Enums, Event } from '@prisma/client';
 ;
 import { IsDate, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
-import { Event } from 'src/class';
 
 export class EventEntity implements Event {
     @ApiProperty()
@@ -56,7 +56,7 @@ export class EventEntity implements Event {
 
     @ApiProperty()
     @IsOptional()
-    image: string | null
+    image: Uint8Array<ArrayBufferLike>;
 
     @ApiProperty()
     @IsNumber()

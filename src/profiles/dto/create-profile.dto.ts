@@ -1,4 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
+import { $Enums } from "@prisma/client";
 import { IsString, IsNotEmpty, IsBoolean, IsEnum, IsNumber, IsArray } from "class-validator";
 
 export class CreateProfileDto {
@@ -8,7 +9,6 @@ export class CreateProfileDto {
     firstName: string;
 
     @ApiProperty()
-
     @IsString()
     @IsNotEmpty()
     lastName: string;
@@ -17,7 +17,10 @@ export class CreateProfileDto {
     userIdSp: number;
 
     @ApiProperty()
+    @IsNumber()
+    @IsNotEmpty()
     userId: number;
+
     @ApiProperty()
     addressId: number;
 
@@ -28,15 +31,15 @@ export class CreateProfileDto {
 
     @ApiProperty()
     @IsNotEmpty()
-    avatar: string;
+    avatar: Uint8Array<ArrayBufferLike>;
 
     @ApiProperty()
     @IsBoolean()
     addressShared: boolean;
 
     @ApiProperty()
-    @IsEnum(['NONE', 'LOW', 'MEDIUM', 'HIGH'])
-    assistance: "NONE" | "LOW" | "MEDIUM" | "HIGH";
+    @IsEnum($Enums.Assistance, { message: 'Assistance must be part of ' + $Enums.Assistance })
+    assistance: $Enums.Assistance;
 
     @ApiProperty()
     @IsNumber()

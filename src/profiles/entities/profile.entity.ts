@@ -43,7 +43,7 @@ export class ProfileEntity implements Profile {
     @ApiProperty()
     @IsString()
     @IsNotEmpty()
-    avatar: string;
+    avatar: Uint8Array<ArrayBufferLike>;
 
     @ApiProperty()
     @IsBoolean()

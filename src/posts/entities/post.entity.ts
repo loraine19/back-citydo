@@ -34,12 +34,12 @@ export class PostEntity implements Post {
 
     @ApiProperty()
     @IsNotEmpty({ message: 'category is required' })
-    @IsEnum($Enums.PostCategory)
+    @IsEnum($Enums.PostCategory, { message: 'category must be part of ' + $Enums.PostCategory })
     category: $Enums.PostCategory;
 
     @ApiProperty()
     @IsOptional()
-    image: string;
+    image: Uint8Array<ArrayBufferLike>;
 
     @ApiProperty()
     @IsEnum($Enums.Share)

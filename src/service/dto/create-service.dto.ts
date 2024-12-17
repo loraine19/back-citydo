@@ -52,5 +52,5 @@ export class CreateServiceDto {
     @ApiProperty()
     @IsOptional()
     @IsString()
-    image: string;
+    image: Uint8Array<ArrayBufferLike>;
 }

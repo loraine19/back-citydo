@@ -75,8 +75,8 @@ model Address {
   zipcode   String
   city      String
   address   String
-  lat       Decimal   @db.Decimal()
-  lng       Decimal   @db.Decimal()
+  lat       Decimal
+  lng       Decimal
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   Group     Group[]
@@ -91,7 +91,7 @@ model Profile {
   addressId     Int
   firstName     String
   lastName      String
-  avatar        String     @db.LongText
+  avatar        Bytes
   phone         String
   addressShared Boolean    @default(false)
   assistance    Assistance @default(NONE)
@@ -127,7 +127,7 @@ model Event {
   description     String
   category        String
   participantsMin Int
-  image           String?       @db.LongText
+  image           Bytes?
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
   User            User          @relation(fields: [userId], references: [id])
@@ -168,7 +168,7 @@ model Service {
   skill           SkillLevel
   hard            HardLevel
   status          ServiceStatus
-  image           String?         @db.LongText
+  image           Bytes?
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
   Issue           Issue[]
@@ -218,7 +218,7 @@ model Issue {
   updatedAt       DateTime    @updatedAt
   userId_Modo     Int
   userId_ModoResp Int
-  image           String      @db.LongText
+  image           Bytes?
   UserModo        User        @relation(fields: [userId_Modo], references: [id], name: "Modo")
   UserModoResp    User        @relation(fields: [userId_ModoResp], references: [id], name: "ModoResp")
   Service         Service     @relation(fields: [serviceId], references: [id])
@@ -238,7 +238,7 @@ model Survey {
   title       String
   description String         @db.MediumText
   category    SurveyCategory
-  image       String         @db.LongText
+  image       Bytes?
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
   User        User           @relation(fields: [userId], references: [id])
@@ -292,7 +292,7 @@ model Post {
   title       String
   description String       @db.MediumText
   category    PostCategory
-  image       String?      @db.LongText
+  image       Bytes?
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
   User        User         @relation(fields: [userId], references: [id])

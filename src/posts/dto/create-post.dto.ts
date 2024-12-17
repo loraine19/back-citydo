@@ -1,4 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
+import { $Enums } from "@prisma/client";
 import { IsNotEmpty, IsNumber, IsString, IsEnum, IsOptional, IsArray } from "class-validator";
 import { arrayBuffer } from 'stream/consumers';
 
@@ -21,14 +22,14 @@ export class CreatePostDto {
 
     @ApiProperty()
     @IsNotEmpty({ message: 'category is required' })
-    @IsEnum(['CATEGORY_1', 'CATEGORY_2', 'CATEGORY_3', 'CATEGORY_4', 'CATEGORY_5'])
-    category: "CATEGORY_1" | "CATEGORY_2" | "CATEGORY_3" | "CATEGORY_4" | "CATEGORY_5"
+    @IsEnum($Enums.PostCategory, { message: 'category must be part of ' + $Enums.PostCategory })
+    category: $Enums.PostCategory;
 
     @ApiProperty()
     @IsOptional()
-    image: string;
+    image: Uint8Array<ArrayBufferLike>;
 
     @ApiProperty()
-    @IsEnum(['PHONE', 'EMAIL', 'BOTH'])
-    share: "PHONE" | "EMAIL" | "BOTH";
+    @IsEnum($Enums.Share)
+    share: $Enums.Share;
 }

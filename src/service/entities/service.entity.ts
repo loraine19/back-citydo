@@ -65,5 +65,5 @@ export class ServiceEntity implements Service {
     @ApiProperty()
     @IsOptional()
     @IsString()
-    image: string;
+    image: Uint8Array<ArrayBufferLike>;
 }

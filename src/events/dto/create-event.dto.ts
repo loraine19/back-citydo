@@ -43,7 +43,7 @@ export class CreateEventDto {
 
     @ApiProperty()
     @IsOptional()
-    image: string | null
+    image: Uint8Array<ArrayBufferLike>;
 
     @ApiProperty()
     @IsNumber()

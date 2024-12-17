@@ -26,5 +26,5 @@ export class CreateSurveyDto {
 
     @ApiProperty()
     @IsOptional()
-    image: string;
+    image: Uint8Array<ArrayBufferLike>;
 }

@@ -39,5 +39,5 @@ export class SurveyEntity implements Survey {
 
     @ApiProperty()
     @IsOptional()
-    image: string;
+    image: Uint8Array<ArrayBufferLike>;
 }
