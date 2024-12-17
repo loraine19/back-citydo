@@ -346,7 +346,7 @@ const seed = async () => {
       if (!cond) await prisma.vote.create({ data: { ...vote, User: { connect: { id: userId } } } })
     }
   }
-  await survey();
+  await vote();
 }
 
 
