@@ -6,12 +6,11 @@ import { ApiBearerAuth, ApiOkResponse } from '@nestjs/swagger';
 import { ProfileEntity } from './entities/profile.entity';
 import { RequestWithUser } from 'src/auth/auth.entities/auth.entity';
 import { AuthGuard } from 'src/auth/auth.guard';
-import { UploadsService } from 'src/uploads/uploads.service';
-import { UploadsController } from '../uploads/uploads.controller';
+
 
 @Controller('profiles')
 export class ProfilesController {
-  constructor(private readonly profilesService: ProfilesService, readonly UploadsController: UploadsController) { }
+  constructor(private readonly profilesService: ProfilesService) { }
 
   @Post()
   create(@Body() createProfileDto: CreateProfileDto) {

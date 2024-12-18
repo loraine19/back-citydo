@@ -5,8 +5,8 @@ import { diskStorage } from 'multer';
 import { UploadsService } from './uploads.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 
-// @Controller('uploads')
-// @ApiTags('files')
+@Controller('files')
+@ApiTags('files')
 
 export class UploadsController {
   constructor(public readonly UploadsServices: UploadsService, private prisma: PrismaService) { }
