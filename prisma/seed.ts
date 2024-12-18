@@ -87,7 +87,7 @@ const CreateRandomProfile = async (): Promise<CreateProfileDto> => {
     firstName: newFaker.person.firstName(),
     lastName: newFaker.person.lastName(),
     phone: "+33" + newFaker.phone.number(),
-    avatar: await getImageBlob(newFaker.image.urlLoremFlickr({ category: 'people' })),
+    avatar: await getImageBlob(newFaker.image.urlLoremFlickr({ category: 'people', width: 200, height: 200 })),
     addressShared: newFaker.datatype.boolean(),
     assistance: newFaker.helpers.arrayElement(Object.values($Enums.Assistance)),
     points: newFaker.number.int({ min: 0, max: 30 }),
@@ -105,7 +105,7 @@ const CreateRandomEvent = async (): Promise<CreateEventDto> => {
     end: newFaker.date.future(),
     category: newFaker.helpers.arrayElement(Object.values($Enums.EventCategory)),
     participantsMin: newFaker.number.int({ min: 1, max: 20 }),
-    image: await getImageBlob((newFaker.image.urlLoremFlickr({ category: 'social' }))),
+    image: await getImageBlob((newFaker.image.urlLoremFlickr({ category: 'social', width: 400, height: 200 }))),
   }
 }
 
@@ -127,7 +127,7 @@ const CreateRandomService = async (): Promise<CreateServiceDto> => {
     skill: newFaker.helpers.arrayElement(Object.values($Enums.SkillLevel)),
     hard: newFaker.helpers.arrayElement(Object.values($Enums.HardLevel)),
     status: newFaker.helpers.arrayElement(Object.values($Enums.ServiceStatus)),
-    image: await getImageBlob(newFaker.image.urlLoremFlickr({ category: 'service' })),
+    image: await getImageBlob(newFaker.image.urlLoremFlickr({ category: 'service', width: 400, height: 200 })),
   }
 }
 
@@ -137,7 +137,7 @@ const CreateRandomPost = async (): Promise<CreatePostDto> => {
     title: 'Post ' + newFaker.lorem.words({ min: 3, max: 6 }),
     description: newFaker.lorem.lines({ min: 1, max: 3 }),
     category: newFaker.helpers.arrayElement(Object.values($Enums.PostCategory)),
-    image: await getImageBlob(newFaker.image.urlLoremFlickr({ category: 'fun' })),
+    image: await getImageBlob(newFaker.image.urlLoremFlickr({ category: 'fun', width: 400, height: 200 })),
     share: newFaker.helpers.arrayElement(Object.values($Enums.Share)),
   }
 }
@@ -165,7 +165,7 @@ const CreateRandomSurvey = async (): Promise<CreateSurveyDto> => {
     title: 'Survey ' + newFaker.lorem.words({ min: 3, max: 6 }),
     description: newFaker.lorem.lines({ min: 1, max: 3 }),
     category: newFaker.helpers.arrayElement(Object.values($Enums.SurveyCategory)),
-    image: await getImageBlob(newFaker.image.urlLoremFlickr({ category: 'survey' })),
+    image: await getImageBlob(newFaker.image.urlLoremFlickr({ category: 'home', width: 200, height: 200 })),
   }
 }
 
