@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, NotFoundException, BadRequestException, UseGuards, ParseIntPipe, HttpException, HttpStatus, Header, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, ParseIntPipe, HttpException, HttpStatus, Req } from '@nestjs/common';
 import { ApiCreatedResponse, ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -36,8 +36,9 @@ export class UsersController {
   @Get('me')
   @ApiBearerAuth()
   @ApiOkResponse({ type: UserEntity })
-  async getProfile(@Req() req: RequestWithUser) {
+  async FindMe(@Req() req: RequestWithUser) {
     const id = req.user.sub
+    console.log(req)
     return this.usersService.findOne(id)
   }
 
@@ -45,7 +46,7 @@ export class UsersController {
   @ApiBearerAuth()
   @ApiOkResponse({ type: UserEntity })
   async findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.usersService.findOne(+id)
+    return this.usersService.findOne(id)
   }
 
 

@@ -344,3 +344,11 @@ enum FlagTarget {
   POST
   SURVEY
 }
+
+//// FILE 
+model File {
+  id           Int    @id @default(autoincrement())
+  originalname String
+  path         String
+  mimeType     String
+}

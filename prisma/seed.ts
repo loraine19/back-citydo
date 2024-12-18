@@ -69,13 +69,13 @@ const CreateRandomGroupUser = (): CreateGroupUserDto => {
   }
 }
 
-
-export const getImageBlob = async (url: any): Promise<any> => {
+/// GENERE IMAGE FROM SEED 
+export const getImageBlob = async (url: string): Promise<Uint8Array<ArrayBufferLike>> => {
   let response = await fetch(url);
   let blob = await response.blob();
   let buffer = Buffer.from(await blob.arrayBuffer());
   // return "data:" + blob.type + ';base64,' + buffer.toString('base64');
-  return buffer.toString('base64');
+  return buffer;
 }
 
 

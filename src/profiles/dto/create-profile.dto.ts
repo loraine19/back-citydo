@@ -31,7 +31,7 @@ export class CreateProfileDto {
 
     @ApiProperty()
     @IsNotEmpty()
-    avatar: Uint8Array<ArrayBufferLike>;
+    avatar: any;
 
     @ApiProperty()
     @IsBoolean()

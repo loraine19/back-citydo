@@ -30,21 +30,19 @@ export class SurveysService {
   }
 
   async findOneWithVote(id: number): Promise<SurveyWithVote> {
-    const surv = await this.prisma.survey.findUniqueOrThrow({
+    const survey = await this.prisma.survey.findUniqueOrThrow({
       where: { id },
       include: { User: true }
     });
-    const ret = {
-      ...surv, votes: await this.prisma.vote.findMany({
+    const suruveyWithVote = {
+      ...survey, votes: await this.prisma.vote.findMany({
         where: {
           target: $Enums.VoteTarget.SURVEY,
           targetId: id
         }
       })
     }
-
-    console.log(ret)
-    return ret
+    return suruveyWithVote
   }
 
 

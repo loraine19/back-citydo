@@ -1,9 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { Profile, Service } from '@prisma/client';
+import { Profile } from '@prisma/client';
 import { CreateProfileDto } from './dto/create-profile.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
-
 //// SERVICE MAKE ACTION
 @Injectable()
 export class ProfilesService {
@@ -21,13 +20,10 @@ export class ProfilesService {
     return await this.prisma.profile.findUniqueOrThrow({
       where: { id },
     });
+
   }
 
-  async findOneUser(id: number): Promise<Profile> {
-    return await this.prisma.profile.findUniqueOrThrow({
-      where: { id },
-    });
-  }
+
 
   async update(id: number, data: UpdateProfileDto): Promise<Profile> {
     const { userId, addressId, userIdSp, ...profile } = data

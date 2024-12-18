@@ -2,12 +2,15 @@ import { NestFactory, HttpAdapterHost } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
-import { PrismaFilter } from '../utils/filter/prisma.filter';
-import { HttpExeptionFilter } from '../utils/filter/http.filter';
-import { ErrorFilter } from '../utils/filter/error.filter';
+import { PrismaFilter } from '../middleware/filter/prisma.filter';
+import { HttpExeptionFilter } from '../middleware/filter/http.filter';
+import { ErrorFilter } from '../middleware/filter/error.filter';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
+import { NestExpressApplication } from '@nestjs/platform-express';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
   app.useGlobalPipes(new ValidationPipe());
   const config = new DocumentBuilder()
     .setTitle('Collectif API ')
@@ -25,6 +28,11 @@ async function bootstrap() {
     new HttpExeptionFilter(),
     new PrismaFilter(httpAdapter)
   );
+  app.useStaticAssets(join(__dirname, '..', 'public'), {
+    index: false,
+    prefix: '/public',
+  });
+
   app.enableCors(
     {
       origin:
