@@ -270,6 +270,8 @@ model Vote {
   User      User        @relation(fields: [userId], references: [id])
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
+  // Survey    Survey      @relation(fields: [targetId],references: [id], name: "SurveyVote")
+  // Pool      Pool        @relation(fields: [targetId], references: [id], name: "PoolVote")
 
   @@id([userId, target, targetId])
 }

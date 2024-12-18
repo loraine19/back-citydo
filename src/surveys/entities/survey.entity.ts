@@ -1,7 +1,10 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { $Enums, Survey } from "@prisma/client";
+import { $Enums, Survey, Vote } from "@prisma/client";
 import { IsNumber, IsNotEmpty, IsDate, IsString, IsEnum, IsOptional } from "class-validator";
 
+export interface SurveyWithVote extends Survey {
+    votes: any;
+}
 export class SurveyEntity implements Survey {
     @ApiProperty()
     @IsNumber()
@@ -41,3 +44,4 @@ export class SurveyEntity implements Survey {
     @IsOptional()
     image: Uint8Array<ArrayBufferLike>;
 }
+

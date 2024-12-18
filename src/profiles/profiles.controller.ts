@@ -1,7 +1,10 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpException, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpException, HttpStatus, Req } from '@nestjs/common';
 import { ProfilesService } from './profiles.service';
 import { CreateProfileDto } from './dto/create-profile.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { ApiBearerAuth, ApiOkResponse } from '@nestjs/swagger';
+import { ProfileEntity } from './entities/profile.entity';
+import { RequestWithUser } from 'src/auth/auth.entities/auth.entity';
 
 @Controller('profiles')
 export class ProfilesController {
@@ -23,6 +26,15 @@ export class ProfilesController {
   findOne(@Param('id') id: string) {
     return this.profilesService.findOne(+id);
   }
+
+  @Get('mines')
+  @ApiBearerAuth()
+  @ApiOkResponse({ type: ProfileEntity })
+  async getProfile(@Req() req: RequestWithUser) {
+    const id = req.user.sub
+    return this.profilesService.findOne(id)
+  }
+
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateProfileDto: UpdateProfileDto) {

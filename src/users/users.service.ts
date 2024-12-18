@@ -23,6 +23,7 @@ export class UsersService {
     return await this.prisma.user.findMany();
   }
 
+
   async findOne(id: number): Promise<User> {
     return await this.prisma.user.findUniqueOrThrow({ where: { id } });
   }

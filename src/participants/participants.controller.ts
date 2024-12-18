@@ -30,6 +30,7 @@ export class ParticipantsController {
     return participants
   }
 
+
   @Get('user:userId&event:eventId')
   @ApiResponse({ type: ParticpantEntity })
   async findOne(@Param('userId', ParseIntPipe) userId: number, @Param('eventId', ParseIntPipe) eventId: number) {

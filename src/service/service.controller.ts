@@ -4,6 +4,7 @@ import { CreateServiceDto } from './dto/create-service.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
 import { ApiBearerAuth, ApiOkResponse, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ServiceEntity } from './entities/service.entity';
+import { RequestWithUser } from 'src/auth/auth.entities/auth.entity';
 const route = 'service'
 
 @Controller(route)
@@ -35,9 +36,9 @@ export class ServicesController {
   @Get('mines')
   @ApiBearerAuth()
   @ApiOkResponse({ type: ServiceEntity })
-  async getProfile(@Req() req: any) {
-    const userId = req.user.id
-    return this.serviceService.findOne(+userId)
+  async getMines(@Req() req: RequestWithUser) {
+    const id = req.user.sub
+    return this.serviceService.findSome(id)
   }
 
   @Patch(':id')

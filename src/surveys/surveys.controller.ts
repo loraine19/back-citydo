@@ -4,6 +4,7 @@ import { CreateSurveyDto } from './dto/create-survey.dto';
 import { UpdateSurveyDto } from './dto/update-survey.dto';
 import { ApiBearerAuth, ApiOkResponse } from '@nestjs/swagger';
 import { SurveyEntity } from './entities/survey.entity';
+import { RequestWithUser } from 'src/auth/auth.entities/auth.entity';
 
 @Controller('surveys')
 export class SurveysController {
@@ -21,18 +22,24 @@ export class SurveysController {
     return this.surveysService.findAll();
   }
 
+
   @Get(':id')
   @ApiOkResponse({ type: SurveyEntity })
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.surveysService.findOne(+id);
   }
+  @Get(':id/withVotes')
+  @ApiOkResponse({ type: SurveyEntity })
+  findOneWithVote(@Param('id', ParseIntPipe) id: number) {
+    return this.surveysService.findOneWithVote(id);
+  }
 
   @Get('mines')
   @ApiBearerAuth()
   @ApiOkResponse({ type: SurveyEntity })
-  async getProfile(@Req() req: any) {
-    const userId = req.user.id
-    return this.surveysService.findOne(+userId)
+  async getMines(@Req() req: RequestWithUser) {
+    const id = req.user.sub
+    return this.surveysService.findSome(id)
   }
 
   @Patch(':id')

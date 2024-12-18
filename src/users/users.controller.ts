@@ -4,14 +4,15 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UsersService } from './users.service';
 import { UserEntity } from './entities/user.entity';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { AuthGuard } from 'src/auth/auth.guard';
+import { RequestWithUser } from 'src/auth/auth.entities/auth.entity';
 
 
 //// CONTROLLER DO ROUTE 
 const route = 'users'
 @Controller(route)
 @ApiTags(route)
-@UseGuards(JwtAuthGuard)
+@UseGuards(AuthGuard)
 export class UsersController {
   constructor(private readonly usersService: UsersService) { }
 
@@ -30,13 +31,14 @@ export class UsersController {
     return users
   }
 
+
+
   @Get('me')
   @ApiBearerAuth()
   @ApiOkResponse({ type: UserEntity })
-  async getProfile(@Req() req: any) {
-    console.log('req', req.user)
-    const userId = req.user.id
-    return this.usersService.findOne(+userId)
+  async getProfile(@Req() req: RequestWithUser) {
+    const id = req.user.sub
+    return this.usersService.findOne(id)
   }
 
   @Get(':id')

@@ -1,9 +1,11 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, Req } from '@nestjs/common';
 import { PoolsService } from './pools.service';
 import { CreatePoolDto } from './dto/create-pool.dto';
 import { UpdatePoolDto } from './dto/update-pool.dto';
-import { ApiResponse } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOkResponse, ApiResponse } from '@nestjs/swagger';
 import { PoolEntity } from './entities/pool.entity';
+import { RequestWithUser } from 'src/auth/auth.entities/auth.entity';
+import { ProfileEntity } from 'src/profiles/entities/profile.entity';
 
 const route = "pools"
 @Controller(route)
@@ -27,6 +29,14 @@ export class PoolsController {
   @ApiResponse({ type: PoolEntity })
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.poolsService.findOne(+id);
+  }
+
+  @Get('mines')
+  @ApiBearerAuth()
+  @ApiOkResponse({ type: ProfileEntity })
+  async getProfile(@Req() req: RequestWithUser) {
+    const id = req.user.sub
+    return this.poolsService.findOne(id)
   }
 
   @Patch(':id')

@@ -20,7 +20,11 @@ async function bootstrap() {
 
   SwaggerModule.setup('api', app, document);
   const { httpAdapter } = app.get(HttpAdapterHost);
-  app.useGlobalFilters(new PrismaFilter(httpAdapter), new HttpExeptionFilter(), new ErrorFilter());
+  app.useGlobalFilters(
+    new ErrorFilter(),
+    new HttpExeptionFilter(),
+    new PrismaFilter(httpAdapter)
+  );
   app.enableCors(
     {
       origin:

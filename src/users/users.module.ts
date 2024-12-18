@@ -12,11 +12,4 @@ import { UsersController } from './users.controller';
   imports: [PrismaModule],
 })
 export class UsersModule {
-
-  // static setup(arg0: string, app: INestApplication<any>, document: OpenAPIObject) {
-  //   throw new Error('Method not implemented.');
-  // }
-  // static createDocument(app: INestApplication<any>, config: Omit<OpenAPIObject, "paths">) {
-  //   throw new Error('Method not implemented.');
-  // }
 }

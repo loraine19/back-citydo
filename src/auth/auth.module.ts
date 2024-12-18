@@ -8,15 +8,16 @@ import { PrismaModule } from 'src/prisma/prisma.module';
 import { UsersModule } from 'src/users/users.module';
 import { JwtStrategy } from './jwt.strategy';
 import { UsersService } from 'src/users/users.service';
-import { JwtConstants } from './jwtConstants';
+
 
 @Module({
   imports: [
     PrismaModule,
     PassportModule,
     JwtModule.register({
-      secret: JwtConstants.secret,
-      signOptions: { expiresIn: '20m' }
+      secret: process.env.JWT_SECRET,
+      global: true,
+      signOptions: { expiresIn: '40m' }
     }),
     UsersModule
   ],
