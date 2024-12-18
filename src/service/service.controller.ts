@@ -1,8 +1,8 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpException, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpException, HttpStatus, Req, ParseIntPipe } from '@nestjs/common';
 import { ServicesService } from './service.service';
 import { CreateServiceDto } from './dto/create-service.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
-import { ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOkResponse, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ServiceEntity } from './entities/service.entity';
 const route = 'service'
 
@@ -27,17 +27,28 @@ export class ServicesController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  @ApiOkResponse({ type: ServiceEntity })
+  findOne(@Param('id', ParseIntPipe) id: number) {
     return this.serviceService.findOne(+id);
   }
 
+  @Get('mines')
+  @ApiBearerAuth()
+  @ApiOkResponse({ type: ServiceEntity })
+  async getProfile(@Req() req: any) {
+    const userId = req.user.id
+    return this.serviceService.findOne(+userId)
+  }
+
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateServiceDto: UpdateServiceDto) {
+  @ApiOkResponse({ type: ServiceEntity })
+  update(@Param('id', ParseIntPipe) id: number, @Body() updateServiceDto: UpdateServiceDto) {
     return this.serviceService.update(+id, updateServiceDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
+  @ApiOkResponse({ type: ServiceEntity })
+  remove(@Param('id', ParseIntPipe) id: number) {
     return this.serviceService.remove(+id);
   }
 }
