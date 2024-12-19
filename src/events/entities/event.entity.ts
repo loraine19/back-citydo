@@ -56,7 +56,7 @@ export class EventEntity implements Event {
 
     @ApiProperty()
     @IsOptional()
-    image: Uint8Array<ArrayBufferLike>;
+    image: string;
 
     @ApiProperty()
     @IsNumber()

@@ -25,8 +25,9 @@ async function bootstrap() {
   const { httpAdapter } = app.get(HttpAdapterHost);
   app.useGlobalFilters(
     new ErrorFilter(),
+    new PrismaFilter(httpAdapter),
     new HttpExeptionFilter(),
-    new PrismaFilter(httpAdapter)
+
   );
   app.useStaticAssets(join(__dirname, '..', 'public'), {
     index: false,

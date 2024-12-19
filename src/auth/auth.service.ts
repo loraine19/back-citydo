@@ -50,6 +50,7 @@ export class AuthService {
         const user = await this.prisma.user.findUnique({ where: { email: email } });
         if (!user) throw new NotFoundException(`No user found for email: ${email}`);
         const isPasswordValid = await argon2.verify(user.password, password)
+
         if (!isPasswordValid) throw new UnauthorizedException('Invalid password')
         const sub = user.id
         return {

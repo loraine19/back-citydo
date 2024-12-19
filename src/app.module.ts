@@ -20,6 +20,7 @@ import { MulterModule } from '@nestjs/platform-express';
 import { UploadsModule } from './uploads/uploads.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
+import { RefreshModule } from './refresh/refresh.module';
 
 
 @Module({
@@ -45,6 +46,7 @@ import { join } from 'path';
     PoolsModule,
     SurveysModule,
     VotesModule,
+    RefreshModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -1,11 +1,13 @@
-import { ApiProperty, PartialType } from "@nestjs/swagger";
+import { ApiBody, ApiConsumes, ApiProperty, PartialType } from "@nestjs/swagger";
 import { EventEntity } from "../entities/event.entity";
 import { IsNotEmpty, IsString, IsDate, IsNumber, IsOptional, IsEnum } from "class-validator";
 import { $Enums } from "@prisma/client";
+import { Optional, ParseFilePipe, ParseIntPipe, UsePipes } from "@nestjs/common";
+import { Transform } from "class-transformer";
+
 
 
 export class CreateEventDto {
-
     @ApiProperty()
     @IsNotEmpty({ message: 'Title is required' })
     @IsString()
@@ -37,16 +39,18 @@ export class CreateEventDto {
     userId: number
 
     @ApiProperty()
+    @IsNotEmpty({ message: 'Participants min is required' })
+    @IsNumber()
+    participantsMin: number;
+
+
+    @ApiProperty({ enum: $Enums.EventCategory })
     @IsNotEmpty()
     @IsEnum($Enums.EventCategory, { message: 'Category mus be part of ' + Object.values($Enums.EventCategory).join(', ') })
     category: $Enums.EventCategory
 
-    @ApiProperty()
-    @IsOptional()
-    image: Uint8Array<ArrayBufferLike>;
 
-    @ApiProperty()
-    @IsNumber()
-    @IsNotEmpty({ message: 'Participants min is required' })
-    participantsMin: number
+    @ApiProperty({ type: 'string', format: 'binary', required: false, })
+    image: string;
+
 }

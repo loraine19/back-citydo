@@ -105,7 +105,7 @@ const CreateRandomEvent = async (): Promise<CreateEventDto> => {
     end: newFaker.date.future(),
     category: newFaker.helpers.arrayElement(Object.values($Enums.EventCategory)),
     participantsMin: newFaker.number.int({ min: 1, max: 20 }),
-    image: await getImageBlob((newFaker.image.urlLoremFlickr({ category: 'social', width: 400, height: 200 }))),
+    image: (newFaker.image.urlLoremFlickr({ category: 'social', width: 400, height: 200 })),
   }
 }
 

@@ -3,12 +3,16 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { Event } from '@prisma/client';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
+import { Participant } from 'src/class';
 
 //// SERVICE MAKE ACTION
 @Injectable()
 export class EventsService {
   constructor(private prisma: PrismaService) { }
   async create(data: CreateEventDto): Promise<Event> {
+    console.log("services", typeof (data.participantsMin), data.participantsMin);
+    console.log("user", typeof (data.userId), data.userId);
+    console.log("address", typeof (data.addressId), data.addressId);
     const { userId, addressId, ...event } = data
     return await this.prisma.event.create({
       data: { ...event, Address: { connect: { id: addressId } }, User: { connect: { id: userId } } }

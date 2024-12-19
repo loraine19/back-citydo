@@ -1,23 +1,29 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpException, HttpStatus, ValidationPipe, NotFoundException, BadRequestException, ParseIntPipe, ParseUUIDPipe, PipeTransform, Req } from '@nestjs/common';
-import { ApiOkResponse, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpException, HttpStatus, ValidationPipe, NotFoundException, BadRequestException, ParseIntPipe, ParseUUIDPipe, PipeTransform, Req, UploadedFile, UseInterceptors, UsePipes } from '@nestjs/common';
+import { ApiOkResponse, ApiTags, ApiBearerAuth, ApiBody, ApiConsumes } from '@nestjs/swagger';
 import { UsersService } from 'src/users/users.service';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { EventEntity } from './entities/event.entity';
 import { EventsService } from './events.service';
-import { RequestWithUser } from 'src/auth/auth.entities/auth.entity';
+import { ImageInterceptor } from 'middleware/ImageInterceptor';
+import { parseData } from 'middleware/BodyParser';
 
 const route = 'events'
 @Controller(route)
 @ApiTags(route)
 export class EventsController {
   constructor(private readonly eventsService: EventsService, private usersService: UsersService) { }
-
   @Post()
   @ApiOkResponse({ type: EventEntity })
-  async create(@Body() data: CreateEventDto) {
+  @ApiBody({ type: CreateEventDto })
+  @UseInterceptors(ImageInterceptor.create('events'))
+  @ApiConsumes('multipart/form-data')
+  async create(@Body() data: CreateEventDto, @UploadedFile() image: Express.Multer.File,) {
+    parseData(data)
+    image && (data = { ...data, image: process.env.STORAGE + image.path.replace('dist', '') })
     return this.eventsService.create(data)
   }
+
 
   @Get()
   @ApiOkResponse({ type: EventEntity, isArray: true })
