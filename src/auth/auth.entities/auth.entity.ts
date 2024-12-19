@@ -8,4 +8,11 @@ export class AuthEntity {
     refreshToken: string;
 }
 
+export class RefreshEntity {
+    @ApiProperty()
+    userId: number;
+    @ApiProperty()
+    refreshToken: string;
+}
+
 export type RequestWithUser = Request & { user: { sub: number } };

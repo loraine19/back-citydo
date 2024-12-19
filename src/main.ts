@@ -29,7 +29,7 @@ async function bootstrap() {
     //  new ErrorFilter(),
   );
   app.useStaticAssets(join(__dirname, '..', 'public'), {
-    index: false,
+    index: true,
     prefix: '/public',
   });
 

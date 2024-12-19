@@ -1,11 +1,13 @@
-import { Body, ConflictException, Controller, Post } from '@nestjs/common';
+import { Body, ConflictException, Controller, Post, Req, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
-import { AuthEntity } from './auth.entities/auth.entity';
+import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import { AuthEntity, RefreshEntity, RequestWithUser } from './auth.entities/auth.entity';
 import { UsersService } from 'src/users/users.service';
 import * as argon2 from 'argon2';
 import { SignInDto } from './dto/signIn.dto';
 import { SignUpDto } from './dto/signUp.dto';
+import { RefreshDto } from './dto/refresh.dto';
+import { AuthGuard } from './auth.guard';
 
 @Controller('auth')
 @ApiTags('auth')
@@ -22,5 +24,17 @@ export class AuthController {
   @ApiOkResponse({ type: AuthEntity })
   async signup(@Body() { email, password }: SignUpDto) {
     return this.authService.signUp(email, password);
+  }
+
+
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  @Post('refresh')
+  @ApiOkResponse({ type: RefreshEntity })
+  async refresh(@Body() { refreshToken }: RefreshDto, @Req() req: RequestWithUser,) {
+    console.log(refreshToken)
+    console.log(req.user)
+    const id = req.user.sub
+    return this.authService.refresh(refreshToken, id);
   }
 }

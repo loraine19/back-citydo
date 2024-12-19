@@ -9,8 +9,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import { AuthEntity } from './auth.entities/auth.entity';
 import * as argon2 from 'argon2';
-import * as jwt from 'jsonwebtoken';
-import { ParseIntPipe } from '@nestjs/common';
+
 
 @Injectable()
 export class AuthService {
@@ -21,11 +20,11 @@ export class AuthService {
 
     /// generate token
     async generateAccessToken(sub: number) {
-        return this.jwtService.sign({ sub: sub }, { secret: process.env.JWT_SECRET, expiresIn: '45m' });
+        return this.jwtService.sign({ sub }, { secret: process.env.JWT_SECRET, expiresIn: '45m' });
     }
 
     async generateRefreshToken(sub: number) {
-        return this.jwtService.sign({ sub: sub }, { secret: process.env.JWT_SECRET, expiresIn: '15d' });
+        return this.jwtService.sign({ sub }, { secret: process.env.JWT_SECRET, expiresIn: '15d' });
     }
 
 
@@ -34,29 +33,40 @@ export class AuthService {
         const user = await this.prisma.user.findUnique({ where: { email: email } });
         if (user) throw new ConflictException(`user already exists for email: ${email}`);
         password = await argon2.hash(password);
-
         // add email activation
-
         const createdUser = await this.prisma.user.create({ data: { email, password } });
-        const sub = createdUser.id
         return {
-            accessToken: await this.generateAccessToken(sub),
-            refreshToken: await this.generateRefreshToken(sub)
+            accessToken: await this.generateAccessToken(createdUser.id),
+            refreshToken: await this.generateRefreshToken(createdUser.id)
         }
     }
 
-    /// sign in
+    //  sign in
     async signIn(email: string, password: string): Promise<AuthEntity> {
-        const user = await this.prisma.user.findUnique({ where: { email: email } });
-        if (!user) throw new NotFoundException(`No user found for email: ${email}`);
+        const user = await this.prisma.user.findUniqueOrThrow({ where: { email: email } });
         const isPasswordValid = await argon2.verify(user.password, password)
-
         if (!isPasswordValid) throw new UnauthorizedException('Invalid password')
-        const sub = user.id
+        const refreshToken = await this.generateRefreshToken(user.id);
+        await this.prisma.token.deleteMany({ where: { userId: user.id, type: 'REFRESH' } })
+        await this.prisma.token.create({ data: { userId: user.id, token: await argon2.hash(refreshToken), type: 'REFRESH' } })
         return {
-            accessToken: await this.generateAccessToken(sub),
-            // accessToken: this.jwtService.sign({ sub: user.id }),
-            refreshToken: await this.generateRefreshToken(user.id),
+            accessToken: await this.generateAccessToken(user.id),
+            refreshToken
+        }
+    }
+
+
+    /// RERESH TOKEN
+    async refresh(refreshToken: string, userId: number): Promise<any> {
+        const userToken = await this.prisma.token.findFirst({ where: { userId: userId, type: 'REFRESH' } })
+        const refreshTokenValid = await argon2.verify(userToken.token, refreshToken)
+        if (!refreshTokenValid) throw new UnauthorizedException('Invalid refresh token')
+        const newRefreshToken = await this.generateRefreshToken(userId);
+        await this.prisma.token.deleteMany({ where: { userId, type: 'REFRESH' } })
+        await this.prisma.token.create({ data: { userId, token: await argon2.hash(refreshToken), type: 'REFRESH' } })
+        return {
+            accessToken: await this.generateAccessToken(userId),
+            refreshToken: newRefreshToken
         }
     }
 

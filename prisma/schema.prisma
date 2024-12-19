@@ -120,12 +120,19 @@ enum Role {
 model Token {
   userId    Int
   token     String
+  type      TokenType
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   expiredAt DateTime?
   User      User      @relation(fields: [userId], references: [id])
 
-  @@id([userId, token])
+  @@id([userId, type])
+}
+
+enum TokenType {
+  REFRESH
+  RESET
+  VERIFY
 }
 
 /////// EVENTS // EventCategory
