@@ -8,7 +8,7 @@ import { Transform } from "class-transformer";
 
 
 export class CreateEventDto {
-    @ApiProperty()
+    @ApiProperty({ type: 'string' })
     @IsNotEmpty({ message: 'Title is required' })
     @IsString()
     title: string
@@ -18,28 +18,35 @@ export class CreateEventDto {
     @IsString()
     description: string
 
-    @ApiProperty()
-    @IsDate({ message: 'Start date is required' })
+    @ApiProperty({ type: Date })
     @IsNotEmpty({ message: 'Start date is required' })
+    @Transform(({ value }) => new Date(value))
+    @IsDate({ message: 'Start date is not conformè' })
+    @Transform(({ value }) => new Date(value))
     start: Date
 
-    @ApiProperty()
+    @ApiProperty({ type: Date })
     @IsNotEmpty({ message: 'End date is required' })
-    @IsDate({ message: 'End date is required' })
+    @Transform(({ value }) => new Date(value))
+    @IsDate({ message: 'End date is not conformè' })
     end: Date
 
-    @ApiProperty()
-    @IsNumber()
+    @ApiProperty({ type: 'number' })
     @IsNotEmpty({ message: 'Address id is required' })
+    @Transform(({ value }) => parseInt(value))
+    @IsNumber()
     addressId: number
 
-    @ApiProperty()
-    @IsNumber()
+    @ApiProperty({ type: 'number' })
+
     @IsNotEmpty({ message: 'User id is required' })
+    @Transform(({ value }) => parseInt(value))
+    @IsNumber()
     userId: number
 
-    @ApiProperty()
+    @ApiProperty({ type: 'number' })
     @IsNotEmpty({ message: 'Participants min is required' })
+    @Transform(({ value }) => parseInt(value))
     @IsNumber()
     participantsMin: number;
 

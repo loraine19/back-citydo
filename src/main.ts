@@ -24,11 +24,9 @@ async function bootstrap() {
   SwaggerModule.setup('api', app, document);
   const { httpAdapter } = app.get(HttpAdapterHost);
   app.useGlobalFilters(
-
     new PrismaFilter(httpAdapter),
-    new HttpExeptionFilter(),
-    new ErrorFilter(),
-
+    //  new HttpExeptionFilter(),
+    //  new ErrorFilter(),
   );
   app.useStaticAssets(join(__dirname, '..', 'public'), {
     index: false,
