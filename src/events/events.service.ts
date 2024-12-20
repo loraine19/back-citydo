@@ -3,8 +3,6 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { Event } from '@prisma/client';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
-import { Participant } from 'src/class';
-import { Address } from '../class';
 
 //// SERVICE MAKE ACTION
 @Injectable()

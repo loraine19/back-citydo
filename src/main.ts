@@ -33,7 +33,7 @@ async function bootstrap() {
     index: false,
     prefix: '/public',
   });
-  // app.setBaseViewsDir(join('./public'));
+  app.setBaseViewsDir(join('./public'));
   app.enableCors(
     {
       origin:
