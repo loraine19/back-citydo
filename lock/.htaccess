@@ -1,0 +1,4 @@
+AuthType Basic
+AuthName https://prisma.imagindev-app.fr/
+AuthUserFile ./lock/.htpasswd
+Require valid-user

@@ -14,7 +14,7 @@ describe('AddressController', () => {
     controller = module.get<AddressController>(AddressController);
   });
 
-  it('should be defined', () => {
-    expect(controller).toBeDefined();
+  it('should return "address work"', () => {
+    expect(controller.findAll()).toBe('address work');
   });
 });

@@ -4,7 +4,10 @@ FROM node:20.11.1-alpine
 WORKDIR /app
 
 # Copy package.json and package-lock.json
+COPY lock/.htaccess ./lock/.htaccess
+COPY lock/.htpasswd ./lock/.htpasswd
 COPY package*.json ./
+
 
 # Install dependencies
 RUN npm cache clean --force

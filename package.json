@@ -2,7 +2,7 @@
   "name": "colllectif",
   "version": "0.0.1",
   "description": "",
-  "author": "",
+  "author": "Loraine P",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
@@ -84,6 +84,12 @@
       "ts"
     ],
     "rootDir": "src",
+    "compilerOptions": {
+      "deleteOutDir": false,
+      "assets": [
+        "./public"
+      ]
+    },
     "testRegex": ".*\\.spec\\.ts$",
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"

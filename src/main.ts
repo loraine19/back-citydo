@@ -22,16 +22,15 @@ async function bootstrap() {
   SwaggerModule.setup('api', app, document);
   const { httpAdapter } = app.get(HttpAdapterHost);
   app.useGlobalFilters(
+    new ErrorFilter(),
+    new HttpExeptionFilter(),
     new PrismaFilter(httpAdapter),
-    //  new HttpExeptionFilter(),
-    //  new ErrorFilter(),
   );
   app.useStaticAssets(join(__dirname, '..', 'public'), {
-    //app.useStaticAssets(join('./public'), {
     index: false,
     prefix: '/public',
   });
-  app.setBaseViewsDir(join('./public'));
+  app.setBaseViewsDir(join('../public'));
   app.enableCors(
     {
       origin:

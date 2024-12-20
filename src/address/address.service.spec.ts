@@ -12,7 +12,8 @@ describe('AddressService', () => {
     service = module.get<AddressService>(AddressService);
   });
 
-  it('should be defined', () => {
-    expect(service).toBeDefined();
+  it('should return a list of addresses', async () => {
+    const addresses = await service.findAll();
+    expect(addresses).toEqual([]); // Adjust the expected result
   });
 });

@@ -1,12 +1,15 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpException, HttpStatus, ValidationPipe, NotFoundException, ParseIntPipe, BadRequestException } from '@nestjs/common';
-import { ApiOkResponse } from '@nestjs/swagger';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpException, HttpStatus, ValidationPipe, NotFoundException, ParseIntPipe, BadRequestException, UseGuards } from '@nestjs/common';
+import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { AddressService } from './address.service';
 import { CreateAddressDto } from './dto/create-address.dto';
 import { UpdateAddressDto } from './dto/update-address.dto';
 import { AddressEntity } from './entities/address.entity';
+import { AuthGuard } from 'src/auth/auth.guard';
 
 const route = 'address'
+ApiTags(route)
 @Controller(route)
+@UseGuards(AuthGuard)
 export class AddressController {
   constructor(private readonly addressService: AddressService) { }
 
