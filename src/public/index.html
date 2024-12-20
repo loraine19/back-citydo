@@ -4,19 +4,96 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>API Index</title>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap');
+      body {
+        font-family: 'Montserrat', sans-serif;
+        background-color: #e9ecef;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+      }
+      .container {
+        position: absolute;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        background: #fff;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        width: 80%;
+        max-width: 700px;
+        height: 80vh;
+      }
+      .endpoints {
+        position: relative;
+        overflow: auto;
+        max-height: 100%;
+      }
+      h1 {
+        color: #444;
+        margin-bottom: 20px;
+        font-size: 2em;
+      }
+      ul {
+        list-style: none;
+        padding: 0;
+        display: grid;
+        gap: 1rem;
+        grid-template-columns: repeat(auto-fill, minmax(min(100%, 150px), 1fr));
+      }
+      li {
+        white-space: nowrap;
+      }
+      a {
+        display: inline-block;
+        padding: 10px 20px;
+        text-decoration: none;
+        border-radius: 25px;
+        background-color: #2c9dca;
+        color: #fff;
+        font-size: 1em;
+        transition:
+          background-color 0.3s,
+          transform 0.3s;
+      }
+      a:hover {
+        background-color: #2689b0;
+        transform: translateY(-2px);
+      }
+    </style>
   </head>
   <body>
-    <h1>API Index</h1>
-    <ul>
-      <li><a href="/users">Users API</a></li>
-      <li><a href="/uploads">Uploads API</a></li>
-      <li><a href="/surveys">Surveys API</a></li>
-      <li><a href="/profiles">Profiles API</a></li>
-      <li><a href="/posts">Posts API</a></li>
-      <li><a href="/group-users">Group Users API</a></li>
-      <li><a href="/likes">Likes API</a></li>
-      <li><a href="/auth">Auth API</a></li>
-      <li><a href="/events">Events API</a></li>
-    </ul>
+    <div class="container">
+      <h1>COLLECTIF - Back tools</h1>
+      <ul>
+        <li><a href="/api">Swagger</a></li>
+        <li><a href="https://pma.imagindev-app.fr/">PMA</a></li>
+        <li><a href="https://prisma.imagindev-app.fr/">Prisma Studio</a></li>
+      </ul>
+
+      <h1>API Endpoints</h1>
+      <div class="endpoints">
+        <ul>
+          <li><a href="/users">Users</a></li>
+          <li><a href="/profiles">Profiles</a></li>
+          <li><a href="/address">Addresses</a></li>
+          <li><a href="/groups">Groups</a></li>
+          <li><a href="/service">Services</a></li>
+
+          <li><a href="/surveys">Surveys</a></li>
+
+          <li><a href="/posts">Posts</a></li>
+
+          <li><a href="/likes">Likes</a></li>
+          <li><a href="/auth">Auth</a></li>
+          <li><a href="/events">Events</a></li>
+          <li><a href="/group-users">Group Users</a></li>
+        </ul>
+      </div>
+    </div>
   </body>
 </html>
