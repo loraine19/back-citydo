@@ -1,7 +1,6 @@
 # compiled output
-/dist/src
-/dist/prisma
-/dist/middleware
+/dist
+!dist/public/index.html
 /node_modules
 /build
 
