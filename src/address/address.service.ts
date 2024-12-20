@@ -3,7 +3,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { Address, PrismaClient } from '@prisma/client';
 import { CreateAddressDto } from './dto/create-address.dto';
 import { UpdateAddressDto } from './dto/update-address.dto';
-import { Profile } from '../class';
+
 
 const prisma = new PrismaClient({
   errorFormat: 'minimal',

@@ -1,7 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsDate, IsEnum, IsNotEmpty, IsNumber } from "class-validator";
-import { GroupUser } from "src/class";
-import { $Enums } from '@prisma/client';
+import { $Enums, GroupUser } from '@prisma/client';
 
 export class GroupUserEntity implements GroupUser {
     @ApiProperty()
