@@ -14,13 +14,11 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe());
   const config = new DocumentBuilder()
     .setTitle('Collectif API ')
-    .setDescription('first api nest ')
-    .setVersion('1')
+    .setDescription('Please first login to use the API {"email":"test@mail.com","password":"passwordtest"} to get the token and use the token in Authorize button')
+    .setVersion('test')
     .addBearerAuth()
     .build();
-
   const document = SwaggerModule.createDocument(app, config);
-
   SwaggerModule.setup('api', app, document);
   const { httpAdapter } = app.get(HttpAdapterHost);
   app.useGlobalFilters(
