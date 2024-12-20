@@ -12,6 +12,17 @@ export class ProfilesService {
     return await this.prisma.profile.create({ data: { ...profile, User: { connect: { id: userId } }, Address: { connect: { id: addressId } }, UserSp: { connect: { id: userIdSp } } } })
   }
 
+  async update(updateId: number, data: UpdateProfileDto): Promise<Profile> {
+    const oldData = await this.prisma.event.findUniqueOrThrow({ where: { id: updateId } });
+    const NewData = { ...oldData, ...data }
+    const { id, userId, addressId, userIdSp, ...profile } = NewData
+    return await this.prisma.profile.update({
+      where: { id },
+      data: { ...profile, User: { connect: { id: userId } }, Address: { connect: { id: addressId } }, UserSp: { connect: { id: userIdSp } } }
+    });
+  }
+
+
   async findAll(): Promise<Profile[]> {
     return await this.prisma.profile.findMany();
   }
@@ -21,16 +32,6 @@ export class ProfilesService {
       where: { id },
     });
 
-  }
-
-
-
-  async update(id: number, data: UpdateProfileDto): Promise<Profile> {
-    const { userId, addressId, userIdSp, ...profile } = data
-    return await this.prisma.profile.update({
-      where: { id },
-      data: { ...profile, User: { connect: { id: userId } }, Address: { connect: { id: addressId } }, UserSp: { connect: { id: userIdSp } } }
-    });
   }
 
   async remove(id: number): Promise<Profile> {

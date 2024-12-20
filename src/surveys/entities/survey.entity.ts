@@ -1,5 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { $Enums, Survey, Vote } from "@prisma/client";
+import { Transform } from "class-transformer";
 import { IsNumber, IsNotEmpty, IsDate, IsString, IsEnum, IsOptional } from "class-validator";
 
 export interface SurveyWithVote extends Survey {
@@ -20,28 +21,29 @@ export class SurveyEntity implements Survey {
     updatedAt: Date;
 
     //FOR DTO
-    @ApiProperty()
-    @IsNotEmpty()
-    @IsNumber()
-    userId: number;
+    @ApiProperty({ type: 'string' })
+    @IsNotEmpty({ message: 'User id is required' })
+    @Transform(({ value }) => parseInt(value))
+    @IsNumber({ allowNaN: true }, { message: 'User id must be a number' })
 
-    @ApiProperty()
-    @IsNotEmpty()
-    @IsString()
+    userId: number;
+    @ApiProperty({ type: 'string' })
+    @IsNotEmpty({ message: 'Title is required' })
+    @IsString({ message: 'Title must be a string' })
     title: string;
 
-    @ApiProperty()
-    @IsNotEmpty()
-    @IsString()
+    @ApiProperty({ type: 'string' })
+    @IsNotEmpty({ message: 'Description is required' })
+    @IsString({ message: 'Description must be a string' })
     description: string;
 
-    @ApiProperty()
+    @ApiProperty({ enum: $Enums.SurveyCategory })
     @IsNotEmpty()
-    @IsEnum($Enums.SurveyCategory, { message: "Category must be part of " + $Enums.SurveyCategory })
+    @IsEnum($Enums.SurveyCategory, { message: "Category must be part of " + Object.values($Enums.SurveyCategory).join(', ') })
     category: $Enums.SurveyCategory;
 
-    @ApiProperty()
+    @ApiProperty({ type: 'string', format: 'binary', required: false, })
     @IsOptional()
-    image: Uint8Array<ArrayBufferLike>;
+    image: string;
 }
 

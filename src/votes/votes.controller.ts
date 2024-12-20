@@ -16,7 +16,6 @@ export class VotesController {
 
   @Post()
   @ApiResponse({ type: VoteEntity })
-  /// FK user & event 
   async create(@Body() data: CreateVoteDto) {
     return this.votesService.create(data)
   }

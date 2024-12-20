@@ -30,7 +30,7 @@ export class AddressController {
     return this.addressService.findOne(+id)
   }
 
-  @Get(':id&users')
+  @Get(':id/with-users')
   @ApiOkResponse({ type: AddressEntity })
   async findOneUsers(@Param('id', ParseIntPipe) id: number) {
     return this.addressService.findOneUsers(+id)

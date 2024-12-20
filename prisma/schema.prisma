@@ -55,7 +55,7 @@ model User {
   Issue          Issue[]       @relation("Issue")
   Pool           Pool[]        @relation("Pool")
   Benef          Pool[]        @relation("PoolBenef")
-  User           Profile[]     @relation("Profile")
+  Profile        Profile[]     @relation("Profile")
   UserSp         Profile[]     @relation("Sponsor")
 }
 
@@ -92,7 +92,7 @@ model Profile {
   addressId     Int
   firstName     String
   lastName      String
-  avatar        Bytes
+  image         String?
   phone         String
   addressShared Boolean    @default(false)
   assistance    Assistance @default(NONE)
@@ -146,7 +146,7 @@ model Event {
   description     String
   category        EventCategory
   participantsMin Int
-  image           String
+  image           String?
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
   User            User          @relation(fields: [userId], references: [id])
@@ -257,7 +257,7 @@ model Survey {
   title       String
   description String         @db.MediumText
   category    SurveyCategory
-  image       Bytes?
+  image       String?
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
   User        User           @relation(fields: [userId], references: [id])

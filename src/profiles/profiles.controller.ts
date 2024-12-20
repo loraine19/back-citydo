@@ -1,11 +1,13 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpException, HttpStatus, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpException, HttpStatus, Req, UseGuards, UploadedFile, UseInterceptors, ParseIntPipe } from '@nestjs/common';
 import { ProfilesService } from './profiles.service';
 import { CreateProfileDto } from './dto/create-profile.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
-import { ApiBearerAuth, ApiOkResponse } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOkResponse } from '@nestjs/swagger';
 import { ProfileEntity } from './entities/profile.entity';
 import { RequestWithUser } from 'src/auth/auth.entities/auth.entity';
 import { AuthGuard } from 'src/auth/auth.guard';
+import { parseData } from 'middleware/BodyParser';
+import { ImageInterceptor } from 'middleware/ImageInterceptor';
 
 
 @Controller('profiles')
@@ -13,8 +15,26 @@ export class ProfilesController {
   constructor(private readonly profilesService: ProfilesService) { }
 
   @Post()
-  create(@Body() createProfileDto: CreateProfileDto) {
-    return this.profilesService.create(createProfileDto);
+  @ApiOkResponse({ type: ProfileEntity })
+  @ApiBody({ type: CreateProfileDto })
+  @UseInterceptors(ImageInterceptor.create('profiles'))
+  @ApiConsumes('multipart/form-data')
+  async create(@Body() data: CreateProfileDto, @UploadedFile() image: Express.Multer.File,) {
+    parseData(data)
+    data = await parseData(data, image)
+    return this.profilesService.create(data)
+  }
+
+
+  @Patch(':id')
+  @ApiOkResponse({ type: ProfileEntity })
+  @ApiBody({ type: UpdateProfileDto })
+  @UseInterceptors(ImageInterceptor.create('profiles'))
+  @ApiConsumes('multipart/form-data')
+  async update(@Param('id', ParseIntPipe) id: number, @Body() data: UpdateProfileDto, @UploadedFile() image: Express.Multer.File,) {
+    parseData(data)
+    data = await parseData(data, image)
+    return this.profilesService.update(id, data);
   }
 
   @Get()
@@ -39,13 +59,6 @@ export class ProfilesController {
     return this.profilesService.findOne(+id);
   }
 
-
-
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateProfileDto: UpdateProfileDto) {
-    return this.profilesService.update(+id, updateProfileDto);
-  }
 
   @Delete(':id')
   remove(@Param('id') id: string) {

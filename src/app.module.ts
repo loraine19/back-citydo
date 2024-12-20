@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { PrismaModule } from './prisma/prisma.module';
 import { UsersModule } from './users/users.module';
 import { GroupsModule } from './groups/groups.module';
 import { AddressModule } from './address/adress.module';
@@ -17,7 +16,6 @@ import { PoolsModule } from './pools/pools.module';
 import { SurveysModule } from './surveys/surveys.module';
 import { VotesModule } from './votes/votes.module';
 import { MulterModule } from '@nestjs/platform-express';
-import { UploadsModule } from './uploads/uploads.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 
@@ -25,12 +23,11 @@ import { join } from 'path';
 @Module({
   imports: [
     MulterModule.register({
-      dest: './dist/public/uploads',
+      dest: './public/uploads',
     }),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'public'),
     }),
-    UploadsModule,
     AuthModule,
     AddressModule,
     GroupsModule,

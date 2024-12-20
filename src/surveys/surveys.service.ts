@@ -16,12 +16,11 @@ export class SurveysService {
   }
 
   async findAll(): Promise<Survey[]> {
-    return this.prisma.survey.findMany(
-      { include: { User: true } }
-    );
+    const surveys = await this.prisma.survey.findMany({ include: { User: { include: { Profile: true } } } })
+    const votes = await this.prisma.vote.findMany({ where: { target: $Enums.VoteTarget.SURVEY } })
+    const suruveysWithVote = surveys.map(survey => { return { ...survey, votes: votes.filter(vote => vote.targetId === survey.id) } })
+    return suruveysWithVote
   }
-
-
 
   async findSome(userId: number): Promise<Survey[]> {
     return await this.prisma.survey.findMany(

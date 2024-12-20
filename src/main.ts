@@ -29,10 +29,11 @@ async function bootstrap() {
     //  new ErrorFilter(),
   );
   app.useStaticAssets(join(__dirname, '..', 'public'), {
-    index: true,
+    //app.useStaticAssets(join('./public'), {
+    index: false,
     prefix: '/public',
   });
-
+  // app.setBaseViewsDir(join('./public'));
   app.enableCors(
     {
       origin:

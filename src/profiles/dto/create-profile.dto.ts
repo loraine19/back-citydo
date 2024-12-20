@@ -1,52 +1,62 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { $Enums } from "@prisma/client";
-import { IsString, IsNotEmpty, IsBoolean, IsEnum, IsNumber, IsArray } from "class-validator";
+import { Transform } from "class-transformer";
+import { IsString, IsNotEmpty, IsBoolean, IsEnum, IsNumber, IsArray, IsOptional } from "class-validator";
 
 export class CreateProfileDto {
     @ApiProperty()
+    @IsNotEmpty({ message: 'First name is required' })
     @IsString()
-    @IsNotEmpty()
     firstName: string;
 
     @ApiProperty()
     @IsString()
-    @IsNotEmpty()
+    @IsNotEmpty({ message: 'Last name is required' })
     lastName: string;
 
-    @ApiProperty()
+
+    @ApiProperty({ type: 'number', required: false })
+    @Transform(({ value }) => parseInt(value))
+    @IsNumber()
     userIdSp: number;
 
     @ApiProperty()
+    @IsNotEmpty({ message: 'User id is required' })
+    @Transform(({ value }) => parseInt(value))
     @IsNumber()
-    @IsNotEmpty()
     userId: number;
 
     @ApiProperty()
+    @IsNotEmpty({ message: 'Address id is required' })
+    @Transform(({ value }) => parseInt(value))
+    @IsNumber()
     addressId: number;
 
-    @ApiProperty()
+    @ApiProperty({ type: 'string', required: false })
     @IsString()
-    @IsNotEmpty()
     phone: string;
 
-    @ApiProperty()
+    @ApiProperty({ type: 'string', format: 'binary', required: false })
     @IsNotEmpty()
-    avatar: any;
+    @IsOptional()
+    image: string;
 
-    @ApiProperty()
+    @ApiProperty({ type: 'boolean', required: false })
+    @Transform(({ value }) => value === 'true' ? true : false)
     @IsBoolean()
     addressShared: boolean;
 
-    @ApiProperty()
+    @ApiProperty({ enum: $Enums.Assistance, required: false })
     @IsEnum($Enums.Assistance, { message: 'Assistance must be part of ' + $Enums.Assistance })
     assistance: $Enums.Assistance;
 
     @ApiProperty()
+    @IsNotEmpty({ message: 'Address id is required' })
+    @Transform(({ value }) => parseInt(value))
     @IsNumber()
-    @IsNotEmpty()
     points: number;
 
-    @ApiProperty()
-    @IsArray()
+    @ApiProperty({ type: 'string', required: false })
+    @IsString()
     skills: string;
 }

@@ -55,7 +55,6 @@ export class AuthService {
         }
     }
 
-
     /// RERESH TOKEN
     async refresh(refreshToken: string, userId: number): Promise<any> {
         const userToken = await this.prisma.token.findFirst({ where: { userId: userId, type: 'REFRESH' } })

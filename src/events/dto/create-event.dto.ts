@@ -58,6 +58,7 @@ export class CreateEventDto {
 
 
     @ApiProperty({ type: 'string', format: 'binary', required: false, })
+    @IsOptional()
     image: string;
 
 }

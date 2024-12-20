@@ -1,10 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Req, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Req, ParseIntPipe, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { SurveysService } from './surveys.service';
 import { CreateSurveyDto } from './dto/create-survey.dto';
 import { UpdateSurveyDto } from './dto/update-survey.dto';
-import { ApiBearerAuth, ApiOkResponse } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOkResponse } from '@nestjs/swagger';
 import { SurveyEntity } from './entities/survey.entity';
 import { RequestWithUser } from 'src/auth/auth.entities/auth.entity';
+import { parseData } from 'middleware/BodyParser';
+import { ImageInterceptor } from 'middleware/ImageInterceptor';
 
 @Controller('surveys')
 export class SurveysController {
@@ -12,9 +14,24 @@ export class SurveysController {
 
   @Post()
   @ApiOkResponse({ type: SurveyEntity })
-  create(@Body() createSurveyDto: CreateSurveyDto) {
-    return this.surveysService.create(createSurveyDto);
+  @ApiBody({ type: CreateSurveyDto })
+  @UseInterceptors(ImageInterceptor.create('survey'))
+  @ApiConsumes('multipart/form-data', 'application/json')
+  async create(@Body() data: CreateSurveyDto, @UploadedFile() image: Express.Multer.File,): Promise<CreateSurveyDto> {
+    data = await parseData(data, image)
+    return this.surveysService.create(data)
   }
+
+  @Patch(':id')
+  @ApiOkResponse({ type: SurveyEntity })
+  @ApiBody({ type: UpdateSurveyDto })
+  @UseInterceptors(ImageInterceptor.create('survey'))
+  @ApiConsumes('multipart/form-data', 'application/json')
+  update(@Param('id', ParseIntPipe) id: number, @Body() data: UpdateSurveyDto, @UploadedFile() image: Express.Multer.File,): Promise<UpdateSurveyDto> {
+    data = parseData(data, image)
+    return this.surveysService.update(id, data);
+  }
+
 
   @Get()
   @ApiOkResponse({ type: SurveyEntity, isArray: true })
@@ -40,12 +57,6 @@ export class SurveysController {
   async getMines(@Req() req: RequestWithUser) {
     const id = req.user.sub
     return this.surveysService.findSome(id)
-  }
-
-  @Patch(':id')
-  @ApiOkResponse({ type: SurveyEntity })
-  update(@Param('id', ParseIntPipe) id: number, @Body() updateSurveyDto: UpdateSurveyDto) {
-    return this.surveysService.update(+id, updateSurveyDto);
   }
 
   @Delete(':id')

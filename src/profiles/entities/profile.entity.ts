@@ -1,6 +1,7 @@
-import { ApiProduces, ApiProperty } from '@nestjs/swagger';
-import { IsArray, IsBoolean, IsEnum, IsNotEmpty, IsNumber, IsString } from 'class-validator';
-import { Profile } from '@prisma/client';
+import { ApiProperty } from '@nestjs/swagger';
+import { IsArray, IsBoolean, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import { $Enums, Profile } from '@prisma/client';
+import { Transform } from 'class-transformer';
 
 export class ProfileEntity implements Profile {
     @ApiProperty()
@@ -15,49 +16,57 @@ export class ProfileEntity implements Profile {
 
     ///FOR DTO
     @ApiProperty()
+    @IsNotEmpty({ message: 'First name is required' })
     @IsString()
-    @IsNotEmpty()
     firstName: string;
 
     @ApiProperty()
-    @ApiProperty()
     @IsString()
-    @IsNotEmpty()
+    @IsNotEmpty({ message: 'Last name is required' })
     lastName: string;
 
-    @ApiProperty()
+
+    @ApiProperty({ type: 'number', required: false })
+    @Transform(({ value }) => parseInt(value))
+    @IsNumber()
     userIdSp: number;
 
     @ApiProperty()
+    @IsNotEmpty({ message: 'User id is required' })
+    @Transform(({ value }) => parseInt(value))
+    @IsNumber()
     userId: number;
 
     @ApiProperty()
+    @IsNotEmpty({ message: 'Address id is required' })
+    @Transform(({ value }) => parseInt(value))
+    @IsNumber()
     addressId: number;
 
-    @ApiProperty()
-    @ApiProperty()
+    @ApiProperty({ type: 'string', required: false })
     @IsString()
-    @IsNotEmpty()
     phone: string;
 
-    @ApiProperty()
-    @IsString()
+    @ApiProperty({ type: 'string', format: 'binary', required: false })
+    @IsOptional()
     @IsNotEmpty()
-    avatar: Uint8Array<ArrayBufferLike>;
+    image: string;
 
-    @ApiProperty()
+    @ApiProperty({ type: 'boolean' })
     @IsBoolean()
     addressShared: boolean;
 
-    @ApiProperty()
-    @IsEnum(['NONE', 'LOW', 'MEDIUM', 'HIGH'])
-    assistance: "NONE" | "LOW" | "MEDIUM" | "HIGH";
+    @ApiProperty({ enum: $Enums.Assistance })
+    @IsEnum($Enums.Assistance, { message: 'Assistance must be part of ' + $Enums.Assistance })
+    assistance: $Enums.Assistance;
 
     @ApiProperty()
+    @IsNotEmpty({ message: 'Address id is required' })
+    @Transform(({ value }) => parseInt(value))
     @IsNumber()
     points: number;
 
-    @ApiProperty()
+    @ApiProperty({ type: 'string', required: false })
     @IsArray()
     skills: string;
 }
