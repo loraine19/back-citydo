@@ -1,10 +1,10 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpException, HttpStatus, ValidationPipe, NotFoundException, ParseIntPipe, BadRequestException, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpException, HttpStatus, ValidationPipe, NotFoundException, ParseIntPipe, UseGuards } from '@nestjs/common';
 import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { AddressService } from './address.service';
 import { CreateAddressDto } from './dto/create-address.dto';
 import { UpdateAddressDto } from './dto/update-address.dto';
 import { AddressEntity } from './entities/address.entity';
-import { AuthGuard } from 'src/auth/auth.guard';
+import { AuthGuard } from '../../src/auth/auth.guard';
 
 const route = 'address'
 ApiTags(route)
@@ -30,7 +30,11 @@ export class AddressController {
   @Get(':id')
   @ApiOkResponse({ type: AddressEntity })
   async findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.addressService.findOne(+id)
+    try {
+      return await this.addressService.findOne(+id);
+    } catch (error) {
+      throw new NotFoundException(`Address with id ${id} not found`);
+    }
   }
 
   @Get(':id/with-users')
@@ -50,7 +54,7 @@ export class AddressController {
   @Delete(':id')
   @ApiOkResponse({ type: AddressEntity })
   async remove(@Param('id', ParseIntPipe) id: number) {
-    const address = this.addressService.remove(+id)
-    return { address, message: `${route} ${id} deleted` };
+    await this.addressService.remove(+id);
+    return { message: `${route} ${id} deleted` };
   }
 }

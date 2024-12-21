@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '../../src/prisma/prisma.service';
 import { Post } from '@prisma/client';
 
 @Injectable()
@@ -14,11 +14,10 @@ export class PostsService {
     return await this.prisma.post.create({ data: { ...post, User: { connect: { id: userId } } } })
   }
 
-
   async findAll(): Promise<Post[]> {
     return await this.prisma.post.findMany(
       {
-        include: { User: true, Like: true }
+        include: { User: { select: { email: true, Profile: true } }, Like: { include: { User: { select: { email: true, Profile: true } } } } }
       }
     );
   }

@@ -2,13 +2,14 @@
 import {
     ConflictException,
     Injectable,
-    NotFoundException,
     UnauthorizedException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import { AuthEntity } from './auth.entities/auth.entity';
 import * as argon2 from 'argon2';
+import { SignInDto } from './dto/signIn.dto';
+import { SignUpDto } from './dto/signUp.dto';
 
 
 @Injectable()
@@ -19,17 +20,14 @@ export class AuthService {
     ) { }
 
     /// generate token
-    async generateAccessToken(sub: number) {
-        return this.jwtService.sign({ sub }, { secret: process.env.JWT_SECRET, expiresIn: '45m' });
-    }
+    async generateAccessToken(sub: number) { return this.jwtService.sign({ sub }, { secret: process.env.JWT_SECRET, expiresIn: '45m' }) }
 
-    async generateRefreshToken(sub: number) {
-        return this.jwtService.sign({ sub }, { secret: process.env.JWT_SECRET, expiresIn: '15d' });
-    }
+    async generateRefreshToken(sub: number) { return this.jwtService.sign({ sub }, { secret: process.env.JWT_SECRET, expiresIn: '15d' }) }
 
 
     /// sign up
-    async signUp(email: string, password: string): Promise<AuthEntity> {
+    async signUp(data: SignInDto): Promise<AuthEntity> {
+        let { email, password } = data
         const user = await this.prisma.user.findUnique({ where: { email: email } });
         if (user) throw new ConflictException(`user already exists for email: ${email}`);
         password = await argon2.hash(password);
@@ -42,7 +40,8 @@ export class AuthService {
     }
 
     //  sign in
-    async signIn(email: string, password: string): Promise<AuthEntity> {
+    async signIn(data: SignInDto): Promise<AuthEntity> {
+        let { email, password } = data
         const user = await this.prisma.user.findUniqueOrThrow({ where: { email: email } });
         const isPasswordValid = await argon2.verify(user.password, password)
         if (!isPasswordValid) throw new UnauthorizedException('Invalid password')

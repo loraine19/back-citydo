@@ -4,13 +4,13 @@ import { IsEmail, IsNotEmpty, IsString, MinLength } from 'class-validator';
 
 export class SignInDto {
   @IsEmail()
-  @IsNotEmpty()
+  @IsNotEmpty({ message: 'Email is required' })
   @ApiProperty()
   email: string;
 
-  @IsString()
-  @IsNotEmpty()
-  @MinLength(6)
   @ApiProperty()
+  @IsString()
+  @IsNotEmpty({ message: 'Password is required' })
+  @MinLength(6, { message: 'Password must be at least 6 characters long' })
   password: string;
 }

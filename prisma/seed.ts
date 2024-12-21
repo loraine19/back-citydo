@@ -16,6 +16,7 @@ import { CreatePoolDto } from 'src/pools/dto/create-pool.dto';
 import { CreateSurveyDto } from 'src/surveys/dto/create-survey.dto';
 import { CreateVoteDto } from 'src/votes/dto/create-vote.dto';
 import { FileReader } from '@tanker/file-reader';
+import { Decimal } from '@prisma/client/runtime/library';
 const faker = require('@faker-js/faker/locale/fr');
 
 const prisma = new PrismaClient();
@@ -39,8 +40,8 @@ const CreateRandomAddress = (): CreateAddressDto => {
     zipcode: newFaker.location.zipCode(),
     city: newFaker.location.city(),
     address: newFaker.location.streetAddress(),
-    lat: newFaker.location.latitude({ min: 42.8384, max: 48.8399 }),
-    lng: newFaker.location.longitude({ min: 5.2219, max: 5.3621 }),
+    lat: new Decimal(newFaker.location.latitude({ min: 42.8384, max: 48.8399 })),
+    lng: new Decimal(newFaker.location.longitude({ min: 5.2219, max: 5.3621 })),
   }
 }
 
@@ -86,7 +87,7 @@ const CreateRandomProfile = async (): Promise<CreateProfileDto> => {
     userIdSp: newFaker.number.int({ min: 1, max }),
     firstName: newFaker.person.firstName(),
     lastName: newFaker.person.lastName(),
-    phone: "+33" + newFaker.phone.number(),
+    phone: newFaker.phone.number(),
     image: newFaker.image.urlPicsumPhotos({ width: 200, height: 200, blur: 0 }),
     addressShared: newFaker.datatype.boolean(),
     assistance: newFaker.helpers.arrayElement(Object.values($Enums.Assistance)),
@@ -137,7 +138,7 @@ const CreateRandomPost = async (): Promise<CreatePostDto> => {
     title: 'Post ' + newFaker.lorem.words({ min: 3, max: 6 }),
     description: newFaker.lorem.lines({ min: 1, max: 3 }),
     category: newFaker.helpers.arrayElement(Object.values($Enums.PostCategory)),
-    image: await getImageBlob(newFaker.image.urlPicsumPhotos({ width: 600, height: 400, blur: 0, grayscale: false })),
+    image: (newFaker.image.urlPicsumPhotos({ width: 600, height: 400, blur: 0, grayscale: false })),
     share: newFaker.helpers.arrayElement(Object.values($Enums.Share)),
   }
 }
@@ -168,7 +169,6 @@ const CreateRandomSurvey = async (): Promise<CreateSurveyDto> => {
     image: newFaker.image.urlPicsumPhotos({ width: 600, height: 400, blur: 0, grayscale: false }),
   }
 }
-
 
 
 const CreateRandomVote = (): CreateVoteDto => {

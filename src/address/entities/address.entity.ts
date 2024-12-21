@@ -1,7 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsDate, IsNotEmpty, IsNumber, IsString } from 'class-validator';
 import { Address } from '@prisma/client';
-import { Decimal } from '@prisma/client/runtime/library';
+import { Decimal, DecimalJsLike } from '@prisma/client/runtime/library';
+
 
 export class AddressEntity implements Address {
 
@@ -26,9 +27,12 @@ export class AddressEntity implements Address {
 
   @ApiProperty()
   @IsNotEmpty()
+  @IsString()
   city: string;
 
   @ApiProperty()
+  @IsNotEmpty()
+  @IsString()
   address: string;
 
   @IsNotEmpty()

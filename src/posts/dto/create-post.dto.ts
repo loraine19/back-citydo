@@ -1,5 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { $Enums } from "@prisma/client";
+import { Type } from "class-transformer";
 import { IsNotEmpty, IsNumber, IsString, IsEnum, IsOptional, IsArray } from "class-validator";
 import { arrayBuffer } from 'stream/consumers';
 
@@ -7,29 +8,31 @@ export class CreatePostDto {
     //FOR DTO 
     @ApiProperty()
     @IsNotEmpty({ message: 'user id is required' })
-    @IsNumber()
+    @Type(() => Number)
+    @IsNumber({}, { message: 'user id must be a number' })
     userId: number;
 
     @ApiProperty()
     @IsNotEmpty({ message: 'title is required' })
-    @IsString()
+    @IsString({ message: 'title must be a string' })
     title: string;
 
     @ApiProperty()
     @IsNotEmpty({ message: 'description is required' })
-    @IsString()
+    @IsString({ message: 'description must be a string' })
     description: string;
 
     @ApiProperty()
     @IsNotEmpty({ message: 'category is required' })
-    @IsEnum($Enums.PostCategory, { message: 'category must be part of ' + $Enums.PostCategory })
+    @IsEnum($Enums.PostCategory, { message: 'category must be part of ' + Object.values($Enums.PostCategory).join(', ') })
     category: $Enums.PostCategory;
 
-    @ApiProperty()
+    @ApiProperty({ type: 'string', format: 'binary', required: false })
     @IsOptional()
-    image: Uint8Array<ArrayBufferLike>;
+    @IsString({ message: 'image must be a link' })
+    image: string;
 
-    @ApiProperty()
+    @ApiProperty({ enum: $Enums.Share })
     @IsEnum($Enums.Share)
     share: $Enums.Share;
 }

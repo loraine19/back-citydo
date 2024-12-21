@@ -4,8 +4,8 @@ import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { EventEntity } from './entities/event.entity';
 import { EventsService } from './events.service';
-import { ImageInterceptor } from 'middleware/ImageInterceptor';
-import { parseData } from 'middleware/BodyParser';
+import { ImageInterceptor } from '../../middleware/ImageInterceptor';
+import { parseData } from '../../middleware/BodyParser';
 import { RequestWithUser } from 'src/auth/auth.entities/auth.entity';
 
 const route = 'events'
@@ -35,12 +35,11 @@ export class EventsController {
   }
 
 
-
   @Get()
   @ApiOkResponse({ type: EventEntity, isArray: true })
   async findAll() {
     const events = await this.eventsService.findAll()
-    if (!events) throw new NotFoundException(`no one ${route} find`)
+    if (events.length === 0) throw new NotFoundException(`no one ${route} find`)
     return events;
   }
 
