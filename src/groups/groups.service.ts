@@ -16,20 +16,51 @@ export class GroupsService {
 
   async findAll(): Promise<Group[]> {
     return await this.prisma.group.findMany({
-      include: { GroupUser: { include: { User: true } } },
+      include: {
+        GroupUser: {
+          include: {
+            User:
+            {
+              select: {
+                id: true,
+                email: true,
+                Profile: true
+              }
+            }
+          }
+        }
+      },
     });
   }
 
   async findOne(id: number): Promise<Group> {
     return await this.prisma.group.findUnique({
       where: { id },
+      include: {
+        GroupUser: {
+          where: { groupId: id },
+          include: {
+            User:
+            {
+              select: {
+                id: true,
+                email: true,
+                Profile: true
+              }
+            }
+          }
+        }
+      }
+
     })
   }
 
   async findOneUsers(id: number): Promise<Group> {
     return await this.prisma.group.findUnique({
       where: { id },
-      include: { GroupUser: { include: { User: true } } },
+      include: {
+        GroupUser: { include: { User: { select: { email: true, Profile: true, id: true } } } }
+      },
     })
   }
 

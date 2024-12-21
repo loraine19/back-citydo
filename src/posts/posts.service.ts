@@ -17,7 +17,7 @@ export class PostsService {
   async findAll(): Promise<Post[]> {
     return await this.prisma.post.findMany(
       {
-        include: { User: { select: { email: true, Profile: true } }, Like: { include: { User: { select: { email: true, Profile: true } } } } }
+        include: { User: { select: { email: true, Profile: true } }, Like: { include: { User: { select: { email: true, Profile: true, id: true } } } } }
       }
     );
   }
@@ -26,7 +26,7 @@ export class PostsService {
   async findOne(id: number): Promise<Post> {
     return await this.prisma.post.findUniqueOrThrow({
       where: { id },
-      include: { User: true, Like: true }
+      include: { User: { select: { email: true, Profile: true, id: true } }, Like: { include: { User: { select: { email: true, Profile: true, id: true } } } } }
 
     });
   }
