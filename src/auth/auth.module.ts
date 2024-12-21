@@ -14,11 +14,12 @@ import { JwtStrategy } from './auth.strategy';
   imports: [
     PrismaModule,
     PassportModule,
+    UsersModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET,
       global: true,
     }),
-    UsersModule
+
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy, UsersService],
