@@ -1,8 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreatePoolDto } from './dto/create-pool.dto';
 import { UpdatePoolDto } from './dto/update-pool.dto';
-import { Pool } from '@prisma/client';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { $Enums, Pool } from '@prisma/client';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class PoolsService {
@@ -18,20 +18,42 @@ export class PoolsService {
     });
   }
 
+
   async findAll(): Promise<Pool[]> {
-    return await this.prisma.pool.findMany(
-      {
-        include: {
-          User: true,
-          UserBenef: true,
-        }
+    const pools = await this.prisma.pool.findMany({
+      include: {
+        User: { select: { id: true, email: true, Profile: true } },
+        UserBenef: { select: { id: true, email: true, Profile: true } },
+        Vote: { select: { User: { select: { id: true, email: true, Profile: true } } }, where: { target: $Enums.VoteTarget.POOL } }
       }
+    }
     );
+    if (pools.length === 0) throw new HttpException('No surveys found', HttpStatus.NO_CONTENT)
+
+    return pools
+  }
+
+  async findAllByUserId(userId: number): Promise<Pool[]> {
+    const pools = await this.prisma.pool.findMany({
+      where: { userId },
+      include: {
+        User: { select: { id: true, email: true, Profile: true } },
+        UserBenef: { select: { id: true, email: true, Profile: true } },
+        Vote: { select: { User: { select: { id: true, email: true, Profile: true } } }, where: { target: $Enums.VoteTarget.POOL } }
+      }
+    })
+    if (pools.length === 0) throw new HttpException('No surveys found', HttpStatus.NO_CONTENT)
+    return pools
   }
 
   async findOne(id: number): Promise<Pool> {
     return await this.prisma.pool.findUniqueOrThrow({
-      where: { id }, include: { User: true, UserBenef: true }
+      where: { id }, include: {
+        User: { select: { id: true, email: true, Profile: true } },
+        UserBenef: { select: { id: true, email: true, Profile: true } },
+        Vote: { select: { User: { select: { id: true, email: true, Profile: true } } }, where: { target: $Enums.VoteTarget.POOL } }
+      }
+
     });
   }
 

@@ -5,6 +5,7 @@ import { PrismaService } from '../../src/prisma/prisma.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { $Enums, Post } from '@prisma/client';
+import { JwtModule, JwtService } from '@nestjs/jwt';
 
 describe('PostsController', () => {
   let controller: PostsController;
@@ -14,6 +15,13 @@ describe('PostsController', () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [PostsController],
       providers: [
+        {
+          provide: JwtService,
+          useValue: {
+            sign: jest.fn().mockReturnValue('mockToken'),
+            verifyAsync: jest.fn().mockResolvedValue({ sub: 1 }),
+          },
+        },
         PostsService,
         {
           provide: PrismaService,

@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { UsersModule } from './users/users.module';
 import { GroupsModule } from './groups/groups.module';
-import { AddressModule } from './address/adress.module';
+import { AddressModule } from './address/address.module';
 import { EventsModule } from './events/events.module';
 import { ParticipantsModule } from './participants/participants.module';
 import { AuthModule } from './auth/auth.module';

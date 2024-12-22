@@ -7,6 +7,7 @@ import { UpdateAddressDto } from './dto/update-address.dto';
 import { Decimal } from '@prisma/client/runtime/library';
 import { JwtService } from '@nestjs/jwt';
 import { Address } from '@prisma/client';
+import { RequestWithUser } from 'src/auth/auth.entities/auth.entity';
 
 describe('AddressController', () => {
   let controller: AddressController;
@@ -29,7 +30,7 @@ describe('AddressController', () => {
             create: jest.fn().mockResolvedValue(new AddressEntity()),
             findAll: jest.fn().mockResolvedValue([new AddressEntity()]),
             findOne: jest.fn().mockResolvedValue(new AddressEntity()),
-            findOneUsers: jest.fn().mockResolvedValue(new AddressEntity()),
+            findOneByUserId: jest.fn().mockResolvedValue(new AddressEntity()),
             update: jest.fn().mockResolvedValue(new AddressEntity()),
             remove: jest.fn().mockResolvedValue(new AddressEntity()),
           },
@@ -45,47 +46,38 @@ describe('AddressController', () => {
   const addressExample: Address = { id: 1, createdAt: new Date(), updatedAt: new Date(), ...addressExampleDto };
 
 
-  it('should create an address', async () => {
-    const result = await controller.create(addressExampleDto);
-    expect(result).toBeInstanceOf(AddressEntity);
-    expect(service.create).toHaveBeenCalledWith(addressExampleDto);;
+  it('should create an event', async () => {
+    jest.spyOn(service, 'create').mockResolvedValue(addressExample);
+    expect(await controller.create(addressExampleDto)).toEqual(addressExample);
   });
 
-  it('should return an array of addresses', async () => {
-    const addresses = await controller.findAll();
-    expect(addresses).toBeInstanceOf(Array);
-    expect(addresses.length).toBeGreaterThanOrEqual(1);
-    expect(service.findAll).toHaveBeenCalled();
+
+  it('should return all addresses', async () => {
+    jest.spyOn(service, 'findAll').mockResolvedValue([addressExample]);
+    expect(await controller.findAll()).toEqual([addressExample]);
   });
 
-  it('should return a single address', async () => {
-    const id = 1;
-    const address = await controller.findOne(id);
-    expect(address).toBeInstanceOf(AddressEntity);
-    expect(service.findOne).toHaveBeenCalledWith(id);
+  it('should return a single event', async () => {
+    jest.spyOn(service, 'findOne').mockResolvedValue(addressExample);
+    expect(await controller.findOne(1)).toEqual(addressExample);
   });
 
-  it('should return a single address with users', async () => {
-    const id = 1;
-    const address = await controller.findOneUsers(id);
-    expect(address).toBeInstanceOf(AddressEntity);
-    expect(service.findOneUsers).toHaveBeenCalledWith(id);
+
+  it('should return one address by user', async () => {
+    const address: Address = addressExample;
+    const req = { user: { sub: 1 } } as RequestWithUser;
+    jest.spyOn(service, 'findOneByUserId').mockResolvedValue(address);
+    expect(await controller.findByUserId(req.user.sub)).toEqual(address);
   });
 
   it('should update an address', async () => {
-    const id = 1;
     const updateAddressDto: UpdateAddressDto = { ...addressExampleDto };
-    const result = await controller.update(id, updateAddressDto);
-    expect(result).toBeInstanceOf(AddressEntity);
-    expect(service.update).toHaveBeenCalledWith(id, updateAddressDto);
+    jest.spyOn(service, 'update').mockResolvedValue(addressExample);
+    expect(await controller.update(1, updateAddressDto)).toEqual(addressExample);
   });
 
   it('should delete an address', async () => {
-    const id = 1;
-    const result = await controller.remove(id);
-    expect(result).toHaveProperty('message', 'address 1 deleted');
-    expect(service.remove).toHaveBeenCalledWith(id);
+    jest.spyOn(service, 'remove').mockResolvedValue(addressExample);
+    expect(await controller.remove(1)).toEqual(addressExample);
   });
-
-
 });

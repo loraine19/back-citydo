@@ -1,53 +1,71 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpException, HttpStatus, ValidationPipe, NotFoundException, ParseIntPipe, BadRequestException } from '@nestjs/common';
-import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpException, HttpStatus, ValidationPipe, NotFoundException, ParseIntPipe, UseGuards, Req, } from '@nestjs/common';
+import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { CreateGroupDto } from './dto/create-group.dto';
 import { UpdateGroupDto } from './dto/update-group.dto';
 import { GroupEntity } from './entities/group.entity';
-import { GroupsService } from './groups.service';
-import { AddressService } from 'src/address/address.service';
+import { GroupsService } from '../groups/groups.service';
+import { AddressService } from '../address/address.service';
+import { AuthGuard } from '../../src/auth/auth.guard';
+import { RequestWithUser } from 'src/auth/auth.entities/auth.entity';
+import { Group } from '@prisma/client';
 
 //// CONTROLLER DO ROUTE 
 const route = 'groups'
 @Controller(route)
 @ApiTags(route)
+@UseGuards(AuthGuard)
 export class GroupsController {
-  constructor(private readonly service: GroupsService, readonly addressService: AddressService) { }
+  constructor(private readonly groupsService: GroupsService, readonly addressService: AddressService) { }
 
   @Post()
+  @ApiBearerAuth()
   @ApiOkResponse({ type: GroupEntity })
-  async create(@Body(new ValidationPipe()) data: CreateGroupDto) {
-    return this.service.create(data);
+  async create(@Body(new ValidationPipe()) data: CreateGroupDto): Promise<Group> {
+    return this.groupsService.create(data);
   }
 
   @Get()
+  @ApiBearerAuth()
   @ApiOkResponse({ type: GroupEntity, isArray: true })
-  async findAll() {
-    const groups = await this.service.findAll()
+  async findAll(): Promise<Group[]> {
+    const groups = await this.groupsService.findAll()
     if (!groups.length) throw new HttpException(`No ${route} found.`, HttpStatus.NO_CONTENT);
     return groups;
   }
 
   @Get(':id')
+  @ApiBearerAuth()
   @ApiOkResponse({ type: GroupEntity })
-  async findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.service.findOne(+id)
+  async findOne(@Param('id', ParseIntPipe) id: number): Promise<Group> {
+    return this.groupsService.findOne(id)
   }
 
-  @Get(':id/users')
-  @ApiOkResponse({ type: GroupEntity })
-  async findOneUsers(@Param('id', ParseIntPipe) id: number) {
-    return this.service.findOneUsers(+id)
+  @Get('mines')
+  @ApiBearerAuth()
+  @ApiOkResponse({ type: GroupEntity, isArray: true })
+  async findMine(@Req() req: RequestWithUser): Promise<Group[]> {
+    const id = req.user.sub
+    return this.groupsService.findAllByUserId(id)
   }
 
+  @Get('/user/:id')
+  @ApiBearerAuth()
+  @ApiOkResponse({ type: GroupEntity, isArray: true })
+  async findAllByUserId(@Param('id', ParseIntPipe) id: number): Promise<Group[]> {
+    return this.groupsService.findAllByUserId(id)
+  }
 
   @Patch(':id')
-  update(@Param('id', ParseIntPipe) id: number, @Body() data: UpdateGroupDto) {
-    return this.service.update(id, data)
+  @ApiBearerAuth()
+  update(@Param('id', ParseIntPipe) id: number, @Body() data: UpdateGroupDto): Promise<Group> {
+    return this.groupsService.update(id, data)
   }
 
   @Delete(':id')
-  remove(@Param('id', ParseIntPipe) id: number) {
-    return this.service.remove(id)
-
+  @ApiBearerAuth()
+  remove(@Param('id', ParseIntPipe) id: number): Promise<Group> {
+    return this.groupsService.remove(id)
   }
 }
+
+

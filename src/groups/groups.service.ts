@@ -1,5 +1,5 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { PrismaService } from '../../src/prisma/prisma.service';
 import { Group } from '@prisma/client';
 import { UpdateGroupDto } from './dto/update-group.dto';
 import { CreateGroupDto } from './dto/create-group.dto';
@@ -18,51 +18,32 @@ export class GroupsService {
     return await this.prisma.group.findMany({
       include: {
         GroupUser: {
-          include: {
-            User:
-            {
-              select: {
-                id: true,
-                email: true,
-                Profile: true
-              }
-            }
-          }
+          include: { User: { select: { id: true, email: true, Profile: true } } }
         }
       },
     });
   }
 
   async findOne(id: number): Promise<Group> {
-    return await this.prisma.group.findUnique({
+    return await this.prisma.group.findUniqueOrThrow({
       where: { id },
       include: {
         GroupUser: {
           where: { groupId: id },
-          include: {
-            User:
-            {
-              select: {
-                id: true,
-                email: true,
-                Profile: true
-              }
-            }
-          }
+          include: { User: { select: { id: true, email: true, Profile: true } } }
         }
       }
-
     })
   }
 
-  async findOneUsers(id: number): Promise<Group> {
-    return await this.prisma.group.findUnique({
-      where: { id },
-      include: {
-        GroupUser: { include: { User: { select: { email: true, Profile: true, id: true } } } }
-      },
+  async findAllByUserId(userId: number): Promise<Group[]> {
+    const groups = await this.prisma.group.findMany({
+      where: { GroupUser: { every: { User: { id: userId } } } }
     })
+    if (groups.length === 0) throw new HttpException('User not found in any group', HttpStatus.NO_CONTENT)
+    return groups
   }
+
 
   async update(id: number, data: UpdateGroupDto): Promise<Group> {
     const { addressId, ...group } = data

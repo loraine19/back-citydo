@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { PrismaService } from '../../src/prisma/prisma.service';
 import { Event } from '@prisma/client';
 import { CreateEventDto } from './dto/create-event.dto';
@@ -27,6 +27,19 @@ export class EventsService {
         }
       }
     );
+  }
+
+  async findAllByUserId(userId: number): Promise<Event[]> {
+    const events = await this.prisma.event.findMany({
+      where: { userId },
+      include: {
+        User: { select: { id: true, email: true, Profile: true } },
+        Participant: { include: { User: { select: { email: true, Profile: true, id: true } } } },
+        Address: true
+      }
+    })
+    if (!events.length) throw new HttpException(`no events found`, HttpStatus.NO_CONTENT);
+    return events
   }
 
   async findOne(id: number): Promise<Event> {

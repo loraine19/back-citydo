@@ -78,18 +78,13 @@
     "typescript": "^5.7.2"
   },
   "jest": {
+    "verbose": true,
     "moduleFileExtensions": [
       "js",
       "json",
       "ts"
     ],
     "rootDir": "src",
-    "compilerOptions": {
-      "deleteOutDir": false,
-      "assets": [
-        "./public"
-      ]
-    },
     "testRegex": ".*\\.spec\\.ts$",
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"

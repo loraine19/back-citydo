@@ -46,6 +46,12 @@ describe('EventsService', () => {
     expect(await service.findAll()).toEqual(events);
   });
 
+  it('should return all events by user', async () => {
+    const events: Event[] = [eventExample];
+    jest.spyOn(prismaService.event, 'findMany').mockResolvedValue(events);
+    expect(await service.findAllByUserId(1)).toEqual(events);
+  });
+
   it('should return a single event', async () => {
     const event: Event = eventExample;
     jest.spyOn(prismaService.event, 'findUniqueOrThrow').mockResolvedValue(event);

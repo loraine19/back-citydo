@@ -5,6 +5,8 @@ import { AuthController } from "../auth/auth.controller";
 import { AuthService } from "./auth.service";
 import { SignInDto } from "./dto/signIn.dto";
 import { UsersService } from "../../src/users/users.service";
+import { RefreshDto } from "./dto/refresh.dto";
+import { RequestWithUser } from "./auth.entities/auth.entity";
 
 describe('AuthController', () => {
   let controller: AuthController;
@@ -51,10 +53,28 @@ describe('AuthController', () => {
   });
 
 
+  const userExampleDto = { email: 'test@mail.com', password: 'passwordtest' };
+  const userExample = { id: 1, createdAt: new Date(), updatedAt: new Date(), ...userExampleDto };
+  const refreshTokenDto: RefreshDto = { refreshToken: 'mockToken' };
+
   it('should return a token on signIn', async () => {
-    const signInDto: SignInDto = { email: 'testuser@example.com', password: 'testpass' };
     const result = { accessToken: 'mockToken', refreshToken: 'mockToken' };
     jest.spyOn(service, 'signIn').mockResolvedValue(result);
-    expect(await controller.signin(signInDto)).toBe(result);
+    expect(await controller.signin(userExampleDto)).toBe(result);
   });
+
+
+  it('should return a token on signUP', async () => {
+    const result = { accessToken: 'mockToken', refreshToken: 'mockToken' };
+    jest.spyOn(service, 'signUp').mockResolvedValue(result);
+    expect(await controller.signup(userExampleDto)).toBe(result);
+  });
+
+  it('should return a RefreshToken', async () => {
+    const result = { accessToken: 'mockToken', refreshToken: 'mockToken' };
+    jest.spyOn(service, 'refresh').mockResolvedValue(result);
+    const req = { user: { sub: 1 } } as RequestWithUser;
+    expect(await controller.refresh(refreshTokenDto, req)).toBe(result);
+  });
+
 })

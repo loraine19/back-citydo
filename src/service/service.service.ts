@@ -1,5 +1,5 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
 import { Service } from '@prisma/client';
 import { CreateServiceDto } from './dto/create-service.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
@@ -17,17 +17,22 @@ export class ServicesService {
     return await this.prisma.service.findMany();
   }
 
-  async findSome(userId: number): Promise<Service[]> {
-    return await this.prisma.service.findMany(
+  async findAllByUserId(userId: number): Promise<Service[]> {
+    const services = await this.prisma.service.findMany(
       { where: { UserService: { is: { id: userId } } } }
     )
+    if (!services.length) throw new HttpException(`no services found`, HttpStatus.NO_CONTENT);
+    return services
   }
 
 
   async findOne(id: number): Promise<Service> {
     return await this.prisma.service.findUniqueOrThrow({
       where: { id },
-      include: { UserService: true, UserServiceResp: true }
+      include: {
+        UserService: { select: { id: true, email: true, Profile: true } },
+        UserServiceResp: { select: { id: true, email: true, Profile: true } }
+      }
 
     });
   }

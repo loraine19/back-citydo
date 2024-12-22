@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Address } from '@prisma/client';
+import { Address, User } from '@prisma/client';
 import { CreateAddressDto } from './dto/create-address.dto';
 import { UpdateAddressDto } from './dto/update-address.dto';
 import { PrismaService } from '../prisma/prisma.service';
@@ -21,13 +21,13 @@ export class AddressService {
   async findOne(id: number): Promise<Address> {
     return await this.prisma.address.findUniqueOrThrow({
       where: { id },
+      include: { Group: true, Profile: true },
     });
   }
 
-  async findOneUsers(id: number): Promise<Address> {
-    return await this.prisma.address.findUniqueOrThrow({
-      where: { id },
-      include: { Group: true, Profile: true },
+  async findOneByUserId(userId: number): Promise<Address> {
+    return await this.prisma.address.findFirstOrThrow({
+      where: { Profile: { some: { userId } } },
     });
   }
 

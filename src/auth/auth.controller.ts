@@ -15,13 +15,13 @@ export class AuthController {
 
   @Post('signin')
   @ApiOkResponse({ type: AuthEntity })
-  async signin(@Body() data: SignInDto) {
+  async signin(@Body() data: SignInDto): Promise<AuthEntity> {
     return this.authService.signIn(data);
   }
 
   @Post('signup')
   @ApiOkResponse({ type: AuthEntity })
-  async signup(@Body() data: SignUpDto) {
+  async signup(@Body() data: SignUpDto): Promise<AuthEntity> {
     return this.authService.signUp(data);
   }
 
@@ -29,7 +29,7 @@ export class AuthController {
   @ApiBearerAuth()
   @Post('refresh')
   @ApiOkResponse({ type: RefreshEntity })
-  async refresh(@Body() { refreshToken }: RefreshDto, @Req() req: RequestWithUser,) {
+  async refresh(@Body() { refreshToken }: RefreshDto, @Req() req: RequestWithUser,): Promise<RefreshEntity> {
     const id = req.user.sub
     return this.authService.refresh(refreshToken, id);
   }

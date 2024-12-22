@@ -1,10 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpException, HttpStatus, ValidationPipe, NotFoundException, ParseIntPipe, UseGuards } from '@nestjs/common';
-import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpException, HttpStatus, ValidationPipe, NotFoundException, ParseIntPipe, UseGuards, Req } from '@nestjs/common';
+import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { AddressService } from './address.service';
 import { CreateAddressDto } from './dto/create-address.dto';
 import { UpdateAddressDto } from './dto/update-address.dto';
 import { AddressEntity } from './entities/address.entity';
 import { AuthGuard } from '../../src/auth/auth.guard';
+import { RequestWithUser } from 'src/auth/auth.entities/auth.entity';
+import { Address } from '@prisma/client';
 
 const route = 'address'
 ApiTags(route)
@@ -14,47 +16,56 @@ export class AddressController {
   constructor(private readonly addressService: AddressService) { }
 
   @Post()
+  @ApiBearerAuth()
   @ApiOkResponse({ type: AddressEntity })
-  create(@Body(new ValidationPipe()) data: CreateAddressDto) {
+  create(@Body(new ValidationPipe()) data: CreateAddressDto): Promise<Address> {
     return this.addressService.create(data);
   }
 
   @Get()
+  @ApiBearerAuth()
   @ApiOkResponse({ type: AddressEntity, isArray: true })
-  async findAll() {
+  async findAll(): Promise<Address[]> {
     const address = await this.addressService.findAll()
     if (!address.length) throw new HttpException(`No ${route} found.`, HttpStatus.NO_CONTENT);
     return address;
   }
 
   @Get(':id')
+  @ApiBearerAuth()
   @ApiOkResponse({ type: AddressEntity })
-  async findOne(@Param('id', ParseIntPipe) id: number) {
-    try {
-      return await this.addressService.findOne(+id);
-    } catch (error) {
-      throw new NotFoundException(`Address with id ${id} not found`);
-    }
+  async findOne(@Param('id', ParseIntPipe) id: number): Promise<Address> {
+    return await this.addressService.findOne(id)
   }
 
-  @Get(':id/with-users')
+  @Get('mine')
+  @ApiBearerAuth()
   @ApiOkResponse({ type: AddressEntity })
-  async findOneUsers(@Param('id', ParseIntPipe) id: number) {
-    return this.addressService.findOneUsers(+id)
+  async findMine(@Req() req: RequestWithUser): Promise<Address> {
+    const id = req.user.sub
+    return await this.addressService.findOneByUserId(id)
+  }
+
+  @Get('user/:id')
+  @ApiBearerAuth()
+  @ApiOkResponse({ type: AddressEntity })
+  async findByUserId(@Param('id', ParseIntPipe) id: number): Promise<Address> {
+    return await this.addressService.findOneByUserId(id)
   }
 
 
   @Patch(':id')
+  @ApiBearerAuth()
   @ApiOkResponse({ type: AddressEntity })
-  async update(@Param('id', ParseIntPipe) id: number, @Body() data: UpdateAddressDto) {
-    return this.addressService.update(+id, data)
+  async update(@Param('id', ParseIntPipe) id: number, @Body() data: UpdateAddressDto): Promise<Address> {
+    return this.addressService.update(id, data)
 
   }
 
   @Delete(':id')
+  @ApiBearerAuth()
   @ApiOkResponse({ type: AddressEntity })
-  async remove(@Param('id', ParseIntPipe) id: number) {
-    await this.addressService.remove(+id);
-    return { message: `${route} ${id} deleted` };
+  async remove(@Param('id', ParseIntPipe) id: number): Promise<Address> {
+    return this.addressService.remove(id);
   }
 }

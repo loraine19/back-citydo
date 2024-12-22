@@ -1,55 +1,84 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpException, HttpStatus, Req, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpException, HttpStatus, Req, ParseIntPipe, UseInterceptors, UploadedFile, UseGuards } from '@nestjs/common';
 import { ServicesService } from './service.service';
 import { CreateServiceDto } from './dto/create-service.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
-import { ApiBearerAuth, ApiOkResponse, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOkResponse, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ServiceEntity } from './entities/service.entity';
 import { RequestWithUser } from 'src/auth/auth.entities/auth.entity';
-const route = 'service'
+import { parseData } from '../../middleware/BodyParser';
+import { ImageInterceptor } from '../../middleware/ImageInterceptor';
+import { AuthGuard } from '../auth/auth.guard';
+import { Service } from '@prisma/client';
 
+
+const route = 'services'
+
+@UseGuards(AuthGuard)
 @Controller(route)
 @ApiTags(route)
 export class ServicesController {
   constructor(private readonly serviceService: ServicesService) { }
 
   @Post()
-  @ApiResponse({ type: ServiceEntity })
-  create(@Body() createServiceDto: CreateServiceDto) {
-    return this.serviceService.create(createServiceDto);
+  @ApiBearerAuth()
+  @ApiOkResponse({ type: ServiceEntity })
+  @ApiBody({ type: CreateServiceDto })
+  @UseInterceptors(ImageInterceptor.create('service'))
+  @ApiConsumes('multipart/form-data', 'application/json')
+  async create(@Body() data: CreateServiceDto, @UploadedFile() image: Express.Multer.File,): Promise<Service> {
+    data = await parseData(data, image)
+    return this.serviceService.create(data)
+  }
+
+  @Patch(':id')
+  @ApiBearerAuth()
+  @ApiOkResponse({ type: ServiceEntity })
+  @ApiBody({ type: UpdateServiceDto })
+  @UseInterceptors(ImageInterceptor.create('survey'))
+  @ApiConsumes('multipart/form-data', 'application/json')
+  update(@Param('id', ParseIntPipe) id: number, @Body() data: UpdateServiceDto, @UploadedFile() image: Express.Multer.File,): Promise<Service> {
+    data = parseData(data, image)
+    return this.serviceService.update(id, data);
   }
 
   @Get()
+  @ApiBearerAuth()
   @ApiResponse({ type: ServiceEntity, isArray: true })
 
-  async findAll(): Promise<ServiceEntity[]> {
+  async findAll(): Promise<Service[]> {
     const services = await this.serviceService.findAll();
     if (!services.length) throw new HttpException(`No ${route} found.`, HttpStatus.NO_CONTENT);
     return services;
   }
 
   @Get(':id')
+  @ApiBearerAuth()
   @ApiOkResponse({ type: ServiceEntity })
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.serviceService.findOne(+id);
+  findOne(@Param('id', ParseIntPipe) id: number): Promise<Service> {
+    return this.serviceService.findOne(id);
+  }
+
+
+  @Get('user/:id')
+  @ApiBearerAuth()
+  @ApiOkResponse({ type: ServiceEntity })
+  async findAllByUserId(@Param('id', ParseIntPipe) id: number): Promise<Service[]> {
+    return this.serviceService.findAllByUserId(id)
   }
 
   @Get('mines')
   @ApiBearerAuth()
   @ApiOkResponse({ type: ServiceEntity })
-  async getMines(@Req() req: RequestWithUser) {
+  async findMines(@Req() req: RequestWithUser): Promise<Service[]> {
     const id = req.user.sub
-    return this.serviceService.findSome(id)
+    return this.serviceService.findAllByUserId(id)
   }
 
-  @Patch(':id')
-  @ApiOkResponse({ type: ServiceEntity })
-  update(@Param('id', ParseIntPipe) id: number, @Body() updateServiceDto: UpdateServiceDto) {
-    return this.serviceService.update(+id, updateServiceDto);
-  }
 
   @Delete(':id')
+  @ApiBearerAuth()
   @ApiOkResponse({ type: ServiceEntity })
-  remove(@Param('id', ParseIntPipe) id: number) {
+  remove(@Param('id', ParseIntPipe) id: number): Promise<Service> {
     return this.serviceService.remove(+id);
   }
 }

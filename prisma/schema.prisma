@@ -187,7 +187,7 @@ model Service {
   skill           SkillLevel
   hard            HardLevel
   status          ServiceStatus
-  image           Bytes?
+  image           String?
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
   Issue           Issue[]
@@ -237,7 +237,7 @@ model Issue {
   updatedAt       DateTime    @updatedAt
   userId_Modo     Int
   userId_ModoResp Int
-  image           Bytes?
+  image           String?
   UserModo        User        @relation(fields: [userId_Modo], references: [id], name: "Modo")
   UserModoResp    User        @relation(fields: [userId_ModoResp], references: [id], name: "ModoResp")
   Service         Service     @relation(fields: [serviceId], references: [id])
@@ -261,6 +261,7 @@ model Survey {
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
   User        User           @relation(fields: [userId], references: [id])
+  Vote        Vote[]         @relation(name: "SurveyVote", map: "Vote_targetId_Survey")
 }
 
 enum SurveyCategory {
@@ -279,6 +280,7 @@ model Pool {
   updatedAt   DateTime @updatedAt
   User        User     @relation(fields: [userId], references: [id], name: "Pool")
   UserBenef   User     @relation(fields: [userIdBenef], references: [id], name: "PoolBenef")
+  Vote        Vote[]   @relation(name: "PoolVote", map: "Vote_targetId_Pool")
 }
 
 model Vote {
@@ -289,8 +291,9 @@ model Vote {
   User      User        @relation(fields: [userId], references: [id])
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
-  // Survey    Survey      @relation(fields: [targetId],references: [id], name: "SurveyVote")
-  // Pool      Pool        @relation(fields: [targetId], references: [id], name: "PoolVote")
+  // Conditional mapping based on target
+  Pool      Pool?       @relation(fields: [targetId], references: [id], name: "PoolVote", map: "Vote_targetId_Pool")
+  Survey    Survey?     @relation(fields: [targetId], references: [id], name: "SurveyVote", map: "Vote_targetId_Survey")
 
   @@id([userId, target, targetId])
 }
@@ -362,12 +365,4 @@ enum FlagTarget {
   EVENT
   POST
   SURVEY
-}
-
-//// FILE 
-model File {
-  id           Int    @id @default(autoincrement())
-  originalname String
-  path         String
-  mimeType     String
 }

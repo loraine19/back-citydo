@@ -17,6 +17,7 @@ import { CreateSurveyDto } from 'src/surveys/dto/create-survey.dto';
 import { CreateVoteDto } from 'src/votes/dto/create-vote.dto';
 import { FileReader } from '@tanker/file-reader';
 import { Decimal } from '@prisma/client/runtime/library';
+import { connect } from 'http2';
 const faker = require('@faker-js/faker/locale/fr');
 
 const prisma = new PrismaClient();
@@ -128,7 +129,7 @@ const CreateRandomService = async (): Promise<CreateServiceDto> => {
     skill: newFaker.helpers.arrayElement(Object.values($Enums.SkillLevel)),
     hard: newFaker.helpers.arrayElement(Object.values($Enums.HardLevel)),
     status: newFaker.helpers.arrayElement(Object.values($Enums.ServiceStatus)),
-    image: await getImageBlob(newFaker.image.urlPicsumPhotos({ width: 600, height: 400, blur: 0, grayscale: false })),
+    image: (newFaker.image.urlPicsumPhotos({ width: 600, height: 400, blur: 0, grayscale: false })),
   }
 }
 
@@ -184,6 +185,8 @@ const CreateRandomVote = (): CreateVoteDto => {
 
 async function reset() {
   // Reset the identity columns
+  await prisma.$executeRawUnsafe("DELETE FROM `Token`")
+  await prisma.$executeRawUnsafe("ALTER TABLE `Token` AUTO_INCREMENT = 1")
   await prisma.$executeRawUnsafe("DELETE FROM `Vote`")
   await prisma.$executeRawUnsafe("ALTER TABLE `Vote` AUTO_INCREMENT = 1")
   await prisma.$executeRawUnsafe("DELETE FROM `Survey`")
@@ -341,9 +344,15 @@ const seed = async () => {
   // VOTE fk user 
   const vote = async () => {
     while (await prisma.vote.count() < max * 2) {
-      const { userId, ...vote } = CreateRandomVote();
-      const cond = await prisma.vote.findUnique({ where: { userId_target_targetId: { userId, target: vote.target, targetId: vote.targetId } } });
-      if (!cond) await prisma.vote.create({ data: { ...vote, User: { connect: { id: userId } } } })
+      const { userId, targetId, ...vote } = CreateRandomVote();
+      const cond = await prisma.vote.findUnique({ where: { userId_target_targetId: { userId, target: vote.target, targetId: targetId } } });
+
+      if (!cond) await prisma.vote.create({
+        data: {
+          ...vote, User: { connect: { id: userId } }
+        }
+      })
+
     }
   }
   await vote();

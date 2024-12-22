@@ -1,7 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreateSurveyDto } from './dto/create-survey.dto';
 import { $Enums, Survey } from '@prisma/client';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { SurveyWithVote } from './entities/survey.entity';
 
 
@@ -16,40 +16,36 @@ export class SurveysService {
   }
 
   async findAll(): Promise<Survey[]> {
-    const surveys = await this.prisma.survey.findMany({ include: { User: { include: { Profile: true } } } })
-    const votes = await this.prisma.vote.findMany({ where: { target: $Enums.VoteTarget.SURVEY } })
-    const suruveysWithVote = surveys.map(survey => { return { ...survey, votes: votes.filter(vote => vote.targetId === survey.id) } })
-    return suruveysWithVote
+    const surveys = await this.prisma.survey.findMany({
+      include: {
+        User: { select: { id: true, email: true, Profile: true } },
+        Vote: { select: { User: { select: { id: true, email: true, Profile: true } } }, where: { target: $Enums.VoteTarget.SURVEY } }
+      }
+    })
+    return surveys
   }
 
-  async findSome(userId: number): Promise<Survey[]> {
-    return await this.prisma.survey.findMany(
-      { where: { User: { is: { id: userId } } } }
-    )
-  }
-
-  async findOneWithVote(id: number): Promise<SurveyWithVote> {
-    const survey = await this.prisma.survey.findUniqueOrThrow({
-      where: { id },
-      include: { User: true }
-    });
-    const suruveyWithVote = {
-      ...survey, votes: await this.prisma.vote.findMany({
-        where: {
-          target: $Enums.VoteTarget.SURVEY,
-          targetId: id
+  async findAllByUserId(userId: number): Promise<Survey[]> {
+    const surveys = await this.prisma.survey.findMany(
+      {
+        where: { User: { is: { id: userId } } },
+        include: {
+          User: { select: { id: true, email: true, Profile: true } },
+          Vote: { select: { User: { select: { id: true, email: true, Profile: true } } }, where: { target: $Enums.VoteTarget.SURVEY } }
         }
       })
-    }
-    return suruveyWithVote
+    return surveys
   }
 
-
   async findOne(id: number): Promise<Survey> {
-    return await this.prisma.survey.findUniqueOrThrow({
+    const survey = await this.prisma.survey.findUniqueOrThrow({
       where: { id },
-      include: { User: true }
-    });
+      include: {
+        User: { select: { id: true, email: true, Profile: true } },
+        Vote: { select: { User: { select: { id: true, email: true, Profile: true } } }, where: { target: $Enums.VoteTarget.SURVEY } }
+      }
+    })
+    return survey
   }
 
   async update(id: number, data: any): Promise<Survey> {

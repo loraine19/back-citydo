@@ -5,6 +5,8 @@ import { EventsService } from '../events/events.service';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { $Enums, Event } from '@prisma/client';
+import { JwtService } from '@nestjs/jwt';
+import { RequestWithUser } from '../auth/auth.entities/auth.entity';
 
 describe('EventsController', () => {
   let controller: EventsController;
@@ -14,6 +16,13 @@ describe('EventsController', () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [EventsController],
       providers: [
+        {
+          provide: JwtService,
+          useValue: {
+            sign: jest.fn().mockReturnValue('mockToken'),
+            verifyAsync: jest.fn().mockResolvedValue({ sub: 1 }),
+          },
+        },
         EventsService,
         {
           provide: PrismaService,
@@ -47,6 +56,22 @@ describe('EventsController', () => {
     jest.spyOn(service, 'findAll').mockResolvedValue(events);
     expect(await controller.findAll()).toEqual(events);
   });
+
+
+  it('should return all my events', async () => {
+    const events: Event[] = [eventExample];
+    jest.spyOn(service, 'findAllByUserId').mockResolvedValue(events);
+    const req = { user: { sub: 1 } } as RequestWithUser;
+    expect(await controller.findMine(req)).toEqual(events);
+  });
+
+
+  it('should return all events by user', async () => {
+    const events: Event[] = [eventExample];
+    jest.spyOn(service, 'findAllByUserId').mockResolvedValue(events);
+    expect(await controller.findByUserId(1)).toEqual(events);
+  });
+
 
   it('should return a single event', async () => {
     const event: Event = eventExample;

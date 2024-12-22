@@ -1,5 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { $Enums } from "@prisma/client";
+import { Type } from "class-transformer";
 import { IsNotEmpty, IsNumber, IsEnum, IsString, IsOptional } from "class-validator";
 
 export class CreateServiceDto {
@@ -7,21 +8,24 @@ export class CreateServiceDto {
     ///FOR DTO
     @ApiProperty()
     @IsNotEmpty({ message: 'user id is required' })
-    @IsNumber()
+    @IsNumber({}, { message: 'user id must be a number' })
+    @Type(() => Number)
     userId: number;
 
-    @ApiProperty()
-    @IsNumber()
+    @ApiProperty({ required: false })
+    @IsNumber({}, { message: 'user id must be a number' })
+    @IsOptional()
+    @Type(() => Number)
     userIdResp: number;
 
-    @ApiProperty()
+    @ApiProperty({ enum: $Enums.ServiceType })
     @IsNotEmpty({ message: 'Type is required' })
-    @IsEnum($Enums.ServiceType, { message: 'Type must be part of ' + $Enums.ServiceType })
+    @IsEnum($Enums.ServiceType, { message: 'Type must be part of ' + Object.values($Enums.ServiceType).join(', ') })
     type: $Enums.ServiceType;
 
-    @ApiProperty()
+    @ApiProperty({ type: 'string' })
     @IsNotEmpty({ message: 'title is required' })
-    @IsString()
+    @IsString({ message: 'title must be a string' })
     title: string;
 
     @ApiProperty()
@@ -29,28 +33,28 @@ export class CreateServiceDto {
     @IsString()
     description: string;
 
-    @ApiProperty()
+    @ApiProperty({ enum: $Enums.ServiceCategory })
     @IsNotEmpty({ message: 'category is required' })
-    @IsEnum($Enums.ServiceCategory, { message: 'category must be part of ' + $Enums.ServiceCategory })
+    @IsEnum($Enums.ServiceCategory, { message: 'category must be part of ' + Object.values($Enums.ServiceCategory).join(', ') })
     category: $Enums.ServiceCategory;
 
-    @ApiProperty()
+    @ApiProperty({ enum: $Enums.SkillLevel })
     @IsNotEmpty({ message: 'skill is required' })
-    @IsEnum($Enums.SkillLevel, { message: 'skill must be part of ' + $Enums.SkillLevel })
+    @IsEnum($Enums.SkillLevel, { message: 'skill must be part of ' + Object.values($Enums.SkillLevel).join(', ') })
     skill: $Enums.SkillLevel;
 
-    @ApiProperty()
+    @ApiProperty({ enum: $Enums.HardLevel })
     @IsNotEmpty({ message: 'hard is required' })
-    @IsEnum($Enums.HardLevel, { message: 'hard must be part of ' + $Enums.HardLevel })
+    @IsEnum($Enums.HardLevel, { message: 'hard must be part of ' + Object.values($Enums.HardLevel).join(', ') })
     hard: $Enums.HardLevel;
 
-    @ApiProperty()
-    @IsNotEmpty({ message: 'is required' })
-    @IsEnum($Enums.ServiceStatus, { message: 'status must be part of ' + $Enums.ServiceStatus })
+    @ApiProperty({ enum: $Enums.ServiceStatus })
+    @IsNotEmpty({ message: ' statusis required' })
+    @IsEnum($Enums.ServiceStatus, { message: 'status must be part of ' + Object.values($Enums.ServiceStatus).join(', ') })
     status: $Enums.ServiceStatus;
 
-    @ApiProperty()
+    @ApiProperty({ type: 'string', format: 'binary', required: false })
     @IsOptional()
-    @IsString()
-    image: Uint8Array<ArrayBufferLike>;
+    @IsString({ message: 'image must be a link' })
+    image: string;
 }

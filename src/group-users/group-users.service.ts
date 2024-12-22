@@ -1,6 +1,6 @@
 import { Body, Injectable, NotFoundException, ParseIntPipe } from '@nestjs/common';
 import { GroupUser, Profile } from '@prisma/client';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { CreateGroupUserDto } from './dto/create-group-user.dto';
 import { UpdateGroupUserDto } from './dto/update-group-user.dto';
 

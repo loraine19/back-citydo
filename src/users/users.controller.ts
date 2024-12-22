@@ -6,6 +6,7 @@ import { UsersService } from './users.service';
 import { UserEntity } from './entities/user.entity';
 import { AuthGuard } from '../../src/auth/auth.guard';
 import { RequestWithUser } from 'src/auth/auth.entities/auth.entity';
+import { User } from '@prisma/client';
 
 
 //// CONTROLLER DO ROUTE 
@@ -18,14 +19,14 @@ export class UsersController {
 
   @Post()
   @ApiCreatedResponse({ type: UserEntity })
-  async create(@Body() data: CreateUserDto) {
+  async create(@Body() data: CreateUserDto): Promise<User> {
     const user = await this.usersService.findUnique(data.email)
     return await this.usersService.create(data);
   }
 
   @Get()
   @ApiBearerAuth()
-  async findAll() {
+  async findAll(): Promise<User[]> {
     const users = await this.usersService.findAll()
     if (!users.length) throw new HttpException(`No ${route} found.`, HttpStatus.NO_CONTENT);
     return users
@@ -36,7 +37,7 @@ export class UsersController {
   @Get('me')
   @ApiBearerAuth()
   @ApiOkResponse({ type: UserEntity })
-  async FindMe(@Req() req: RequestWithUser) {
+  async FindMe(@Req() req: RequestWithUser): Promise<User> {
     const id = req.user.sub
     console.log(req)
     return this.usersService.findOne(id)
@@ -45,21 +46,21 @@ export class UsersController {
   @Get(':id')
   @ApiBearerAuth()
   @ApiOkResponse({ type: UserEntity })
-  async findOne(@Param('id', ParseIntPipe) id: number) {
+  async findOne(@Param('id', ParseIntPipe) id: number): Promise<User> {
     return this.usersService.findOne(id)
   }
 
 
   @Patch(':id')
   @ApiBearerAuth()
-  async update(@Param('id', ParseIntPipe) id: number, @Body() data: UpdateUserDto) {
+  async update(@Param('id', ParseIntPipe) id: number, @Body() data: UpdateUserDto): Promise<User> {
     return this.usersService.update(+id, data)
   }
 
   @Delete(':id')
   @ApiBearerAuth()
-  async remove(@Param('id', ParseIntPipe) id: number) {
+  async remove(@Param('id', ParseIntPipe) id: number): Promise<User> {
     const user = await this.usersService.remove(+id)
-    return { user, message: `${route} ${id} deleted` };
+    return user;
   }
 }

@@ -21,6 +21,7 @@ describe('AddressService', () => {
               create: jest.fn(),
               findMany: jest.fn(),
               findUniqueOrThrow: jest.fn(),
+              findFirstOrThrow: jest.fn(),
               update: jest.fn(),
               delete: jest.fn(),
             },
@@ -51,6 +52,11 @@ describe('AddressService', () => {
     const address: Address = addressExample;
     jest.spyOn(prismaService.address, 'findUniqueOrThrow').mockResolvedValue(address);
     expect(await service.findOne(1)).toEqual(address);
+  });
+
+  it('should return a single address by user', async () => {
+    jest.spyOn(prismaService.address, 'findFirstOrThrow').mockResolvedValue(addressExample);
+    expect(await service.findOneByUserId(1)).toEqual(addressExample);
   });
 
   it('should update an address', async () => {

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { PrismaService } from '../../src/prisma/prisma.service';
@@ -29,6 +29,15 @@ export class PostsService {
       include: { User: { select: { email: true, Profile: true, id: true } }, Like: { include: { User: { select: { email: true, Profile: true, id: true } } } } }
 
     });
+  }
+
+  async findAllByUserId(userId: number): Promise<Post[]> {
+    const posts = await this.prisma.post.findMany({
+      where: { userId },
+      include: { User: { select: { email: true, Profile: true, id: true } }, Like: { include: { User: { select: { email: true, Profile: true, id: true } } } } }
+    });
+    if (!posts || posts.length === 0) throw new HttpException(`no posts found`, HttpStatus.NO_CONTENT);
+    return posts
   }
 
   async update(id: number, data: any): Promise<Post> {

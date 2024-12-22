@@ -2,24 +2,29 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, HttpException, HttpS
 import { ProfilesService } from './profiles.service';
 import { CreateProfileDto } from './dto/create-profile.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
-import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOkResponse } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { ProfileEntity } from './entities/profile.entity';
-import { RequestWithUser } from 'src/auth/auth.entities/auth.entity';
-import { AuthGuard } from 'src/auth/auth.guard';
-import { parseData } from 'middleware/BodyParser';
-import { ImageInterceptor } from 'middleware/ImageInterceptor';
+import { RequestWithUser } from '../auth/auth.entities/auth.entity';
+import { AuthGuard } from '../auth/auth.guard';
+import { parseData } from '../../middleware/BodyParser';
+import { ImageInterceptor } from '../../middleware/ImageInterceptor';
+import { Profile } from '@prisma/client';
 
 
-@Controller('profiles')
+const route = 'profiles'
+@Controller(route)
+@ApiTags(route)
+@UseGuards(AuthGuard)
 export class ProfilesController {
   constructor(private readonly profilesService: ProfilesService) { }
 
   @Post()
+  @ApiBearerAuth()
   @ApiOkResponse({ type: ProfileEntity })
   @ApiBody({ type: CreateProfileDto })
   @UseInterceptors(ImageInterceptor.create('profiles'))
   @ApiConsumes('multipart/form-data')
-  async create(@Body() data: CreateProfileDto, @UploadedFile() image: Express.Multer.File,) {
+  async create(@Body() data: CreateProfileDto, @UploadedFile() image: Express.Multer.File,): Promise<Profile> {
     parseData(data)
     data = await parseData(data, image)
     return this.profilesService.create(data)
@@ -27,41 +32,51 @@ export class ProfilesController {
 
 
   @Patch(':id')
+  @ApiBearerAuth()
   @ApiOkResponse({ type: ProfileEntity })
   @ApiBody({ type: UpdateProfileDto })
   @UseInterceptors(ImageInterceptor.create('profiles'))
   @ApiConsumes('multipart/form-data')
-  async update(@Param('id', ParseIntPipe) id: number, @Body() data: UpdateProfileDto, @UploadedFile() image: Express.Multer.File,) {
+  async update(@Param('id', ParseIntPipe) id: number, @Body() data: UpdateProfileDto, @UploadedFile() image: Express.Multer.File,): Promise<Profile> {
     parseData(data)
     data = await parseData(data, image)
     return this.profilesService.update(id, data);
   }
 
   @Get()
+  @ApiBearerAuth()
   async findAll() {
     const profiles = await this.profilesService.findAll()
-    console.log(profiles)
     if (!profiles.length) throw new HttpException(`No profiles found.`, HttpStatus.NO_CONTENT);
     return profiles
   }
+
   @Get('mines')
-  @UseGuards(AuthGuard)
   @ApiBearerAuth()
   @ApiOkResponse({ type: ProfileEntity })
-  async findProfile(@Req() req: RequestWithUser) {
+  async findMine(@Req() req: RequestWithUser): Promise<Profile> {
     const id = req.user.sub
-    return this.profilesService.findOne(+id)
+    return this.profilesService.findOneByUserId(id)
+  }
+
+  @Get('user/:userId')
+  @ApiBearerAuth()
+  @ApiOkResponse({ type: ProfileEntity })
+  async findOneByUserId(@Param('userId', ParseIntPipe) userId: number): Promise<Profile> {
+    return this.profilesService.findOneByUserId(userId)
   }
 
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.profilesService.findOne(+id);
+  @ApiBearerAuth()
+  findOne(@Param('id', ParseIntPipe) id: number): Promise<Profile> {
+    return this.profilesService.findOne(id);
   }
 
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.profilesService.remove(+id);
+  @ApiBearerAuth()
+  remove(@Param('id', ParseIntPipe) id: number): Promise<Profile> {
+    return this.profilesService.remove(id);
   }
 }

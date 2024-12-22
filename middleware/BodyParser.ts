@@ -15,6 +15,5 @@ export function parseData(dto: any, image?: Express.Multer.File) {
 
     }
     image && (dto = { ...dto, image: process.env.STORAGE + image.path.replace('dist', '') })
-    console.log(dto)
     return dto;
 }

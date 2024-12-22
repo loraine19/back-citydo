@@ -1,8 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreateLikeDto } from './dto/create-like.dto';
 import { UpdateLikeDto } from './dto/update-like.dto';
 import { Like } from '@prisma/client';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '../../src/prisma/prisma.service';
 
 @Injectable()
 export class LikesService {
@@ -19,8 +19,13 @@ export class LikesService {
 
   async findAll(): Promise<Like[]> {
     return await this.prisma.like.findMany(
-
     );
+  }
+
+  async findAllByUserId(userId: number): Promise<Like[]> {
+    const likes = await this.prisma.like.findMany({ where: { userId } })
+    if (!likes.length) throw new HttpException(`no likes found`, HttpStatus.NO_CONTENT);
+    return likes
   }
 
   async findOne(userId: number, postId: number): Promise<Like> {
@@ -28,6 +33,8 @@ export class LikesService {
       where: { userId_postId: { userId, postId } }
     });
   }
+
+
 
   async update(userId: number, postId: number, updatePartcicipantDto: UpdateLikeDto): Promise<Like> {
     return await this.prisma.like.update({
