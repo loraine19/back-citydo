@@ -48,10 +48,10 @@ export class CreateServiceDto {
     @IsEnum($Enums.HardLevel, { message: 'hard must be part of ' + Object.values($Enums.HardLevel).join(', ') })
     hard: $Enums.HardLevel;
 
-    @ApiProperty({ enum: $Enums.ServiceStatus })
+    @ApiProperty({ enum: $Enums.ServiceStep })
     @IsNotEmpty({ message: ' statusis required' })
-    @IsEnum($Enums.ServiceStatus, { message: 'status must be part of ' + Object.values($Enums.ServiceStatus).join(', ') })
-    status: $Enums.ServiceStatus;
+    @IsEnum($Enums.ServiceStep, { message: 'status must be part of ' + Object.values($Enums.ServiceStep).join(', ') })
+    status: $Enums.ServiceStep;
 
     @ApiProperty({ type: 'string', format: 'binary', required: false })
     @IsOptional()

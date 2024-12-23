@@ -32,7 +32,7 @@ describe('ProfilesService', () => {
     prismaService = module.get<PrismaService>(PrismaService);
   });
 
-  const profileExampleDto: CreateProfileDto = { userId: 1, firstName: 'Test', lastName: 'User', image: 'test.jpg', skills: 'Test Skills', assistance: $Enums.Assistance.NONE, phone: '1234567890', addressId: 1, addressShared: true, points: 0, userIdSp: 2 };
+  const profileExampleDto: CreateProfileDto = { userId: 1, firstName: 'Test', lastName: 'User', image: 'test.jpg', skills: 'Test Skills', assistance: $Enums.AssistanceLevel.LEVEL_0, phone: '1234567890', addressId: 1, addressShared: true, points: 0, userIdSp: 2 };
   const profileExample: Profile = { id: 1, createdAt: new Date(), updatedAt: new Date(), ...profileExampleDto };
 
   it('should create a profile', async () => {

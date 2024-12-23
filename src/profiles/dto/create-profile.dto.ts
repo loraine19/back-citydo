@@ -46,9 +46,9 @@ export class CreateProfileDto {
     @IsBoolean()
     addressShared: boolean;
 
-    @ApiProperty({ enum: $Enums.Assistance, required: false })
-    @IsEnum($Enums.Assistance, { message: 'Assistance must be part of ' + $Enums.Assistance })
-    assistance: $Enums.Assistance;
+    @ApiProperty({ enum: $Enums.AssistanceLevel, required: false })
+    @IsEnum($Enums.AssistanceLevel, { message: 'AssistanceLevel must be part of ' + $Enums.AssistanceLevel })
+    assistance: $Enums.AssistanceLevel;
 
     @ApiProperty()
     @IsNotEmpty({ message: 'Address id is required' })

@@ -15,9 +15,8 @@ import * as argon2 from 'argon2';
 import { CreatePoolDto } from 'src/pools/dto/create-pool.dto';
 import { CreateSurveyDto } from 'src/surveys/dto/create-survey.dto';
 import { CreateVoteDto } from 'src/votes/dto/create-vote.dto';
-import { FileReader } from '@tanker/file-reader';
-import { Decimal } from '@prisma/client/runtime/library';
-import { connect } from 'http2';
+import { Decimal, empty } from '@prisma/client/runtime/library';
+import { isNotEmpty } from 'class-validator';
 const faker = require('@faker-js/faker/locale/fr');
 
 const prisma = new PrismaClient();
@@ -91,7 +90,7 @@ const CreateRandomProfile = async (): Promise<CreateProfileDto> => {
     phone: newFaker.phone.number(),
     image: newFaker.image.urlPicsumPhotos({ width: 200, height: 200, blur: 0 }),
     addressShared: newFaker.datatype.boolean(),
-    assistance: newFaker.helpers.arrayElement(Object.values($Enums.Assistance)),
+    assistance: newFaker.helpers.arrayElement(Object.values($Enums.AssistanceLevel)),
     points: newFaker.number.int({ min: 0, max: 30 }),
     skills: newFaker.lorem.words({ min: 0, max: 3 }),
   }
@@ -128,7 +127,7 @@ const CreateRandomService = async (): Promise<CreateServiceDto> => {
     category: newFaker.helpers.arrayElement(Object.values($Enums.ServiceCategory)),
     skill: newFaker.helpers.arrayElement(Object.values($Enums.SkillLevel)),
     hard: newFaker.helpers.arrayElement(Object.values($Enums.HardLevel)),
-    status: newFaker.helpers.arrayElement(Object.values($Enums.ServiceStatus)),
+    status: newFaker.helpers.arrayElement(Object.values($Enums.ServiceStep)),
     image: (newFaker.image.urlPicsumPhotos({ width: 600, height: 400, blur: 0, grayscale: false })),
   }
 }
@@ -152,7 +151,7 @@ const CreateRandomLike = (): CreateLikeDto => {
 }
 
 
-const CreateRandomPool = (): CreatePoolDto => {
+const CreateRandomPool = (): any => {
   return {
     userId: newFaker.number.int({ min: 1, max }),
     userIdBenef: newFaker.number.int({ min: 1, max }),
@@ -161,7 +160,7 @@ const CreateRandomPool = (): CreatePoolDto => {
   }
 }
 
-const CreateRandomSurvey = async (): Promise<CreateSurveyDto> => {
+const CreateRandomSurvey = (): any => {
   return {
     userId: newFaker.number.int({ min: 1, max }),
     title: 'Survey ' + newFaker.lorem.words({ min: 3, max: 6 }),
@@ -275,7 +274,13 @@ const seed = async () => {
   const event = async () => {
     while (await prisma.event.count() < max) {
       const { userId, addressId, ...event } = await CreateRandomEvent()
-      await prisma.event.create({ data: { ...event, Address: { connect: { id: addressId } }, User: { connect: { id: userId } } } })
+      await prisma.event.create(
+        {
+          data: {
+            ...event,
+            Address: { connect: { id: addressId } }, User: { connect: { id: userId } }
+          }
+        })
     }
   }
   await event();
@@ -331,7 +336,7 @@ const seed = async () => {
   }
   await pool();
 
-  // POOL fk user fk userBenef 
+  // SURVEY fk user 
   const survey = async () => {
     while (await prisma.survey.count() < max) {
       const { userId, ...survey } = await CreateRandomSurvey();
@@ -344,21 +349,34 @@ const seed = async () => {
   // VOTE fk user 
   const vote = async () => {
     while (await prisma.vote.count() < max * 2) {
-      const { userId, targetId, ...vote } = CreateRandomVote();
-      const cond = await prisma.vote.findUnique({ where: { userId_target_targetId: { userId, target: vote.target, targetId: targetId } } });
+      const { userId, targetId, target, ...vote } = CreateRandomVote();
+      const cond = await prisma.vote.findUnique({ where: { userId_target_targetId: { userId, target, targetId } } });
 
-      if (!cond) await prisma.vote.create({
-        data: {
-          ...vote, User: { connect: { id: userId } }
+      if (!cond) {
+        if (target === $Enums.VoteTarget.POOL) {
+          await prisma.vote.create({
+            data: {
+              ...vote,
+              target,
+              User: { connect: { id: userId } },
+              Pools: { connect: { id: targetId } },
+            }
+          });
+        } else if (target === $Enums.VoteTarget.SURVEY) {
+          await prisma.vote.create({
+            data: {
+              ...vote,
+              target,
+              User: { connect: { id: userId } },
+              Surveys: { connect: { id: targetId } },
+            }
+          })
         }
-      })
-
+      }
     }
   }
   await vote();
 }
-
-
 
 
 

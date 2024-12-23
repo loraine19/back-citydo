@@ -43,7 +43,7 @@ describe('ServicesController', () => {
     service = module.get<ServicesService>(ServicesService);
   });
 
-  const serviceExampleDto: CreateServiceDto = { userId: 1, title: 'Test Service', description: 'Test Description', category: $Enums.ServiceCategory.CATEGORY_1, image: 'image', userIdResp: 1, type: $Enums.ServiceType.DO, skill: $Enums.SkillLevel.SKILL_0, hard: $Enums.HardLevel.HARD_0, status: $Enums.ServiceStatus.POST };
+  const serviceExampleDto: CreateServiceDto = { userId: 1, title: 'Test Service', description: 'Test Description', category: $Enums.ServiceCategory.CATEGORY_1, image: 'image', userIdResp: 1, type: $Enums.ServiceType.DO, skill: $Enums.SkillLevel.LEVEL_0, hard: $Enums.HardLevel.LEVEL_0, status: $Enums.ServiceStep.STEP_0 };
   const serviceExample: Service = { id: 1, createdAt: new Date(), updatedAt: new Date(), ...serviceExampleDto };
 
   it('should create a service', async () => {

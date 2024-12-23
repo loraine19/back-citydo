@@ -10,6 +10,7 @@ import { AuthEntity } from './auth.entities/auth.entity';
 import * as argon2 from 'argon2';
 import { SignInDto } from './dto/signIn.dto';
 import { SignUpDto } from './dto/signUp.dto';
+import { RefreshDto } from './dto/refresh.dto';
 
 
 @Injectable()
@@ -56,6 +57,7 @@ export class AuthService {
 
     /// RERESH TOKEN
     async refresh(refreshToken: string, userId: number): Promise<any> {
+        console.log(userId)
         const userToken = await this.prisma.token.findFirst({ where: { userId: userId, type: 'REFRESH' } })
         const refreshTokenValid = await argon2.verify(userToken.token, refreshToken)
         if (!refreshTokenValid) throw new UnauthorizedException('Invalid refresh token')

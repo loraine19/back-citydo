@@ -56,9 +56,9 @@ export class ProfileEntity implements Profile {
     @IsBoolean()
     addressShared: boolean;
 
-    @ApiProperty({ enum: $Enums.Assistance })
-    @IsEnum($Enums.Assistance, { message: 'Assistance must be part of ' + $Enums.Assistance })
-    assistance: $Enums.Assistance;
+    @ApiProperty({ enum: $Enums.AssistanceLevel })
+    @IsEnum($Enums.AssistanceLevel, { message: 'AssistanceLevel must be part of ' + $Enums.AssistanceLevel })
+    assistance: $Enums.AssistanceLevel;
 
     @ApiProperty()
     @IsNotEmpty({ message: 'Address id is required' })

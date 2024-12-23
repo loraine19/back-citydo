@@ -13,12 +13,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// generator nestgraphql {
-//   provider = "node node_modules/prisma-nestjs-graphql"
-//   output   = "../src/@generated"
-//   reExport = Directories
-// }
-
 /////// USERS GROUP ...
 model GroupUser {
   userId    Int
@@ -55,7 +49,7 @@ model User {
   Issue          Issue[]       @relation("Issue")
   Pool           Pool[]        @relation("Pool")
   Benef          Pool[]        @relation("PoolBenef")
-  Profile        Profile[]     @relation("Profile")
+  Profile        Profile?      @relation("Profile")
   UserSp         Profile[]     @relation("Sponsor")
 }
 
@@ -86,35 +80,23 @@ model Address {
 }
 
 model Profile {
-  id            Int        @id @default(autoincrement())
-  userId        Int
+  id            Int             @id @default(autoincrement())
+  userId        Int             @unique
   userIdSp      Int
   addressId     Int
   firstName     String
   lastName      String
   image         String?
   phone         String
-  addressShared Boolean    @default(false)
-  assistance    Assistance @default(NONE)
+  addressShared Boolean         @default(false)
+  assistance    AssistanceLevel @default(LEVEL_0)
   points        Int
-  skills        String     @db.MediumText
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
-  Address       Address    @relation(fields: [addressId], references: [id])
-  User          User       @relation(fields: [userId], references: [id], name: "Profile")
-  UserSp        User       @relation(fields: [userIdSp], references: [id], name: "Sponsor")
-}
-
-enum Assistance {
-  NONE
-  LOW
-  MEDIUM
-  HIGH
-}
-
-enum Role {
-  MEMBER
-  GUEST
+  skills        String          @db.MediumText
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  Address       Address         @relation(fields: [addressId], references: [id])
+  User          User            @relation(fields: [userId], references: [id], name: "Profile")
+  UserSp        User            @relation(fields: [userIdSp], references: [id], name: "Sponsor")
 }
 
 model Token {
@@ -129,13 +111,7 @@ model Token {
   @@id([userId, type])
 }
 
-enum TokenType {
-  REFRESH
-  RESET
-  VERIFY
-}
-
-/////// EVENTS // EventCategory
+/////// EVENTS 
 model Event {
   id              Int           @id @default(autoincrement())
   userId          Int
@@ -152,14 +128,6 @@ model Event {
   User            User          @relation(fields: [userId], references: [id])
   Address         Address       @relation(fields: [addressId], references: [id])
   Participant     Participant[]
-}
-
-enum EventCategory {
-  CATEGORY_1
-  CATEGORY_2
-  CATEGORY_3
-  CATEGORY_4
-  CATEGORY_5
 }
 
 model Participant {
@@ -184,70 +152,31 @@ model Service {
   title           String
   description     String          @db.LongText
   category        ServiceCategory
-  skill           SkillLevel
-  hard            HardLevel
-  status          ServiceStatus
+  skill           SkillLevel      @default(LEVEL_0)
+  hard            HardLevel       @default(LEVEL_0)
+  status          ServiceStep     @default(STEP_0)
   image           String?
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
   Issue           Issue[]
 }
 
-enum ServiceType {
-  GET
-  DO
-}
-
-enum ServiceStatus {
-  POST
-  RESP
-  VALIDATE
-  FINISH
-  ISSUE
-}
-
-enum ServiceCategory {
-  CATEGORY_1
-  CATEGORY_2
-  CATEGORY_3
-  CATEGORY_4
-}
-
-enum SkillLevel {
-  SKILL_0
-  SKILL_1
-  SKILL_2
-  SKILL_3
-}
-
-enum HardLevel {
-  HARD_0
-  HARD_1
-  HARD_2
-  HARD_3
-}
-
 model Issue {
-  id              Int         @id @default(autoincrement())
+  id              Int       @id @default(autoincrement())
   serviceId       Int
-  description     String      @db.LongText
+  description     String    @db.LongText
   date            DateTime
-  status          IssueStatus
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
+  status          IssueStep
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
   userId_Modo     Int
   userId_ModoResp Int
   image           String?
-  UserModo        User        @relation(fields: [userId_Modo], references: [id], name: "Modo")
-  UserModoResp    User        @relation(fields: [userId_ModoResp], references: [id], name: "ModoResp")
-  Service         Service     @relation(fields: [serviceId], references: [id])
-  User            User        @relation(fields: [userId], references: [id], name: "Issue")
+  UserModo        User      @relation(fields: [userId_Modo], references: [id], name: "Modo")
+  UserModoResp    User      @relation(fields: [userId_ModoResp], references: [id], name: "ModoResp")
+  Service         Service   @relation(fields: [serviceId], references: [id])
+  User            User      @relation(fields: [userId], references: [id], name: "Issue")
   userId          Int
-}
-
-enum IssueStatus {
-  SOLVED
-  PENDING
 }
 
 ///// SURVEY POOL 
@@ -261,13 +190,7 @@ model Survey {
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
   User        User           @relation(fields: [userId], references: [id])
-  Vote        Vote[]         @relation(name: "SurveyVote", map: "Vote_targetId_Survey")
-}
-
-enum SurveyCategory {
-  CATEGORY_1
-  CATEGORY_2
-  CATEGORY_3
+  Vote        Vote[]         @relation(name: "SurveyVote", map: "surveyVote")
 }
 
 model Pool {
@@ -280,33 +203,22 @@ model Pool {
   updatedAt   DateTime @updatedAt
   User        User     @relation(fields: [userId], references: [id], name: "Pool")
   UserBenef   User     @relation(fields: [userIdBenef], references: [id], name: "PoolBenef")
-  Vote        Vote[]   @relation(name: "PoolVote", map: "Vote_targetId_Pool")
+  Vote        Vote[]   @relation(name: "PoolVote", map: "poolVote")
 }
 
 model Vote {
   userId    Int
   targetId  Int
   target    VoteTarget
-  opinion   VoteOpinion
+  opinion   VoteOpinion @default(OK)
   User      User        @relation(fields: [userId], references: [id])
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
-  // Conditional mapping based on target
-  Pool      Pool?       @relation(fields: [targetId], references: [id], name: "PoolVote", map: "Vote_targetId_Pool")
-  Survey    Survey?     @relation(fields: [targetId], references: [id], name: "SurveyVote", map: "Vote_targetId_Survey")
+  Pools     Pool?       @relation(fields: [targetId], references: [id], name: "PoolVote", map: "poolVote")
+  Surveys   Survey?     @relation(fields: [targetId], references: [id], name: "SurveyVote", map: "surveyVote")
 
   @@id([userId, target, targetId])
-}
-
-enum VoteTarget {
-  SURVEY
-  POOL
-}
-
-enum VoteOpinion {
-  OK
-  NO
-  WO
+  @@index([targetId, target])
 }
 
 ///// POST 
@@ -322,20 +234,6 @@ model Post {
   User        User         @relation(fields: [userId], references: [id])
   Like        Like[]
   share       Share        @default(EMAIL)
-}
-
-enum Share {
-  EMAIL
-  PHONE
-  BOTH
-}
-
-enum PostCategory {
-  CATEGORY_1
-  CATEGORY_2
-  CATEGORY_3
-  CATEGORY_4
-  CATEGORY_5
 }
 
 model Like {
@@ -361,8 +259,114 @@ model Flag {
   @@id([userId, target, targetId])
 }
 
+enum TokenType {
+  REFRESH
+  RESET
+  VERIFY
+}
+
+enum Role {
+  MEMBER
+  GUEST
+}
+
+enum ServiceType {
+  GET
+  DO
+}
+
+enum VoteTarget {
+  SURVEY
+  POOL
+}
+
+enum VoteOpinion {
+  OK
+  NO
+  WO
+}
+
 enum FlagTarget {
   EVENT
   POST
   SURVEY
+}
+
+enum Share {
+  EMAIL
+  PHONE
+  BOTH
+}
+
+enum ServiceStep {
+  STEP_0
+  STEP_1
+  STEP_2
+  STEP_3
+  STEP_4
+}
+
+enum IssueStep {
+  STEP_0
+  STEP_1
+}
+
+enum EventCategory {
+  CATEGORY_1
+  CATEGORY_2
+  CATEGORY_3
+  CATEGORY_4
+  CATEGORY_5
+  CATEGORY_6
+}
+
+enum PostCategory {
+  CATEGORY_1
+  CATEGORY_2
+  CATEGORY_3
+  CATEGORY_4
+  CATEGORY_5
+  CATEGORY_6
+}
+
+enum ServiceCategory {
+  CATEGORY_1
+  CATEGORY_2
+  CATEGORY_3
+  CATEGORY_4
+  CATEGORY_5
+  CATEGORY_6
+}
+
+enum SurveyCategory {
+  CATEGORY_1
+  CATEGORY_2
+  CATEGORY_3
+  CATEGORY_4
+  CATEGORY_5
+  CATEGORY_6
+}
+
+enum AssistanceLevel {
+  LEVEL_0
+  LEVEL_1
+  LEVEL_2
+  LEVEL_3
+  LEVEL_4
+}
+
+enum SkillLevel {
+  LEVEL_0
+  LEVEL_1
+  LEVEL_2
+  LEVEL_3
+  LEVEL_4
+}
+
+enum HardLevel {
+  LEVEL_0
+  LEVEL_1
+  LEVEL_2
+  LEVEL_3
+  LEVEL_4
 }

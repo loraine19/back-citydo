@@ -27,7 +27,13 @@ export class UsersService {
   }
 
   async findOne(id: number): Promise<User> {
-    return await this.prisma.user.findUniqueOrThrow({ where: { id } });
+    return await this.prisma.user.findUniqueOrThrow(
+      {
+        where: { id },
+        include: {
+          Profile: { include: { Address: true } },
+        }
+      });
   }
   async findUnique(email: string): Promise<User> {
     return await this.prisma.user.findUniqueOrThrow({ where: { email } });

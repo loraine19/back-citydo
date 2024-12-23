@@ -30,6 +30,7 @@ export class AuthController {
   @Post('refresh')
   @ApiOkResponse({ type: RefreshEntity })
   async refresh(@Body() { refreshToken }: RefreshDto, @Req() req: RequestWithUser,): Promise<RefreshEntity> {
+    console.log(req, refreshToken)
     const id = req.user.sub
     return this.authService.refresh(refreshToken, id);
   }
