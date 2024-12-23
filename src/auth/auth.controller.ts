@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, HttpException, Post, Req, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { AuthEntity, RefreshEntity, RequestWithUser } from './auth.entities/auth.entity';
@@ -30,8 +30,14 @@ export class AuthController {
   @Post('refresh')
   @ApiOkResponse({ type: RefreshEntity })
   async refresh(@Body() { refreshToken }: RefreshDto, @Req() req: RequestWithUser,): Promise<RefreshEntity> {
-    console.log(req, refreshToken)
-    const id = req.user.sub
-    return this.authService.refresh(refreshToken, id);
+
+    try {
+
+      const id = req.user.sub
+      return this.authService.refresh(refreshToken, id);
+    }
+    catch (error) {
+      throw new HttpException(error.message, 400);
+    }
   }
 }

@@ -39,7 +39,6 @@ export class UsersController {
   @ApiOkResponse({ type: UserEntity })
   async FindMe(@Req() req: RequestWithUser): Promise<User> {
     const id = req.user.sub
-    console.log(req)
     return this.usersService.findOne(id)
   }
 
@@ -54,7 +53,7 @@ export class UsersController {
   @Patch(':id')
   @ApiBearerAuth()
   async update(@Param('id', ParseIntPipe) id: number, @Body() data: UpdateUserDto): Promise<User> {
-    return this.usersService.update(+id, data)
+    return this.usersService.update(id, data)
   }
 
   @Delete(':id')

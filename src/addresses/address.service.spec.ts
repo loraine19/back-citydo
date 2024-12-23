@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { AddressService } from '../address/address.service';
-import { PrismaService } from '../../src/prisma/prisma.service';
+import { AddressService } from './address.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { CreateAddressDto } from './dto/create-address.dto';
 import { UpdateAddressDto } from './dto/update-address.dto';
 import { Address } from '@prisma/client';

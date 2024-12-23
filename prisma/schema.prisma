@@ -20,8 +20,8 @@ model GroupUser {
   role      Role     @default(MEMBER)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  User      User     @relation(fields: [userId], references: [id])
-  Group     Group    @relation(fields: [groupId], references: [id])
+  User      User     @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  Group     Group    @relation(fields: [groupId], references: [id], onUpdate: Cascade, onDelete: Cascade)
 
   @@id([userId, groupId])
 }
@@ -61,7 +61,7 @@ model Group {
   name      String
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
-  Address   Address     @relation(fields: [addressId], references: [id])
+  Address   Address     @relation(fields: [addressId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   GroupUser GroupUser[]
 }
 
@@ -94,9 +94,9 @@ model Profile {
   skills        String          @db.MediumText
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
-  Address       Address         @relation(fields: [addressId], references: [id])
-  User          User            @relation(fields: [userId], references: [id], name: "Profile")
-  UserSp        User            @relation(fields: [userIdSp], references: [id], name: "Sponsor")
+  Address       Address         @relation(fields: [addressId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  User          User            @relation(fields: [userId], references: [id], name: "Profile", onUpdate: Cascade, onDelete: Cascade)
+  UserSp        User            @relation(fields: [userIdSp], references: [id], name: "Sponsor", onUpdate: Cascade, onDelete: Cascade)
 }
 
 model Token {
@@ -106,7 +106,7 @@ model Token {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   expiredAt DateTime?
-  User      User      @relation(fields: [userId], references: [id])
+  User      User      @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Cascade)
 
   @@id([userId, type])
 }
@@ -125,8 +125,8 @@ model Event {
   image           String?
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
-  User            User          @relation(fields: [userId], references: [id])
-  Address         Address       @relation(fields: [addressId], references: [id])
+  User            User          @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  Address         Address       @relation(fields: [addressId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   Participant     Participant[]
 }
 
@@ -145,9 +145,9 @@ model Participant {
 model Service {
   id              Int             @id @default(autoincrement())
   userId          Int
-  UserService     User            @relation(fields: [userId], references: [id], name: "Service")
+  UserService     User            @relation(fields: [userId], references: [id], name: "Service", onUpdate: Cascade, onDelete: Cascade)
   userIdResp      Int?
-  UserServiceResp User?           @relation(fields: [userIdResp], references: [id], name: "ServiceResp")
+  UserServiceResp User?           @relation(fields: [userIdResp], references: [id], name: "ServiceResp", onUpdate: Cascade, onDelete: Cascade)
   type            ServiceType
   title           String
   description     String          @db.LongText
@@ -172,10 +172,10 @@ model Issue {
   userId_Modo     Int
   userId_ModoResp Int
   image           String?
-  UserModo        User      @relation(fields: [userId_Modo], references: [id], name: "Modo")
-  UserModoResp    User      @relation(fields: [userId_ModoResp], references: [id], name: "ModoResp")
-  Service         Service   @relation(fields: [serviceId], references: [id])
-  User            User      @relation(fields: [userId], references: [id], name: "Issue")
+  UserModo        User      @relation(fields: [userId_Modo], references: [id], name: "Modo", onUpdate: Cascade, onDelete: Cascade)
+  UserModoResp    User      @relation(fields: [userId_ModoResp], references: [id], name: "ModoResp", onUpdate: Cascade, onDelete: Cascade)
+  Service         Service   @relation(fields: [serviceId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  User            User      @relation(fields: [userId], references: [id], name: "Issue", onUpdate: Cascade, onDelete: Cascade)
   userId          Int
 }
 
@@ -189,7 +189,7 @@ model Survey {
   image       String?
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
-  User        User           @relation(fields: [userId], references: [id])
+  User        User           @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   Vote        Vote[]         @relation(name: "SurveyVote", map: "surveyVote")
 }
 
@@ -201,7 +201,7 @@ model Pool {
   description String   @db.MediumText
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  User        User     @relation(fields: [userId], references: [id], name: "Pool")
+  User        User     @relation(fields: [userId], references: [id], name: "Pool", onUpdate: Cascade, onDelete: Cascade)
   UserBenef   User     @relation(fields: [userIdBenef], references: [id], name: "PoolBenef")
   Vote        Vote[]   @relation(name: "PoolVote", map: "poolVote")
 }
@@ -211,11 +211,11 @@ model Vote {
   targetId  Int
   target    VoteTarget
   opinion   VoteOpinion @default(OK)
-  User      User        @relation(fields: [userId], references: [id])
+  User      User        @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
-  Pools     Pool?       @relation(fields: [targetId], references: [id], name: "PoolVote", map: "poolVote")
-  Surveys   Survey?     @relation(fields: [targetId], references: [id], name: "SurveyVote", map: "surveyVote")
+  Pools     Pool?       @relation(fields: [targetId], references: [id], name: "PoolVote", map: "poolVote", onUpdate: Cascade, onDelete: Cascade)
+  Surveys   Survey?     @relation(fields: [targetId], references: [id], name: "SurveyVote", map: "surveyVote", onUpdate: Cascade, onDelete: Cascade)
 
   @@id([userId, target, targetId])
   @@index([targetId, target])
@@ -231,7 +231,7 @@ model Post {
   image       String?
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
-  User        User         @relation(fields: [userId], references: [id])
+  User        User         @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   Like        Like[]
   share       Share        @default(EMAIL)
 }
@@ -239,8 +239,8 @@ model Post {
 model Like {
   userId    Int
   postId    Int
-  User      User     @relation(fields: [userId], references: [id])
-  Post      Post     @relation(fields: [postId], references: [id])
+  User      User     @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  Post      Post     @relation(fields: [postId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   updatedAt DateTime @updatedAt
 
   @@id([userId, postId])
@@ -254,7 +254,7 @@ model Flag {
   target    FlagTarget
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
-  User      User       @relation(fields: [userId], references: [id])
+  User      User       @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Cascade)
 
   @@id([userId, target, targetId])
 }

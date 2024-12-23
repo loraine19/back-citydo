@@ -2,7 +2,7 @@ import { $Enums, PrismaClient } from '@prisma/client';
 import { CreateServiceDto } from 'src/service/dto/create-service.dto';
 import { fr, base, Faker, } from '@faker-js/faker';
 import type { LocaleDefinition } from '@faker-js/faker';
-import { CreateAddressDto } from 'src/address/dto/create-address.dto';
+import { CreateAddressDto } from 'src/addresses/dto/create-address.dto';
 import { CreateGroupDto } from 'src/groups/dto/create-group.dto';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
 import { CreateProfileDto } from 'src/profiles/dto/create-profile.dto';

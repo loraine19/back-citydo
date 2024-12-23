@@ -2,9 +2,9 @@ import { Module } from '@nestjs/common';
 import { PrismaModule } from '../../src/prisma/prisma.module';
 import { GroupsController } from '../groups/groups.controller';
 import { GroupsService } from '../groups/groups.service';
-import { AddressService } from '../address/address.service';
-import { AddressController } from '../address/address.controller';
-import { AddressModule } from '../address/address.module';
+import { AddressService } from '../addresses/address.service';
+import { AddressController } from '../addresses/address.controller';
+import { AddressModule } from '../addresses/address.module';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthModule } from '../../src/auth/auth.module';
 

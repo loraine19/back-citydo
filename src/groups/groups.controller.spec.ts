@@ -5,8 +5,8 @@ import { GroupsService } from '../groups/groups.service';
 import { CreateGroupDto } from './dto/create-group.dto';
 import { UpdateGroupDto } from './dto/update-group.dto';
 import { Group, } from '@prisma/client';
-import { AddressController } from '../address/address.controller';
-import { AddressService } from '../address/address.service';
+import { AddressController } from '../addresses/address.controller';
+import { AddressService } from '../addresses/address.service';
 import { JwtModule } from '@nestjs/jwt';
 import { RequestWithUser } from 'src/auth/auth.entities/auth.entity';
 

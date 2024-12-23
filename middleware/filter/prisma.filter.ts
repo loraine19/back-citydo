@@ -8,7 +8,7 @@ export class PrismaFilter extends BaseExceptionFilter {
   catch(exception: Prisma.PrismaClientKnownRequestError, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
-    const message = exception.meta?.cause || exception.message.split('return')[1].replace('(\n', ' : ');
+    const message = exception.meta?.cause || exception.message.split('return')[1]
     let status: HttpStatus;
 
     switch (exception.code) {
