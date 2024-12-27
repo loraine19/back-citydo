@@ -21,7 +21,7 @@ export class AuthService {
     ) { }
 
     /// generate token
-    async generateAccessToken(sub: number) { return this.jwtService.sign({ sub }, { secret: process.env.JWT_SECRET, expiresIn: '5m' }) }
+    async generateAccessToken(sub: number) { return this.jwtService.sign({ sub }, { secret: process.env.JWT_SECRET, expiresIn: '50m' }) }
 
     async generateRefreshToken(sub: number) { return this.jwtService.sign({ sub }, { secret: process.env.JWT_SECRET, expiresIn: '15d' }) }
 
@@ -60,6 +60,7 @@ export class AuthService {
         if (!refreshToken) throw new UnauthorizedException('no refresh token')
         const userToken = await this.prisma.token.findFirst({ where: { userId: userId, type: 'REFRESH' } })
         if (!userToken) throw new UnauthorizedException('Invalid User')
+        console.log(userToken)
         const refreshTokenValid = await argon2.verify(userToken.token, refreshToken)
         if (!refreshTokenValid) throw new UnauthorizedException('Tokens dont match ' + userToken.createdAt)
         const newRefreshToken = await this.generateRefreshToken(userId);

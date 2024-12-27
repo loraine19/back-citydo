@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { $Enums } from "@prisma/client";
-import { Transform } from "class-transformer";
+import { Transform, Type } from "class-transformer";
 import { IsString, IsNotEmpty, IsBoolean, IsEnum, IsNumber, IsArray, IsOptional } from "class-validator";
 
 export class CreateProfileDto {
@@ -16,19 +16,20 @@ export class CreateProfileDto {
 
 
     @ApiProperty({ type: 'number', required: false })
-    @Transform(({ value }) => parseInt(value))
+    @Type(() => Number)
+    @IsOptional()
     @IsNumber()
     userIdSp: number;
 
     @ApiProperty()
     @IsNotEmpty({ message: 'User id is required' })
-    @Transform(({ value }) => parseInt(value))
+    @Type(() => Number)
     @IsNumber()
     userId: number;
 
     @ApiProperty()
     @IsNotEmpty({ message: 'Address id is required' })
-    @Transform(({ value }) => parseInt(value))
+    @Type(() => Number)
     @IsNumber()
     addressId: number;
 
@@ -52,11 +53,12 @@ export class CreateProfileDto {
 
     @ApiProperty()
     @IsNotEmpty({ message: 'Address id is required' })
-    @Transform(({ value }) => parseInt(value))
+    @Type(() => Number)
     @IsNumber()
     points: number;
 
     @ApiProperty({ type: 'string', required: false })
+    @IsOptional()
     @IsString()
     skills: string;
 }

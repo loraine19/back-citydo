@@ -9,6 +9,7 @@ import { AuthGuard } from '../auth/auth.guard';
 import { parseData } from '../../middleware/BodyParser';
 import { ImageInterceptor } from '../../middleware/ImageInterceptor';
 import { Profile } from '@prisma/client';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 
 const route = 'profiles'
@@ -23,10 +24,11 @@ export class ProfilesController {
   @ApiOkResponse({ type: ProfileEntity })
   @ApiBody({ type: CreateProfileDto })
   @UseInterceptors(ImageInterceptor.create('profiles'))
-  @ApiConsumes('multipart/form-data')
+  @ApiConsumes('multipart/form-data', 'application/json')
   async create(@Body() data: CreateProfileDto, @UploadedFile() image: Express.Multer.File,): Promise<Profile> {
     parseData(data)
     data = await parseData(data, image)
+    console.log(data)
     return this.profilesService.create(data)
   }
 
@@ -37,9 +39,11 @@ export class ProfilesController {
   @ApiBody({ type: UpdateProfileDto })
   @UseInterceptors(ImageInterceptor.create('profiles'))
   @ApiConsumes('multipart/form-data')
-  async update(@Param('id', ParseIntPipe) id: number, @Body() data: UpdateProfileDto, @UploadedFile() image: Express.Multer.File,): Promise<Profile> {
-    parseData(data)
-    data = await parseData(data, image)
+  async update(@Param('id', ParseIntPipe) id: number, @Body() data: any, @UploadedFile() image: Express.Multer.File)
+    : Promise<Profile> {
+    image && (data.image = image)
+    data = await parseData(data, data.image)
+    console.log('converted data', data)
     return this.profilesService.update(id, data);
   }
 

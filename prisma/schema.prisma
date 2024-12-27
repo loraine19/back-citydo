@@ -82,7 +82,7 @@ model Address {
 model Profile {
   id            Int             @id @default(autoincrement())
   userId        Int             @unique
-  userIdSp      Int
+  userIdSp      Int?
   addressId     Int
   firstName     String
   lastName      String
@@ -96,7 +96,7 @@ model Profile {
   updatedAt     DateTime        @updatedAt
   Address       Address         @relation(fields: [addressId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   User          User            @relation(fields: [userId], references: [id], name: "Profile", onUpdate: Cascade, onDelete: Cascade)
-  UserSp        User            @relation(fields: [userIdSp], references: [id], name: "Sponsor", onUpdate: Cascade, onDelete: Cascade)
+  UserSp        User?           @relation(fields: [userIdSp], references: [id], name: "Sponsor", onUpdate: Cascade, onDelete: Cascade)
 }
 
 model Token {

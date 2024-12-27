@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsArray, IsBoolean, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 import { $Enums, Profile } from '@prisma/client';
-import { Transform } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 
 export class ProfileEntity implements Profile {
     @ApiProperty()
@@ -27,19 +27,20 @@ export class ProfileEntity implements Profile {
 
 
     @ApiProperty({ type: 'number', required: false })
-    @Transform(({ value }) => parseInt(value))
+    @IsOptional()
+    @Type(() => Number)
     @IsNumber()
     userIdSp: number;
 
     @ApiProperty()
     @IsNotEmpty({ message: 'User id is required' })
-    @Transform(({ value }) => parseInt(value))
+    @Type(() => Number)
     @IsNumber()
     userId: number;
 
     @ApiProperty()
     @IsNotEmpty({ message: 'Address id is required' })
-    @Transform(({ value }) => parseInt(value))
+    @Type(() => Number)
     @IsNumber()
     addressId: number;
 
@@ -62,7 +63,7 @@ export class ProfileEntity implements Profile {
 
     @ApiProperty()
     @IsNotEmpty({ message: 'Address id is required' })
-    @Transform(({ value }) => parseInt(value))
+    @Type(() => Number)
     @IsNumber()
     points: number;
 

@@ -11,12 +11,23 @@ export class ProfilesService {
     const { userId, addressId, userIdSp, ...profile } = data
     return await this.prisma.profile.create({ data: { ...profile, User: { connect: { id: userId } }, Address: { connect: { id: addressId } }, UserSp: { connect: { id: userIdSp } } } })
   }
-
   async update(id: number, data: UpdateProfileDto): Promise<Profile> {
-    const { userId, addressId, userIdSp, ...profile } = data
+    const { userId, addressId, userIdSp, ...profile } = data;
+    const updateData: any = { ...profile };
+
+    if (userId) {
+      updateData.User = { connect: { id: userId } };
+    }
+    if (addressId) {
+      updateData.Address = { connect: { id: addressId } };
+    }
+    if (userIdSp) {
+      updateData.UserSp = { connect: { id: userIdSp } };
+    }
+
     return await this.prisma.profile.update({
       where: { id },
-      data: { ...profile, User: { connect: { id: userId } }, Address: { connect: { id: addressId } }, UserSp: { connect: { id: userIdSp } } }
+      data: updateData,
     });
   }
 
