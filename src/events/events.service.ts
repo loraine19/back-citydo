@@ -20,7 +20,7 @@ export class EventsService {
       {
         include: {
           User: { select: { email: true, Profile: true } },
-          Participant: {
+          Participants: {
             include: { User: { select: { email: true, Profile: true, id: true } } }
           },
           Address: true
@@ -34,7 +34,7 @@ export class EventsService {
       where: { userId },
       include: {
         User: { select: { id: true, email: true, Profile: true } },
-        Participant: { include: { User: { select: { email: true, Profile: true, id: true } } } },
+        Participants: { include: { User: { select: { email: true, Profile: true, id: true } } } },
         Address: true
       }
     })
@@ -46,7 +46,7 @@ export class EventsService {
     return await this.prisma.event.findUniqueOrThrow({
       where: { id },
       include: {
-        User: { select: { email: true, Profile: true } }, Participant: { include: { User: { select: { email: true, Profile: true, id: true } } } }, Address: true
+        User: { select: { email: true, Profile: true } }, Participants: { include: { User: { select: { email: true, Profile: true, id: true } } } }, Address: true
       },
     });
   }

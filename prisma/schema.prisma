@@ -127,7 +127,7 @@ model Event {
   updatedAt       DateTime      @updatedAt
   User            User          @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   Address         Address       @relation(fields: [addressId], references: [id], onUpdate: Cascade, onDelete: Cascade)
-  Participant     Participant[]
+  Participants    Participant[]
 }
 
 model Participant {
