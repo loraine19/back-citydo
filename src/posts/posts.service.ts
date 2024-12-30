@@ -6,7 +6,6 @@ import { Post } from '@prisma/client';
 
 @Injectable()
 export class PostsService {
-  // INJECT PRISMA DEV DEPENDENCY
   constructor(private prisma: PrismaService) { }
 
   async create(data: CreatePostDto): Promise<Post> {
@@ -17,7 +16,7 @@ export class PostsService {
   async findAll(): Promise<Post[]> {
     return await this.prisma.post.findMany(
       {
-        include: { User: { select: { email: true, Profile: true } }, Like: { include: { User: { select: { email: true, Profile: true, id: true } } } } }
+        include: { User: { select: { email: true, Profile: true } }, Likes: { include: { User: { select: { email: true, Profile: true, id: true } } } } }
       }
     );
   }
@@ -26,7 +25,7 @@ export class PostsService {
   async findOne(id: number): Promise<Post> {
     return await this.prisma.post.findUniqueOrThrow({
       where: { id },
-      include: { User: { select: { email: true, Profile: true, id: true } }, Like: { include: { User: { select: { email: true, Profile: true, id: true } } } } }
+      include: { User: { select: { email: true, Profile: true, id: true } }, Likes: { include: { User: { select: { email: true, Profile: true, id: true } } } } }
 
     });
   }
@@ -34,11 +33,24 @@ export class PostsService {
   async findAllByUserId(userId: number): Promise<Post[]> {
     const posts = await this.prisma.post.findMany({
       where: { userId },
-      include: { User: { select: { email: true, Profile: true, id: true } }, Like: { include: { User: { select: { email: true, Profile: true, id: true } } } } }
+      include: { User: { select: { email: true, Profile: true, id: true } }, Likes: { include: { User: { select: { email: true, Profile: true, id: true } } } } }
     });
-    if (!posts || posts.length === 0) throw new HttpException(`no posts found`, HttpStatus.NO_CONTENT);
+    // if (!posts || posts.length === 0) throw new HttpException(`no posts found for ${userId}`, HttpStatus.NO_CONTENT);
     return posts
   }
+
+  async findAllByLikeId(userId: number): Promise<Post[]> {
+    const posts = await this.prisma.post.findMany({
+      where: { Likes: { some: { userId } } },
+      include: {
+        User: { select: { id: true, email: true, Profile: true } },
+        Likes: { include: { User: { select: { email: true, Profile: true, id: true } } } },
+      }
+    })
+    //if (!events.length) throw new HttpException(`no events found`, HttpStatus.NO_CONTENT);
+    return posts
+  }
+
 
   async update(id: number, data: any): Promise<Post> {
     const { userId, ...post } = data

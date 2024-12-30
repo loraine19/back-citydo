@@ -42,6 +42,31 @@ export class EventsService {
     return events
   }
 
+  async findAllByParticipantId(userId: number): Promise<Event[]> {
+    const events = await this.prisma.event.findMany({
+      where: { Participants: { some: { userId } } },
+      include: {
+        User: { select: { id: true, email: true, Profile: true } },
+        Participants: { include: { User: { select: { email: true, Profile: true, id: true } } } },
+        Address: true
+      }
+    })
+    if (!events.length) throw new HttpException(`no events found`, HttpStatus.NO_CONTENT);
+    return events
+  }
+
+  async findAllValidated(): Promise<Event[]> {
+    const events = await this.prisma.event.findMany({
+      include: {
+        User: { select: { email: true, Profile: true } },
+        Participants: { include: { User: { select: { email: true, Profile: true, id: true } } } },
+        Address: true
+      }
+    });
+    return events.filter(event => event.Participants.length >= event.participantsMin);
+  }
+
+
   async findOne(id: number): Promise<Event> {
     return await this.prisma.event.findUniqueOrThrow({
       where: { id },

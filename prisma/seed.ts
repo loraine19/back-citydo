@@ -17,6 +17,7 @@ import { CreateSurveyDto } from 'src/surveys/dto/create-survey.dto';
 import { CreateVoteDto } from 'src/votes/dto/create-vote.dto';
 import { Decimal, empty } from '@prisma/client/runtime/library';
 import { isNotEmpty } from 'class-validator';
+import { CreateFlagDto } from 'src/flags/dto/create-flag.dto';
 const faker = require('@faker-js/faker/locale/fr');
 
 const prisma = new PrismaClient();
@@ -181,9 +182,20 @@ const CreateRandomVote = (): CreateVoteDto => {
 }
 
 
+const CreateRandomFlag = (): CreateFlagDto => {
+  return {
+    userId: newFaker.number.int({ min: 1, max: 3 }),
+    targetId: newFaker.number.int({ min: 1, max }),
+    target: newFaker.helpers.arrayElement(Object.values($Enums.FlagTarget)),
+    reason: newFaker.helpers.arrayElement(Object.values($Enums.FlagReason)),
+  }
+}
+
 
 async function reset() {
   // Reset the identity columns
+  await prisma.$executeRawUnsafe("DELETE FROM `Flag`")
+  await prisma.$executeRawUnsafe("ALTER TABLE `Flag` AUTO_INCREMENT = 1")
   await prisma.$executeRawUnsafe("DELETE FROM `Token`")
   await prisma.$executeRawUnsafe("ALTER TABLE `Token` AUTO_INCREMENT = 1")
   await prisma.$executeRawUnsafe("DELETE FROM `Vote`")
@@ -275,12 +287,7 @@ const seed = async () => {
     while (await prisma.event.count() < max) {
       const { userId, addressId, ...event } = await CreateRandomEvent()
       await prisma.event.create(
-        {
-          data: {
-            ...event,
-            Address: { connect: { id: addressId } }, User: { connect: { id: userId } }
-          }
-        })
+        { data: { ...event, Address: { connect: { id: addressId } }, User: { connect: { id: userId } } } })
     }
   }
   await event();
@@ -351,32 +358,38 @@ const seed = async () => {
     while (await prisma.vote.count() < max * 2) {
       const { userId, targetId, target, ...vote } = CreateRandomVote();
       const cond = await prisma.vote.findUnique({ where: { userId_target_targetId: { userId, target, targetId } } });
-
       if (!cond) {
         if (target === $Enums.VoteTarget.POOL) {
-          await prisma.vote.create({
-            data: {
-              ...vote,
-              target,
-              User: { connect: { id: userId } },
-              Pools: { connect: { id: targetId } },
-            }
-          });
+          await prisma.vote.create({ data: { ...vote, target, User: { connect: { id: userId } }, Pools: { connect: { id: targetId } } } });
         } else if (target === $Enums.VoteTarget.SURVEY) {
-          await prisma.vote.create({
-            data: {
-              ...vote,
-              target,
-              User: { connect: { id: userId } },
-              Surveys: { connect: { id: targetId } },
-            }
-          })
+          await prisma.vote.create({ data: { ...vote, target, User: { connect: { id: userId } }, Surveys: { connect: { id: targetId } } } });
         }
       }
     }
   }
   await vote();
+
+  // FLAG fk user
+  const flag = async () => {
+    while (await prisma.flag.count() < max * 4) {
+      const { userId, targetId, target, ...flag } = CreateRandomFlag();
+      const cond = await prisma.flag.findUnique({ where: { userId_target_targetId: { userId, target, targetId } } });
+      if (!cond) {
+        if (target === $Enums.FlagTarget.EVENT) {
+          await prisma.flag.create({ data: { ...flag, target, User: { connect: { id: userId } }, Events: { connect: { id: targetId } } } });
+        } else if (target === $Enums.FlagTarget.POST) {
+          await prisma.flag.create({ data: { ...flag, target, User: { connect: { id: userId } }, Posts: { connect: { id: targetId } } } });
+        } else if (target === $Enums.FlagTarget.SERVICE) {
+          await prisma.flag.create({ data: { ...flag, target, User: { connect: { id: userId } }, Services: { connect: { id: targetId } } } });
+        } else if (target === $Enums.FlagTarget.SURVEY) {
+          await prisma.flag.create({ data: { ...flag, target, User: { connect: { id: userId } }, Surveys: { connect: { id: targetId } } } });
+        }
+      }
+    }
+  }
+  await flag();
 }
+
 
 
 

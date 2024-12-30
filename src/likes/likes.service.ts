@@ -44,6 +44,6 @@ export class LikesService {
   }
 
   async remove(userId: number, postId: number): Promise<Like> {
-    return await this.prisma.like.delete({ where: { userId_postId: { userId, postId } }, });
+    return await this.prisma.like.delete({ where: { userId_postId: { userId, postId } } });
   }
 }

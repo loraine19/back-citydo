@@ -22,9 +22,16 @@ export class PostsController {
   @ApiBody({ type: CreatePostDto })
   @UseInterceptors(ImageInterceptor.create('posts'))
   @ApiConsumes('multipart/form-data', 'application/json')
-  async create(@Body() data: CreatePostDto, @UploadedFile() image: Express.Multer.File,): Promise<PostEntity> {
-    data = await parseData(data, image)
-    return this.postsService.create(data)
+  async create(@Body() data: CreatePostDto, @UploadedFile() image: Express.Multer.File, @Req() req: RequestWithUser): Promise<PostEntity> {
+    try {
+      data.userId = req.user.sub
+      data = await parseData(data, image)
+      return this.postsService.create(data)
+    }
+    catch (error) {
+      console.log(error)
+    }
+
   }
 
   @Patch(':id')
@@ -33,7 +40,8 @@ export class PostsController {
   @ApiBody({ type: UpdatePostDto })
   @UseInterceptors(ImageInterceptor.create('posts'))
   @ApiConsumes('multipart/form-data', 'application/json')
-  async update(@Param('id', ParseIntPipe) id: number, @Body() data: UpdatePostDto, @UploadedFile() image: Express.Multer.File): Promise<PostEntity> {
+  async update(@Param('id', ParseIntPipe) id: number, @Body() data: UpdatePostDto, @UploadedFile() image: Express.Multer.File, @Req() req: RequestWithUser): Promise<PostEntity> {
+    data.userId = req.user.sub
     data = await parseData(data, image)
     return this.postsService.update(id, data)
   }
@@ -47,12 +55,6 @@ export class PostsController {
     return posts
   }
 
-  @Get(':id')
-  @ApiBearerAuth()
-  findOne(@Param('id', ParseIntPipe) id: number): Promise<PostEntity> {
-    return this.postsService.findOne(id);
-  }
-
   @Get('mines')
   @ApiBearerAuth()
   @ApiOkResponse({ type: PostEntity, isArray: true })
@@ -61,11 +63,36 @@ export class PostsController {
     return this.postsService.findAllByUserId(userId)
   }
 
+  @Get('ilike')
+  @ApiBearerAuth()
+  @ApiOkResponse({ type: PostEntity })
+  async findByILike(@Req() req: RequestWithUser): Promise<PostEntity[]> {
+    const id = req.user.sub
+    return this.postsService.findAllByLikeId(id)
+  }
+
+  @Get(':id')
+  @ApiBearerAuth()
+  findOne(@Param('id', ParseIntPipe) id: number): Promise<PostEntity> {
+    return this.postsService.findOne(id);
+  }
+
+
+
   @Get('user/:userId')
   @ApiBearerAuth()
   @ApiOkResponse({ type: PostEntity, isArray: true })
   async findAllByUserId(@Param('userId', ParseIntPipe) userId: number): Promise<PostEntity[]> {
     return this.postsService.findAllByUserId(userId)
+  }
+
+
+
+  @Get('like/:id')
+  @ApiBearerAuth()
+  @ApiOkResponse({ type: PostEntity })
+  async findByLikeId(@Param('id', ParseIntPipe) id: number): Promise<PostEntity[]> {
+    return this.postsService.findAllByLikeId(id)
   }
 
   @Delete(':id')

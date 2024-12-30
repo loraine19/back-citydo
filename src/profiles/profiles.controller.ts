@@ -26,9 +26,7 @@ export class ProfilesController {
   @UseInterceptors(ImageInterceptor.create('profiles'))
   @ApiConsumes('multipart/form-data', 'application/json')
   async create(@Body() data: CreateProfileDto, @UploadedFile() image: Express.Multer.File,): Promise<Profile> {
-    parseData(data)
     data = await parseData(data, image)
-    console.log(data)
     return this.profilesService.create(data)
   }
 
@@ -39,11 +37,9 @@ export class ProfilesController {
   @ApiBody({ type: UpdateProfileDto })
   @UseInterceptors(ImageInterceptor.create('profiles'))
   @ApiConsumes('multipart/form-data')
-  async update(@Param('id', ParseIntPipe) id: number, @Body() data: any, @UploadedFile() image: Express.Multer.File)
+  async update(@Param('id', ParseIntPipe) id: number, @Body() data: UpdateProfileDto, @UploadedFile() image: Express.Multer.File)
     : Promise<Profile> {
-    image && (data.image = image)
-    data = await parseData(data, data.image)
-    console.log('converted data', data)
+    data = await parseData(data, image)
     return this.profilesService.update(id, data);
   }
 

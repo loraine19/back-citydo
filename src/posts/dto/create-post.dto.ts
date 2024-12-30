@@ -1,13 +1,12 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { $Enums } from "@prisma/client";
 import { Type } from "class-transformer";
-import { IsNotEmpty, IsNumber, IsString, IsEnum, IsOptional, IsArray } from "class-validator";
-import { arrayBuffer } from 'stream/consumers';
+import { IsNotEmpty, IsNumber, IsString, IsEnum, IsOptional } from "class-validator";
 
 export class CreatePostDto {
     //FOR DTO 
-    @ApiProperty()
-    @IsNotEmpty({ message: 'user id is required' })
+    @ApiProperty({ type: 'number', required: false })
+    @IsOptional()
     @Type(() => Number)
     @IsNumber({}, { message: 'user id must be a number' })
     userId: number;
@@ -33,6 +32,7 @@ export class CreatePostDto {
     image: string;
 
     @ApiProperty({ enum: $Enums.Share })
-    @IsEnum($Enums.Share)
+    @IsNotEmpty({ message: 'share is required' })
+    @IsEnum($Enums.Share, { message: 'share must be part of ' + Object.values($Enums.Share).join(', ') })
     share: $Enums.Share;
 }

@@ -8,8 +8,10 @@ export class ProfileEntity implements Profile {
     @IsNumber()
     @IsNotEmpty()
     id: number;
+
     @ApiProperty()
     createdAt: Date;
+
     @ApiProperty()
     updatedAt: Date;
 

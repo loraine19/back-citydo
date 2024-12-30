@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpException, HttpStatus, ParseIntPipe, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpException, HttpStatus, ParseIntPipe, UseGuards, Req } from '@nestjs/common';
 import { LikesService } from './likes.service';
 import { CreateLikeDto } from './dto/create-like.dto';
 import { UpdateLikeDto } from './dto/update-like.dto';
@@ -8,6 +8,7 @@ import { PostsService } from '../posts/posts.service';
 import { LikeEntity } from './entities/like.entity';
 import { AuthGuard } from '../auth/auth.guard';
 import { Like } from '@prisma/client';
+import { RequestWithUser } from 'src/auth/auth.entities/auth.entity';
 
 const route = "likes"
 @UseGuards(AuthGuard)
@@ -53,19 +54,28 @@ export class LikesController {
 
 
 
-  @Patch('user:userId&post:postId')
+  @Patch('user:userId/post:postId')
   @ApiBearerAuth()
   @ApiResponse({ type: LikeEntity })
   async update(@Param('userId', ParseIntPipe) userId: number, @Param('postId', ParseIntPipe) postId: number, @Body() data: UpdateLikeDto): Promise<Like> {
-    const like = this.likesService.update(+userId, +postId, data);
+    const like = this.likesService.update(userId, postId, data);
     return like
   }
 
-  @Delete('user:userId&post:postId')
+  @Delete('user:userId/post:postId')
   @ApiBearerAuth()
   @ApiResponse({ type: LikeEntity })
   remove(@Param('userId', ParseIntPipe) userId: number, @Param('postId', ParseIntPipe) postId: number): Promise<Like> {
-    const like = this.likesService.remove(+userId, +postId);
+    const like = this.likesService.remove(userId, postId);
     return like
+  }
+  @Delete('post:postId')
+  @ApiBearerAuth()
+  @ApiResponse({ type: LikeEntity })
+  async removeByUser(@Param('postId', ParseIntPipe) postId: number, @Req() req: RequestWithUser): Promise<Like> {
+    console.log(req.user.sub, postId)
+    const userId = req.user.sub
+    const participant = this.likesService.remove(userId, postId);
+    return participant
   }
 }

@@ -24,7 +24,7 @@ export class PoolsService {
       include: {
         User: { select: { id: true, email: true, Profile: true } },
         UserBenef: { select: { id: true, email: true, Profile: true } },
-        Vote: { select: { User: { select: { id: true, email: true, Profile: true } } }, where: { target: $Enums.VoteTarget.POOL } }
+        Votes: { select: { User: { select: { id: true, email: true, Profile: true } } }, where: { target: $Enums.VoteTarget.POOL } }
       }
     }
     );
@@ -39,7 +39,7 @@ export class PoolsService {
       include: {
         User: { select: { id: true, email: true, Profile: true } },
         UserBenef: { select: { id: true, email: true, Profile: true } },
-        Vote: { select: { User: { select: { id: true, email: true, Profile: true } } }, where: { target: $Enums.VoteTarget.POOL } }
+        Votes: { select: { User: { select: { id: true, email: true, Profile: true } } }, where: { target: $Enums.VoteTarget.POOL } }
       }
     })
     if (pools.length === 0) throw new HttpException('No surveys found', HttpStatus.NO_CONTENT)
@@ -51,7 +51,7 @@ export class PoolsService {
       where: { id }, include: {
         User: { select: { id: true, email: true, Profile: true } },
         UserBenef: { select: { id: true, email: true, Profile: true } },
-        Vote: { select: { User: { select: { id: true, email: true, Profile: true } } }, where: { target: $Enums.VoteTarget.POOL } }
+        Votes: { select: { User: { select: { id: true, email: true, Profile: true } } }, where: { target: $Enums.VoteTarget.POOL } }
       }
 
     });

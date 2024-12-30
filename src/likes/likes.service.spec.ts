@@ -4,6 +4,7 @@ import { PrismaService } from '../../src/prisma/prisma.service';
 import { CreateLikeDto } from './dto/create-like.dto';
 import { UpdateLikeDto } from './dto/update-like.dto';
 import { Like } from '@prisma/client';
+import { RequestWithUser } from 'src/auth/auth.entities/auth.entity';
 
 describe('LikesService', () => {
   let service: LikesService;
@@ -66,7 +67,7 @@ describe('LikesService', () => {
 
   it('should delete a like', async () => {
     const like: Like = likeExample;
-    jest.spyOn(prismaService.like, 'delete').mockResolvedValue(like);
-    expect(await service.remove(1, 1)).toEqual(like);
+    jest.spyOn(prismaService.like, 'delete').mockResolvedValue(likeExample);
+    expect(await service.remove(1, 1)).toEqual(likeExample);
   });
 });

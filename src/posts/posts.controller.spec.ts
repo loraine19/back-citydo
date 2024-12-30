@@ -6,6 +6,7 @@ import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { $Enums, Post } from '@prisma/client';
 import { JwtModule, JwtService } from '@nestjs/jwt';
+import { RequestWithUser } from 'src/auth/auth.entities/auth.entity';
 
 describe('PostsController', () => {
   let controller: PostsController;
@@ -47,7 +48,8 @@ describe('PostsController', () => {
 
   it('should create a post', async () => {
     jest.spyOn(service, 'create').mockResolvedValue(postExample);
-    expect(await controller.create(postExampleDto, null)).toEqual(postExample);
+    const req = { user: { sub: 1 } } as RequestWithUser
+    expect(await controller.create(postExampleDto, null, req)).toEqual(postExample);
   });
 
   it('should return all posts', async () => {
@@ -65,7 +67,8 @@ describe('PostsController', () => {
   it('should update a post', async () => {
     const updatePostDto: UpdatePostDto = { ...postExampleDto };
     jest.spyOn(service, 'update').mockResolvedValue(postExample);
-    expect(await controller.update(1, updatePostDto, null)).toEqual(postExample);
+    const req = { user: { sub: 1 } } as RequestWithUser
+    expect(await controller.update(1, updatePostDto, null, req)).toEqual(postExample);
   });
 
   it('should delete a post', async () => {

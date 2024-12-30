@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, BadRequestException, NotFoundException, ParseIntPipe, HttpException, HttpStatus, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, BadRequestException, NotFoundException, ParseIntPipe, HttpException, HttpStatus, UseGuards, Req } from '@nestjs/common';
 import { ParticipantsService } from './participants.service';
 import { CreateParticipantDto } from './dto/create-participant.dto';
 import { UpdateParticipantDto } from './dto/update-participant.dto';
@@ -8,6 +8,7 @@ import { EventsService } from '../events/events.service';
 import { AuthGuard } from '../auth/auth.guard';
 import { Participant } from '@prisma/client'
 import { ParticpantEntity } from './entities/participant.entity';
+import { RequestWithUser } from 'src/auth/auth.entities/auth.entity';
 
 
 
@@ -21,9 +22,10 @@ export class ParticipantsController {
   @Post()
   @ApiBearerAuth()
   @ApiResponse({ type: ParticpantEntity })
-  async create(@Body() data: CreateParticipantDto): Promise<Participant> {
-    const participation = { userId: data.userId, eventId: data.eventId }
-    return this.participantsService.create(participation)
+  async create(@Body() data: CreateParticipantDto, @Req() req: RequestWithUser): Promise<Participant> {
+    const id = req.user.sub
+    data.userId = id
+    return this.participantsService.create(data)
   }
 
   @Get()
@@ -51,11 +53,22 @@ export class ParticipantsController {
     return participant
   }
 
-  @Delete('user:userId&event:eventId')
+  @Delete('user:userId/event:eventId')
   @ApiBearerAuth()
   @ApiResponse({ type: ParticpantEntity })
   remove(@Param('userId', ParseIntPipe) userId: number, @Param('eventId', ParseIntPipe) eventId: number): Promise<Participant> {
-    const participant = this.participantsService.remove(+userId, +eventId);
+    const participant = this.participantsService.remove(userId, eventId);
     return participant
   }
+
+
+  @Delete('event:eventId')
+  @ApiBearerAuth()
+  @ApiResponse({ type: ParticpantEntity })
+  async removeByUser(@Param('eventId', ParseIntPipe) eventId: number, @Req() req: RequestWithUser): Promise<Participant> {
+    const userId = req.user.sub
+    const participant = this.participantsService.remove(userId, eventId);
+    return participant
+  }
+
 }

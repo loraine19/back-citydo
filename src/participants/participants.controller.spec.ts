@@ -8,6 +8,7 @@ import { UpdateParticipantDto } from './dto/update-participant.dto';
 import { EventsService } from '../events/events.service';
 import { Participant } from '@prisma/client';
 import { UsersService } from '../users/users.service';
+import { RequestWithUser } from 'src/auth/auth.entities/auth.entity';
 
 
 describe('ParticipantsController', () => {
@@ -46,7 +47,8 @@ describe('ParticipantsController', () => {
 
   it('should create a participant ', async () => {
     jest.spyOn(service, 'create').mockResolvedValue(participantExample);
-    const created = await controller.create(participantExampleDto);
+    const req = { user: { sub: 1 } } as RequestWithUser;
+    const created = await controller.create(participantExampleDto, req);
     expect(created).toEqual(participantExample);
   });
 

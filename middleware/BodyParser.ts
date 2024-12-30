@@ -6,6 +6,9 @@ export function parseData(dto: any, image?: Express.Multer.File) {
         if (key.includes('Id') && typeof dto[key] === 'string' && !isNaN(Number(dto[key]))) {
             dto[key] = parseInt(dto[key]);
         }
+        if (key.includes('Min') && typeof dto[key] === 'string' && !isNaN(Number(dto[key]))) {
+            dto[key] = parseInt(dto[key]);
+        }
         if (key === 'phone' && typeof dto[key] !== 'string') {
             dto[key] = String(dto[key]);
         }

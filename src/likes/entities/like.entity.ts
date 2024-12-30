@@ -4,11 +4,6 @@ import { IsNotEmpty, IsNumber, IsDate } from "class-validator";
 
 export class LikeEntity implements Like {
     @ApiProperty()
-    @IsNotEmpty({ message: 'id is required' })
-    @IsNumber()
-    id: number;
-
-    @ApiProperty()
     @IsDate()
     createdAt: Date;
 

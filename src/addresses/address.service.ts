@@ -21,13 +21,13 @@ export class AddressService {
   async findOne(id: number): Promise<Address> {
     return await this.prisma.address.findUniqueOrThrow({
       where: { id },
-      include: { Group: true, Profile: true },
+      include: { Groups: true, Profiles: true },
     });
   }
 
   async findOneByUserId(userId: number): Promise<Address> {
     return await this.prisma.address.findFirstOrThrow({
-      where: { Profile: { some: { userId } } },
+      where: { Profiles: { some: { userId } } },
     });
   }
 

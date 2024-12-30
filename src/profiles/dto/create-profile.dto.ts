@@ -14,7 +14,6 @@ export class CreateProfileDto {
     @IsNotEmpty({ message: 'Last name is required' })
     lastName: string;
 
-
     @ApiProperty({ type: 'number', required: false })
     @Type(() => Number)
     @IsOptional()
@@ -40,7 +39,7 @@ export class CreateProfileDto {
     @ApiProperty({ type: 'string', format: 'binary', required: false })
     @IsNotEmpty()
     @IsOptional()
-    image: string;
+    image: any;
 
     @ApiProperty({ type: 'boolean', required: false })
     @Transform(({ value }) => value === 'true' ? true : false)
@@ -48,7 +47,7 @@ export class CreateProfileDto {
     addressShared: boolean;
 
     @ApiProperty({ enum: $Enums.AssistanceLevel, required: false })
-    @IsEnum($Enums.AssistanceLevel, { message: 'AssistanceLevel must be part of ' + $Enums.AssistanceLevel })
+    @IsEnum($Enums.AssistanceLevel, { message: 'AssistanceLevel must be part of ' + Object.values($Enums.AssistanceLevel).join(', ') })
     assistance: $Enums.AssistanceLevel;
 
     @ApiProperty()

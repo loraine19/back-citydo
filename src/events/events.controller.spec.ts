@@ -48,7 +48,8 @@ describe('EventsController', () => {
 
   it('should create an event', async () => {
     jest.spyOn(service, 'create').mockResolvedValue(eventExample);
-    expect(await controller.create(eventExampleDto, null)).toEqual(eventExample);
+    const req = { user: { sub: 1 } } as RequestWithUser;
+    expect(await controller.create(eventExampleDto, null, req)).toEqual(eventExample);
   });
 
   it('should return all events', async () => {

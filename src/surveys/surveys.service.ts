@@ -19,7 +19,7 @@ export class SurveysService {
     const surveys = await this.prisma.survey.findMany({
       include: {
         User: { select: { id: true, email: true, Profile: true } },
-        Vote: { select: { User: { select: { id: true, email: true, Profile: true } } }, where: { target: $Enums.VoteTarget.SURVEY } }
+        Votes: { select: { User: { select: { id: true, email: true, Profile: true } } }, where: { target: $Enums.VoteTarget.SURVEY } }
       }
     })
     return surveys
@@ -31,7 +31,7 @@ export class SurveysService {
         where: { User: { is: { id: userId } } },
         include: {
           User: { select: { id: true, email: true, Profile: true } },
-          Vote: { select: { User: { select: { id: true, email: true, Profile: true } } }, where: { target: $Enums.VoteTarget.SURVEY } }
+          Votes: { select: { User: { select: { id: true, email: true, Profile: true } } }, where: { target: $Enums.VoteTarget.SURVEY } }
         }
       })
     return surveys
@@ -42,7 +42,7 @@ export class SurveysService {
       where: { id },
       include: {
         User: { select: { id: true, email: true, Profile: true } },
-        Vote: { select: { User: { select: { id: true, email: true, Profile: true } } }, where: { target: $Enums.VoteTarget.SURVEY } }
+        Votes: { select: { User: { select: { id: true, email: true, Profile: true } } }, where: { target: $Enums.VoteTarget.SURVEY } }
       }
     })
     return survey

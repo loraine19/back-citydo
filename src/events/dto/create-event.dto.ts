@@ -28,7 +28,7 @@ export class CreateEventDto {
     @ApiProperty({ type: Date })
     @IsNotEmpty({ message: 'End date is required' })
     @Transform(({ value }) => new Date(value))
-    @IsDate({ message: 'End date is not conformè' })
+    @IsDate({ message: 'End date is not conforme' })
     end: Date
 
     @ApiProperty({ type: 'number' })
@@ -59,6 +59,6 @@ export class CreateEventDto {
 
     @ApiProperty({ type: 'string', format: 'binary', required: false, })
     @IsOptional()
-    image: string;
+    image: any;
 
 }
