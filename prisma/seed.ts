@@ -34,7 +34,7 @@ export const newFaker = new Faker({
   locale: [customLocale, fr, base],
 });
 
-const max = 10;
+const max = 30;
 
 const CreateRandomAddress = (): CreateAddressDto => {
   return {
@@ -66,7 +66,7 @@ const CreateRandomUser = async (): Promise<CreateUserDto> => {
 const CreateRandomGroupUser = (): CreateGroupUserDto => {
   return {
     groupId: newFaker.number.int({ min: 1, max: 2 }),
-    userId: newFaker.number.int({ min: 1, max }),
+    userId: newFaker.number.int({ min: 1, max: max / 3 }),
     role: newFaker.helpers.arrayElement(Object.values($Enums.Role)),
   }
 }
@@ -83,9 +83,9 @@ export const getImageBlob = async (url: string): Promise<Uint8Array<ArrayBufferL
 
 const CreateRandomProfile = async (): Promise<CreateProfileDto> => {
   return {
-    userId: newFaker.number.int({ min: 1, max }),
+    userId: newFaker.number.int({ min: 1, max: max / 3 }),
     addressId: newFaker.number.int({ min: 1, max: 10 }),
-    userIdSp: newFaker.number.int({ min: 1, max }),
+    userIdSp: newFaker.number.int({ min: 1, max: max / 3 }),
     firstName: newFaker.person.firstName(),
     lastName: newFaker.person.lastName(),
     phone: newFaker.phone.number(),
@@ -99,7 +99,7 @@ const CreateRandomProfile = async (): Promise<CreateProfileDto> => {
 
 const CreateRandomEvent = async (): Promise<CreateEventDto> => {
   return {
-    userId: newFaker.number.int({ min: 1, max }),
+    userId: newFaker.number.int({ min: 1, max: max / 3 }),
     addressId: newFaker.number.int({ min: 1, max }),
     title: 'Event ' + newFaker.lorem.words({ min: 3, max: 8 }),
     description: newFaker.lorem.lines({ min: 1, max: 2 }),
@@ -114,14 +114,14 @@ const CreateRandomEvent = async (): Promise<CreateEventDto> => {
 const CreateRandomParticipant = (): CreateParticipantDto => {
   return {
     eventId: newFaker.number.int({ min: 1, max }),
-    userId: newFaker.number.int({ min: 1, max }),
+    userId: newFaker.number.int({ min: 1, max: max / 3 }),
   }
 }
 
 const CreateRandomService = async (): Promise<CreateServiceDto> => {
   return {
-    userId: newFaker.number.int({ min: 1, max }),
-    userIdResp: newFaker.number.int({ min: 1, max }),
+    userId: newFaker.number.int({ min: 1, max: max / 3 }),
+    userIdResp: newFaker.number.int({ min: 1, max: max / 3 }),
     type: newFaker.helpers.arrayElement(Object.values($Enums.ServiceType)),
     title: 'Service ' + newFaker.lorem.words({ min: 3, max: 6 }),
     description: newFaker.lorem.lines({ min: 1, max: 3 }),
@@ -135,7 +135,7 @@ const CreateRandomService = async (): Promise<CreateServiceDto> => {
 
 const CreateRandomPost = async (): Promise<CreatePostDto> => {
   return {
-    userId: newFaker.number.int({ min: 1, max }),
+    userId: newFaker.number.int({ min: 1, max: max / 3 }),
     title: 'Post ' + newFaker.lorem.words({ min: 3, max: 6 }),
     description: newFaker.lorem.lines({ min: 1, max: 3 }),
     category: newFaker.helpers.arrayElement(Object.values($Enums.PostCategory)),
@@ -146,7 +146,7 @@ const CreateRandomPost = async (): Promise<CreatePostDto> => {
 
 const CreateRandomLike = (): CreateLikeDto => {
   return {
-    userId: newFaker.number.int({ min: 1, max }),
+    userId: newFaker.number.int({ min: 1, max: max / 3 }),
     postId: newFaker.number.int({ min: 1, max }),
   }
 }
@@ -154,8 +154,8 @@ const CreateRandomLike = (): CreateLikeDto => {
 
 const CreateRandomPool = (): any => {
   return {
-    userId: newFaker.number.int({ min: 1, max }),
-    userIdBenef: newFaker.number.int({ min: 1, max }),
+    userId: newFaker.number.int({ min: 1, max: max / 3 }),
+    userIdBenef: newFaker.number.int({ min: 1, max: max / 3 }),
     title: 'Pool ' + newFaker.lorem.words({ min: 3, max: 6 }),
     description: newFaker.lorem.lines({ min: 1, max: 3 }),
   }
@@ -163,7 +163,7 @@ const CreateRandomPool = (): any => {
 
 const CreateRandomSurvey = (): any => {
   return {
-    userId: newFaker.number.int({ min: 1, max }),
+    userId: newFaker.number.int({ min: 1, max: max / 3 }),
     title: 'Survey ' + newFaker.lorem.words({ min: 3, max: 6 }),
     description: newFaker.lorem.lines({ min: 1, max: 3 }),
     category: newFaker.helpers.arrayElement(Object.values($Enums.SurveyCategory)),
@@ -174,7 +174,7 @@ const CreateRandomSurvey = (): any => {
 
 const CreateRandomVote = (): CreateVoteDto => {
   return {
-    userId: newFaker.number.int({ min: 1, max }),
+    userId: newFaker.number.int({ min: 1, max: max / 3 }),
     targetId: newFaker.number.int({ min: 1, max }),
     target: newFaker.helpers.arrayElement(Object.values($Enums.VoteTarget)),
     opinion: newFaker.helpers.arrayElement(Object.values($Enums.VoteOpinion)),
@@ -184,7 +184,7 @@ const CreateRandomVote = (): CreateVoteDto => {
 
 const CreateRandomFlag = (): CreateFlagDto => {
   return {
-    userId: newFaker.number.int({ min: 1, max: 3 }),
+    userId: newFaker.number.int({ min: 1, max: max / 3 }),
     targetId: newFaker.number.int({ min: 1, max }),
     target: newFaker.helpers.arrayElement(Object.values($Enums.FlagTarget)),
     reason: newFaker.helpers.arrayElement(Object.values($Enums.FlagReason)),
@@ -253,17 +253,18 @@ const seed = async () => {
   const User = async () => {
     await prisma.user.deleteMany({ where: { email: 'test@mail.com' } });
     await prisma.user.create({ data: { email: 'test@mail.com', password: await argon2.hash('passwordtest') } })
-    while (await prisma.user.count() < max) { await prisma.user.create({ data: await CreateRandomUser() }) }
+    while (await prisma.user.count() < max / 3) { await prisma.user.create({ data: await CreateRandomUser() }) }
     const user = await prisma.user.findMany();
   }
   await User();
 
   // GROUPUSER fk user fk group
   const groupUser = async () => {
-    while (await prisma.groupUser.count() < max) {
+    while (await prisma.groupUser.count() < max / 3) {
       const { userId, groupId, ...groupUser } = CreateRandomGroupUser();
       const cond = await prisma.groupUser.findUnique({ where: { userId_groupId: { userId, groupId } } });
-      if (!cond) await prisma.groupUser.create({ data: { ...groupUser, User: { connect: { id: userId } }, Group: { connect: { id: groupId } } } })
+      const cond2 = await prisma.user.findUnique({ where: { id: userId } });
+      if (!cond && cond2) await prisma.groupUser.create({ data: { ...groupUser, User: { connect: { id: userId } }, Group: { connect: { id: groupId } } } })
 
     }
   }
@@ -271,11 +272,13 @@ const seed = async () => {
 
   // PROFILE fk user fk address fk userSP
   const profile = async () => {
-    while (await prisma.profile.count() < max) {
+    while (await prisma.profile.count() < max / 3) {
       {
         const { userId, addressId, userIdSp, ...profile } = await CreateRandomProfile();
         const cond = await prisma.profile.findFirst({ where: { userId: userId } });
-        if (!cond) await prisma.profile.create({ data: { ...profile, User: { connect: { id: userId } }, Address: { connect: { id: addressId } }, UserSp: { connect: { id: userIdSp } } } })
+        const cond2 = await prisma.user.findUnique({ where: { id: userId } })
+        const cond3 = await prisma.user.findUnique({ where: { id: userIdSp } });
+        if (!cond && cond2 && cond3) await prisma.profile.create({ data: { ...profile, User: { connect: { id: userId } }, Address: { connect: { id: addressId } }, UserSp: { connect: { id: userIdSp } } } })
       }
     }
   }
@@ -309,7 +312,7 @@ const seed = async () => {
   const service = async () => {
     while (await prisma.service.count() < max) {
       const { userId, userIdResp, ...service } = await CreateRandomService();
-      if (userId !== userIdResp) await prisma.service.create({ data: { ...service, UserService: { connect: { id: userId } }, UserServiceResp: { connect: { id: userIdResp } } } })
+      if (userId !== userIdResp) await prisma.service.create({ data: { ...service, User: { connect: { id: userId } }, UserResp: { connect: { id: userIdResp } } } })
     }
   }
   await service();
@@ -391,13 +394,8 @@ const seed = async () => {
 }
 
 
-
-
-seed().then(async () => {
+seed().then(async () => { await prisma.$disconnect() }).catch(async (e) => {
+  console.error(e)
   await prisma.$disconnect()
+  process.exit(1)
 })
-  .catch(async (e) => {
-    console.error(e)
-    await prisma.$disconnect()
-    process.exit(1)
-  })

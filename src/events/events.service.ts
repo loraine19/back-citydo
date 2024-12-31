@@ -38,7 +38,7 @@ export class EventsService {
         Address: true
       }
     })
-    if (!events.length) throw new HttpException(`no events found`, HttpStatus.NO_CONTENT);
+    //if (!events.length) throw new HttpException(`no events found`, HttpStatus.NO_CONTENT);
     return events
   }
 
@@ -51,7 +51,7 @@ export class EventsService {
         Address: true
       }
     })
-    if (!events.length) throw new HttpException(`no events found`, HttpStatus.NO_CONTENT);
+    //if (!events.length) throw new HttpException(`no events found`, HttpStatus.NO_CONTENT);
     return events
   }
 

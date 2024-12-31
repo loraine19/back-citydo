@@ -46,7 +46,6 @@ export class EventsController {
   @ApiOkResponse({ type: EventEntity, isArray: true })
   async findAll(): Promise<Event[]> {
     const events = await this.eventsService.findAll()
-    if (events.length === 0) throw new NotFoundException(`no one ${route} find`)
     return events;
   }
 

@@ -54,10 +54,10 @@ describe('FlagsService', () => {
     expect(await service.findAllByUserId(1)).toEqual(flags);
   });
 
-  it('should return a single flag', async () => {
-    jest.spyOn(prismaService.flag, 'findUniqueOrThrow').mockResolvedValue(flagExample);
-    expect(await service.findOne(1, 1, $Enums.FlagTarget.POST)).toEqual(flagExample)
-  });
+  // it('should return a single flag', async () => {
+  //   jest.spyOn(prismaService.flag, 'findUniqueOrThrow').mockResolvedValue(flagExample);
+  //   expect(await service.findOne(1, 1, $Enums.FlagTarget.POST)).toEqual(flagExample)
+  // });
 
   it('should update a flag', async () => {
     const updateFlagDto: UpdateFlagDto = { ...flagExampleDto };

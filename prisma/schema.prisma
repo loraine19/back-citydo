@@ -144,23 +144,23 @@ model Participant {
 
 ////// SERVICE 
 model Service {
-  id              Int             @id @default(autoincrement())
-  userId          Int
-  UserService     User            @relation(fields: [userId], references: [id], name: "Service", onUpdate: Cascade, onDelete: Cascade)
-  userIdResp      Int?
-  UserServiceResp User?           @relation(fields: [userIdResp], references: [id], name: "ServiceResp", onUpdate: Cascade, onDelete: Cascade)
-  type            ServiceType
-  title           String
-  description     String          @db.LongText
-  category        ServiceCategory
-  skill           SkillLevel      @default(LEVEL_0)
-  hard            HardLevel       @default(LEVEL_0)
-  status          ServiceStep     @default(STEP_0)
-  image           String?
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
-  Issue           Issue[]
-  Flags           Flag[]          @relation(name: "ServiceFlag", map: "ServiceFlag")
+  id          Int             @id @default(autoincrement())
+  userId      Int
+  User        User            @relation(fields: [userId], references: [id], name: "Service", onUpdate: Cascade, onDelete: Cascade)
+  userIdResp  Int?
+  UserResp    User?           @relation(fields: [userIdResp], references: [id], name: "ServiceResp", onUpdate: Cascade, onDelete: Cascade)
+  type        ServiceType
+  title       String
+  description String          @db.LongText
+  category    ServiceCategory
+  skill       SkillLevel      @default(LEVEL_0)
+  hard        HardLevel       @default(LEVEL_0)
+  status      ServiceStep     @default(STEP_0)
+  image       String?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  Issue       Issue[]
+  Flags       Flag[]          @relation(name: "ServiceFlag", map: "ServiceFlag")
 }
 
 ////// ISSUE
@@ -336,7 +336,6 @@ enum EventCategory {
   CATEGORY_3
   CATEGORY_4
   CATEGORY_5
-  CATEGORY_6
 }
 
 enum PostCategory {
@@ -345,7 +344,6 @@ enum PostCategory {
   CATEGORY_3
   CATEGORY_4
   CATEGORY_5
-  CATEGORY_6
 }
 
 enum ServiceCategory {
@@ -354,7 +352,6 @@ enum ServiceCategory {
   CATEGORY_3
   CATEGORY_4
   CATEGORY_5
-  CATEGORY_6
 }
 
 enum SurveyCategory {
@@ -363,7 +360,6 @@ enum SurveyCategory {
   CATEGORY_3
   CATEGORY_4
   CATEGORY_5
-  CATEGORY_6
 }
 
 enum AssistanceLevel {
