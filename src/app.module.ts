@@ -17,6 +17,7 @@ import { MulterModule } from '@nestjs/platform-express';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { FlagsModule } from './flags/flags.module';
+import { IssuesModule } from './issues/issues.module';
 
 
 @Module({
@@ -42,6 +43,7 @@ import { FlagsModule } from './flags/flags.module';
     SurveysModule,
     VotesModule,
     FlagsModule,
+    IssuesModule,
   ],
 })
 export class AppModule { }

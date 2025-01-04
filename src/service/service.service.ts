@@ -11,12 +11,12 @@ export class ServicesService {
   constructor(private prisma: PrismaService) { }
   async create(data: CreateServiceDto): Promise<Service> {
     const { userId, userIdResp, ...service } = data
-    return await this.prisma.service.create({ data: { ...service, User: { connect: { id: userId } }, UserResp: { connect: { id: userIdResp } } } })
+    return await this.prisma.service.create({ data: { ...service, User: { connect: { id: userId } } } })
   }
 
   async findAll(): Promise<Service[]> {
     return await this.prisma.service.findMany({
-      where: { status: { notIn: [$Enums.ServiceStep.STEP_3, $Enums.ServiceStep.STEP_4] } },
+      where: { status: { in: [$Enums.ServiceStep.STEP_0, $Enums.ServiceStep.STEP_1] } },
       include: {
         User: { select: { id: true, email: true, Profile: true } },
         UserResp: { select: { id: true, email: true, Profile: true } }
@@ -40,6 +40,22 @@ export class ServicesService {
       }
     )
     return services
+  }
+  async findAllByUserAndStatus(userId: number, status: $Enums.ServiceStep): Promise<Service[]> {
+    const services = await this.prisma.service.findMany({
+      where: {
+        OR: [
+          { User: { is: { id: userId } } },
+          { UserResp: { is: { id: userId } } }
+        ],
+        status: status
+      },
+      include: {
+        User: { select: { id: true, email: true, Profile: true } },
+        UserResp: { select: { id: true, email: true, Profile: true } }
+      }
+    });
+    return services;
   }
 
   async findAllByUserGet(userId: number): Promise<Service[]> {
@@ -142,7 +158,6 @@ export class ServicesService {
         User: { select: { id: true, email: true, Profile: true } },
         UserResp: { select: { id: true, email: true, Profile: true } }
       }
-
     });
   }
 
@@ -152,7 +167,7 @@ export class ServicesService {
     const { userId, userIdResp, ...service } = data
     return await this.prisma.service.update({
       where: { id },
-      data: { ...service, User: { connect: { id: userId } }, UserResp: { connect: { id: userIdResp } } }
+      data: { ...service }
     });
   }
   async updateUserResp(id: number, data: { userIdResp: number }): Promise<Service> {

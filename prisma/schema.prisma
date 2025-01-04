@@ -45,7 +45,7 @@ model User {
   Service        Service[]     @relation("Service")
   ServiceResp    Service[]     @relation("ServiceResp")
   IssueModo      Issue[]       @relation("Modo")
-  IssueModoResp  Issue[]       @relation("ModoResp")
+  IssueModo2     Issue[]       @relation("Modo2")
   Issue          Issue[]       @relation("Issue")
   Pool           Pool[]        @relation("Pool")
   Benef          Pool[]        @relation("PoolBenef")
@@ -131,6 +131,7 @@ model Event {
   Flags           Flag[]        @relation(name: "EventFlag", map: "EventFlag")
 }
 
+////// PARTICIPANT
 model Participant {
   userId    Int
   eventId   Int
@@ -165,21 +166,21 @@ model Service {
 
 ////// ISSUE
 model Issue {
-  id              Int       @id @default(autoincrement())
-  serviceId       Int
-  description     String    @db.LongText
-  date            DateTime
-  status          IssueStep
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  userId_Modo     Int
-  userId_ModoResp Int
-  image           String?
-  UserModo        User      @relation(fields: [userId_Modo], references: [id], name: "Modo", onUpdate: Cascade, onDelete: Cascade)
-  UserModoResp    User      @relation(fields: [userId_ModoResp], references: [id], name: "ModoResp", onUpdate: Cascade, onDelete: Cascade)
-  Service         Service   @relation(fields: [serviceId], references: [id], onUpdate: Cascade, onDelete: Cascade)
-  User            User      @relation(fields: [userId], references: [id], name: "Issue", onUpdate: Cascade, onDelete: Cascade)
-  userId          Int
+  // id          Int       @id @default(autoincrement())
+  serviceId   Int       @id @unique
+  description String    @db.LongText
+  date        DateTime
+  status      IssueStep
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  userIdModo  Int
+  userIdModo2 Int
+  image       String?
+  UserModo    User      @relation(fields: [userIdModo], references: [id], name: "Modo", onUpdate: Cascade, onDelete: Cascade)
+  UserModo2   User?     @relation(fields: [userIdModo2], references: [id], name: "Modo2", onUpdate: Cascade, onDelete: Cascade)
+  Service     Service   @relation(fields: [serviceId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  User        User      @relation(fields: [userId], references: [id], name: "Issue", onUpdate: Cascade, onDelete: Cascade)
+  userId      Int
 }
 
 ///// SURVEY POOL 
@@ -328,6 +329,7 @@ enum ServiceStep {
 enum IssueStep {
   STEP_0
   STEP_1
+  STEP_2
 }
 
 enum EventCategory {

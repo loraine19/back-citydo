@@ -7,9 +7,10 @@ import { AddressEntity } from './entities/address.entity';
 import { AuthGuard } from '../auth/auth.guard';
 import { RequestWithUser } from 'src/auth/auth.entities/auth.entity';
 import { Address } from '@prisma/client';
+import { parseData } from 'middleware/BodyParser';
 
 const route = 'addresses'
-ApiTags(route)
+@ApiTags(route)
 @Controller(route)
 @UseGuards(AuthGuard)
 export class AddressController {
@@ -19,6 +20,7 @@ export class AddressController {
   @ApiBearerAuth()
   @ApiOkResponse({ type: AddressEntity })
   create(@Body(new ValidationPipe()) data: CreateAddressDto): Promise<Address> {
+    parseData(data)
     return this.addressService.create(data);
   }
 

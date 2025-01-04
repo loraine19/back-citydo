@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpException, HttpStatus, Req, ParseIntPipe, UseInterceptors, UploadedFile, UseGuards, Put } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpException, HttpStatus, Req, ParseIntPipe, UseInterceptors, UploadedFile, UseGuards, Put, Query } from '@nestjs/common';
 import { ServicesService } from './service.service';
 import { CreateServiceDto } from './dto/create-service.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
@@ -8,7 +8,7 @@ import { RequestWithUser } from 'src/auth/auth.entities/auth.entity';
 import { parseData } from '../../middleware/BodyParser';
 import { ImageInterceptor } from '../../middleware/ImageInterceptor';
 import { AuthGuard } from '../auth/auth.guard';
-import { Service } from '@prisma/client';
+import { Service, ServiceStep } from '@prisma/client';
 
 
 const route = 'services'
@@ -24,9 +24,11 @@ export class ServicesController {
   @ApiOkResponse({ type: ServiceEntity })
   @ApiBody({ type: CreateServiceDto })
   @UseInterceptors(ImageInterceptor.create('service'))
-  @ApiConsumes('multipart/form-data', 'application/json')
-  async create(@Body() data: CreateServiceDto, @UploadedFile() image: Express.Multer.File,): Promise<Service> {
-    data = await parseData(data, image)
+  @ApiConsumes('multipart/form-data')
+  async create(@Body() data: CreateServiceDto, @UploadedFile() image: Express.Multer.File, @Req() req: RequestWithUser): Promise<Service> {
+    const id = req.user.sub
+    data.userId = id
+    data = await parseData(data, image);
     return this.serviceService.create(data)
   }
 
@@ -34,7 +36,7 @@ export class ServicesController {
   @ApiBearerAuth()
   @ApiOkResponse({ type: ServiceEntity })
   @ApiBody({ type: UpdateServiceDto })
-  @UseInterceptors(ImageInterceptor.create('survey'))
+  @UseInterceptors(ImageInterceptor.create('service'))
   @ApiConsumes('multipart/form-data', 'application/json')
   update(@Param('id', ParseIntPipe) id: number, @Body() data: UpdateServiceDto, @UploadedFile() image: Express.Multer.File,): Promise<Service> {
     data = parseData(data, image)
@@ -95,6 +97,15 @@ export class ServicesController {
     return services;
   }
 
+  @Get('iminStatus')
+  @ApiBearerAuth()
+  @ApiOkResponse({ type: ServiceEntity })
+  async findImInByStatus(@Req() req: RequestWithUser, @Query('status') status: any): Promise<Service[]> {
+    const id = req.user.sub
+    const step = ServiceStep[status]
+    return this.serviceService.findAllByUserAndStatus(id, step);
+  }
+
   @Get('imin')
   @ApiBearerAuth()
   @ApiOkResponse({ type: ServiceEntity })
@@ -118,6 +129,7 @@ export class ServicesController {
     const id = req.user.sub
     return this.serviceService.findAllByUserDo(id)
   }
+
 
   @Get('mines')
   @ApiBearerAuth()

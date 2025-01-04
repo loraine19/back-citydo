@@ -30,7 +30,7 @@ export class CreateServiceDto {
 
     @ApiProperty()
     @IsNotEmpty({ message: 'description is required' })
-    @IsString()
+    @IsString({ message: 'description must be a string' })
     description: string;
 
     @ApiProperty({ enum: $Enums.ServiceCategory })
@@ -49,7 +49,7 @@ export class CreateServiceDto {
     hard: $Enums.HardLevel;
 
     @ApiProperty({ enum: $Enums.ServiceStep })
-    @IsNotEmpty({ message: ' statusis required' })
+    @IsNotEmpty({ message: 'status is required' })
     @IsEnum($Enums.ServiceStep, { message: 'status must be part of ' + Object.values($Enums.ServiceStep).join(', ') })
     status: $Enums.ServiceStep;
 

@@ -48,7 +48,8 @@ describe('ServicesController', () => {
 
   it('should create a service', async () => {
     jest.spyOn(service, 'create').mockResolvedValue(serviceExample);
-    expect(await controller.create(serviceExampleDto, null)).toEqual(serviceExample);
+    const req = { user: { sub: 1 } } as RequestWithUser;
+    expect(await controller.create(serviceExampleDto, null, req)).toEqual(serviceExample);
   });
 
   it('should return all services', async () => {

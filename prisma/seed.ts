@@ -18,6 +18,7 @@ import { CreateVoteDto } from 'src/votes/dto/create-vote.dto';
 import { Decimal, empty } from '@prisma/client/runtime/library';
 import { isNotEmpty } from 'class-validator';
 import { CreateFlagDto } from 'src/flags/dto/create-flag.dto';
+import { CreateIssueDto } from 'src/issues/dto/create-issue.dto';
 const faker = require('@faker-js/faker/locale/fr');
 
 const prisma = new PrismaClient();
@@ -133,6 +134,21 @@ const CreateRandomService = async (): Promise<CreateServiceDto> => {
   }
 }
 
+const CreateRandomIssue = async (): Promise<CreateIssueDto> => {
+  return {
+    userId: newFaker.number.int({ min: 1, max: max / 3 }),
+    userIdModo: newFaker.number.int({ min: 1, max: max / 3 }),
+    userIdModo2: newFaker.number.int({ min: 1, max: max / 3 }),
+    description: newFaker.lorem.lines({ min: 1, max: 3 }),
+    serviceId: newFaker.number.int({ min: 1, max }),
+    date: newFaker.date.recent(),
+    status: newFaker.helpers.arrayElement(Object.values($Enums.IssueStep)),
+    image: (newFaker.image.urlPicsumPhotos({ width: 600, height: 400, blur: 0, grayscale: false })),
+
+  }
+
+}
+
 const CreateRandomPost = async (): Promise<CreatePostDto> => {
   return {
     userId: newFaker.number.int({ min: 1, max: max / 3 }),
@@ -208,6 +224,8 @@ async function reset() {
   await prisma.$executeRawUnsafe("ALTER TABLE `Like` AUTO_INCREMENT = 1")
   await prisma.$executeRawUnsafe("DELETE FROM `Post`")
   await prisma.$executeRawUnsafe("ALTER TABLE `Post` AUTO_INCREMENT = 1")
+  await prisma.$executeRawUnsafe("DELETE FROM `Issue`")
+  await prisma.$executeRawUnsafe("ALTER TABLE `Issue` AUTO_INCREMENT = 1")
   await prisma.$executeRawUnsafe("DELETE FROM `Service`")
   await prisma.$executeRawUnsafe("ALTER TABLE `Service` AUTO_INCREMENT = 1")
   await prisma.$executeRawUnsafe("DELETE FROM `Participant`")
@@ -316,6 +334,18 @@ const seed = async () => {
     }
   }
   await service();
+
+  // ISSUE fk user fk userModo fk userModo2 fk service
+  const issue = async () => {
+    while (await prisma.issue.count() < max) {
+      const { userId, userIdModo, userIdModo2, serviceId, ...issue } = await CreateRandomIssue();
+      const cond = await prisma.issue.findUnique({ where: { serviceId: serviceId } });
+      if (!cond) {
+        await prisma.issue.create({ data: { ...issue, User: { connect: { id: userId } }, UserModo: { connect: { id: userIdModo } }, ...(userIdModo2 && { UserModo2: { connect: { id: userIdModo2 } } }), Service: { connect: { id: serviceId } } } })
+      }
+    }
+  }
+  await issue();
 
   // POST fk user 
   const post = async () => {
