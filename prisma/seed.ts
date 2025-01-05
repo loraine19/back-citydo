@@ -19,7 +19,6 @@ import { Decimal, empty } from '@prisma/client/runtime/library';
 import { isNotEmpty, isDate } from 'class-validator';
 import { CreateFlagDto } from 'src/flags/dto/create-flag.dto';
 import { CreateIssueDto } from 'src/issues/dto/create-issue.dto';
-const faker = require('@faker-js/faker/locale/fr');
 
 const prisma = new PrismaClient();
 
@@ -417,7 +416,7 @@ const seed = async () => {
     while (await prisma.vote.count() < max * 2) {
       const { userId, targetId, target, ...vote } = CreateRandomVote();
       const cond = await prisma.vote.findUnique({ where: { userId_target_targetId: { userId, target, targetId } } });
-      if (!cond) {
+      if (!cond && targetId) {
         if (target === $Enums.VoteTarget.POOL) {
           await prisma.vote.create({ data: { ...vote, target, User: { connect: { id: userId } }, Pools: { connect: { id: targetId } } } });
         } else if (target === $Enums.VoteTarget.SURVEY) {

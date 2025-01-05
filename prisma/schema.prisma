@@ -222,7 +222,6 @@ model Vote {
   Surveys   Survey?     @relation(fields: [targetId], references: [id], name: "SurveyVote", map: "surveyVote", onUpdate: Cascade, onDelete: Cascade)
 
   @@id([userId, target, targetId])
-  @@index([targetId, target])
 }
 
 ///// POST 
