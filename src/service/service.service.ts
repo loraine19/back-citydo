@@ -219,10 +219,10 @@ export class ServicesService {
     if (user.Profile.points < points) {
       throw new HttpException(`You don't have enough points`, HttpStatus.FORBIDDEN)
     }
-    const updateUserProfile: Profile = await this.prisma.profile.update({ where: { id: user.Profile.id }, data: { points: user.Profile.points - points } });
+    const updateUserProfile: Profile = await this.prisma.profile.update({ where: { userId: user.id }, data: { points: user.Profile.points - points } });
     let updateUserRespProfile: Profile;
     if (updateUserProfile) {
-      updateUserRespProfile = await this.prisma.profile.update({ where: { id: userResp.Profile.id }, data: { points: userResp.Profile.points + points } });
+      updateUserRespProfile = await this.prisma.profile.update({ where: { userId: userResp.id }, data: { points: userResp.Profile.points + points } });
     }
     if (updateUserProfile && updateUserRespProfile) {
       return await this.prisma.service.update({

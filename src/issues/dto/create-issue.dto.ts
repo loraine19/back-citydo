@@ -1,11 +1,14 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IssueStep } from "@prisma/client";
-import { IsDate, IsEnum, IsNotEmpty, IsNumber, IsString } from "class-validator";
+import { Type } from "class-transformer";
+import { IsDate, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
 
 export class CreateIssueDto {
     ///FOR DTO
-    @ApiProperty()
+    @ApiProperty({ required: false })
+    @Type(() => Number)
     @IsNumber({}, { message: 'The userId must be a number' })
+    @IsOptional()
     userId: number;
 
     @ApiProperty()
@@ -23,16 +26,20 @@ export class CreateIssueDto {
     @IsDate({ message: 'The date must be a valid date' })
     date: Date;
 
-    @ApiProperty()
-    @IsNotEmpty({ message: 'The status should not be empty' })
+    @ApiProperty({ required: false })
+    @IsOptional()
     @IsEnum(IssueStep, { message: 'The status must be a part of ' + Object.values(IssueStep).join(', ') })
     status: IssueStep;
 
-    @ApiProperty()
+    @ApiProperty({ required: false })
+    @IsOptional()
+    @Type(() => Number)
     @IsNumber({}, { message: 'The userIdModo must be a number' })
     userIdModo: number;
 
-    @ApiProperty()
+    @ApiProperty({ required: false })
+    @IsOptional()
+    @Type(() => Number)
     @IsNumber({}, { message: 'The userIdModo2 must be a number' })
     userIdModo2: number;
 

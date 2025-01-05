@@ -28,7 +28,16 @@ export class UsersController {
   @ApiBearerAuth()
   async findAll(): Promise<User[]> {
     const users = await this.usersService.findAll()
-    if (!users.length) throw new HttpException(`No ${route} found.`, HttpStatus.NO_CONTENT);
+    //  if (!users.length) throw new HttpException(`No ${route} found.`, HttpStatus.NO_CONTENT);
+    return users
+  }
+
+  @Get('modos')
+  @ApiBearerAuth()
+  async findAllModo(@Req() req: RequestWithUser): Promise<Partial<User>[]> {
+    const id = req.user.sub
+    const users = await this.usersService.findAllModo(id)
+    // if (!users.length) throw new HttpException(`No ${route} found.`, HttpStatus.NO_CONTENT);
     return users
   }
 
@@ -41,6 +50,9 @@ export class UsersController {
     const id = req.user.sub
     return this.usersService.findOne(id)
   }
+
+
+
 
   @Get(':id')
   @ApiBearerAuth()

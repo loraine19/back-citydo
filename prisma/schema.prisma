@@ -80,8 +80,7 @@ model Address {
 }
 
 model Profile {
-  id            Int             @id @default(autoincrement())
-  userId        Int             @unique
+  userId        Int             @id @unique
   userIdSp      Int?
   addressId     Int
   firstName     String
@@ -168,15 +167,15 @@ model Service {
 model Issue {
   // id          Int       @id @default(autoincrement())
   serviceId   Int       @id @unique
-  description String    @db.LongText
+  description String?   @db.MediumText
   date        DateTime
-  status      IssueStep
+  status      IssueStep @default(STEP_0)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
-  userIdModo  Int
-  userIdModo2 Int
+  userIdModo  Int?
+  userIdModo2 Int?
   image       String?
-  UserModo    User      @relation(fields: [userIdModo], references: [id], name: "Modo", onUpdate: Cascade, onDelete: Cascade)
+  UserModo    User?     @relation(fields: [userIdModo], references: [id], name: "Modo", onUpdate: Cascade, onDelete: Cascade)
   UserModo2   User?     @relation(fields: [userIdModo2], references: [id], name: "Modo2", onUpdate: Cascade, onDelete: Cascade)
   Service     Service   @relation(fields: [serviceId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   User        User      @relation(fields: [userId], references: [id], name: "Issue", onUpdate: Cascade, onDelete: Cascade)
@@ -279,6 +278,7 @@ enum TokenType {
 enum Role {
   MEMBER
   GUEST
+  MODO
 }
 
 enum ServiceType {

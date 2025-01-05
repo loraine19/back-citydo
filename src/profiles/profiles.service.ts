@@ -26,7 +26,7 @@ export class ProfilesService {
     }
 
     return await this.prisma.profile.update({
-      where: { id },
+      where: { userId: id },
       data: updateData,
     });
   }
@@ -42,12 +42,12 @@ export class ProfilesService {
 
   async findOne(id: number): Promise<Profile> {
     return await this.prisma.profile.findUniqueOrThrow({
-      where: { id },
+      where: { userId: id },
     });
 
   }
 
   async remove(id: number): Promise<Profile> {
-    return await this.prisma.profile.delete({ where: { id } });
+    return await this.prisma.profile.delete({ where: { userId: id } });
   }
 }

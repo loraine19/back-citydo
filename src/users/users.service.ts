@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../src/prisma/prisma.service';
-import { User } from '@prisma/client';
+import { $Enums, User } from '@prisma/client';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Prisma } from '@prisma/client';
@@ -25,6 +25,24 @@ export class UsersService {
   async findAll(): Promise<User[]> {
     return await this.prisma.user.findMany();
   }
+
+  async findAllModo(id: number): Promise<Partial<User>[]> {
+    const user = await this.prisma.user.findUnique({ where: { id }, include: { GroupUser: true } });
+    return await this.prisma.user.findMany({
+      where: {
+        id: { not: id },
+        GroupUser: {
+          some: { groupId: { in: user.GroupUser.map(g => g.groupId) }, role: { equals: $Enums.Role.MODO } }
+        }
+      },
+      select: {
+        id: true, email: true,
+        GroupUser: true,
+        Profile: { include: { Address: true } }
+      },
+    });
+  }
+
 
   async findOne(id: number): Promise<User> {
     return await this.prisma.user.findUniqueOrThrow(

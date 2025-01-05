@@ -9,17 +9,23 @@ import { GetPoints } from 'middleware/GetPoints';
 export class IssuesService {
   constructor(private prisma: PrismaService) { }
 
-  async create(data: CreateIssueDto): Promise<Issue> {
+  async create(data: any): Promise<Issue> {
     const { userId, userIdModo, serviceId, userIdModo2, ...issue } = data;
-    return await this.prisma.issue.create({
+
+    const createdIssue = await this.prisma.issue.create({
       data: {
         ...issue,
         User: { connect: { id: userId } },
-        UserModo: { connect: { id: userIdModo } },
         Service: { connect: { id: serviceId } },
-        ...(userIdModo2 && { UserModo2: { connect: { id: userIdModo2 } } })
+        ...(userIdModo2 && { UserModo2: { connect: { id: userIdModo2 } } }),
+        ...(userIdModo && { UserModo: { connect: { id: userIdModo } } })
       }
     });
+    await this.prisma.service.update({
+      where: { id: serviceId },
+      data: { status: $Enums.ServiceStep.STEP_4 }
+    });
+    return createdIssue;
   }
 
   async findAll(): Promise<Issue[]> {

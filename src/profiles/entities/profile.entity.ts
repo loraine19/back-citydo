@@ -5,71 +5,64 @@ import { Transform, Type } from 'class-transformer';
 
 export class ProfileEntity implements Profile {
     @ApiProperty()
-    @IsNumber()
-    @IsNotEmpty()
-    id: number;
-
-    @ApiProperty()
     createdAt: Date;
 
     @ApiProperty()
     updatedAt: Date;
 
-
     ///FOR DTO
     @ApiProperty()
     @IsNotEmpty({ message: 'First name is required' })
-    @IsString()
+    @IsString({ message: 'First name must be a string' })
     firstName: string;
 
     @ApiProperty()
-    @IsString()
+    @IsString({ message: 'Last name must be a string' })
     @IsNotEmpty({ message: 'Last name is required' })
     lastName: string;
-
 
     @ApiProperty({ type: 'number', required: false })
     @IsOptional()
     @Type(() => Number)
-    @IsNumber()
+    @IsNumber({}, { message: 'User ID SP must be a number' })
     userIdSp: number;
 
     @ApiProperty()
-    @IsNotEmpty({ message: 'User id is required' })
+    @IsNotEmpty({ message: 'User ID is required' })
     @Type(() => Number)
-    @IsNumber()
+    @IsNumber({}, { message: 'User ID must be a number' })
     userId: number;
 
     @ApiProperty()
-    @IsNotEmpty({ message: 'Address id is required' })
+    @IsNotEmpty({ message: 'Address ID is required' })
     @Type(() => Number)
-    @IsNumber()
+    @IsNumber({}, { message: 'Address ID must be a number' })
     addressId: number;
 
     @ApiProperty({ type: 'string', required: false })
-    @IsString()
+    @IsString({ message: 'Phone must be a string' })
     phone: string;
 
     @ApiProperty({ type: 'string', format: 'binary', required: false })
     @IsOptional()
-    @IsNotEmpty()
+    @IsNotEmpty({ message: 'Image is required' })
     image: string;
 
     @ApiProperty({ type: 'boolean' })
-    @IsBoolean()
-    addressShared: boolean;
+    @IsBoolean({ message: 'Address shared must be a boolean' })
+    addressShared: boolean
 
     @ApiProperty({ enum: $Enums.AssistanceLevel })
-    @IsEnum($Enums.AssistanceLevel, { message: 'AssistanceLevel must be part of ' + $Enums.AssistanceLevel })
+    @IsEnum($Enums.AssistanceLevel, { message: 'Assistance level must be part of ' + Object.values($Enums.AssistanceLevel).join(', ') })
     assistance: $Enums.AssistanceLevel;
 
     @ApiProperty()
-    @IsNotEmpty({ message: 'Address id is required' })
+    @IsNotEmpty({ message: 'Points are required' })
     @Type(() => Number)
-    @IsNumber()
+    @IsNumber({}, { message: 'Points must be a number' })
     points: number;
 
     @ApiProperty({ type: 'string', required: false })
-    @IsArray()
+    @IsArray({ message: 'Skills must be an array' })
     skills: string;
 }
