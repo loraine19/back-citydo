@@ -14,10 +14,10 @@ export class FlagsService {
       data: {
         ...flag,
         User: { connect: { id: userId } },
-        Surveys: flag.target === $Enums.FlagTarget.SURVEY ? { connect: { id: targetId } } : undefined,
-        Events: flag.target === $Enums.FlagTarget.EVENT ? { connect: { id: targetId } } : undefined,
-        Posts: flag.target === $Enums.FlagTarget.POST ? { connect: { id: targetId } } : undefined,
-        Services: flag.target === $Enums.FlagTarget.SERVICE ? { connect: { id: targetId } } : undefined,
+        Survey: flag.target === $Enums.FlagTarget.SURVEY ? { connect: { id: targetId } } : undefined,
+        Event: flag.target === $Enums.FlagTarget.EVENT ? { connect: { id: targetId } } : undefined,
+        Post: flag.target === $Enums.FlagTarget.POST ? { connect: { id: targetId } } : undefined,
+        Service: flag.target === $Enums.FlagTarget.SERVICE ? { connect: { id: targetId } } : undefined,
       },
     });
   }
@@ -26,18 +26,18 @@ export class FlagsService {
     const flags = await this.prisma.flag.findMany({
       include: {
         User: { select: { id: true, email: true, Profile: true } },
-        Events: true,
-        Posts: true,
-        Services: true,
-        Surveys: true,
+        Event: true,
+        Post: true,
+        Service: true,
+        Survey: true,
       }
     });
     return flags.map(flag => ({
       ...flag,
-      Events: flag.target === $Enums.FlagTarget.EVENT ? flag.Events : undefined,
-      Posts: flag.target === $Enums.FlagTarget.POST ? flag.Posts : undefined,
-      Services: flag.target === $Enums.FlagTarget.SERVICE ? flag.Services : undefined,
-      Surveys: flag.target === $Enums.FlagTarget.SURVEY ? flag.Surveys : undefined,
+      Events: flag.target === $Enums.FlagTarget.EVENT ? flag.Event : undefined,
+      Posts: flag.target === $Enums.FlagTarget.POST ? flag.Post : undefined,
+      Services: flag.target === $Enums.FlagTarget.SERVICE ? flag.Service : undefined,
+      Surveys: flag.target === $Enums.FlagTarget.SURVEY ? flag.Survey : undefined,
     }));
   }
 
@@ -46,19 +46,19 @@ export class FlagsService {
       where: { userId },
       include: {
         User: { select: { id: true, email: true, Profile: true } },
-        Events: true,
-        Posts: true,
-        Services: true,
-        Surveys: true,
+        Event: { include: { User: { select: { id: true, email: true, Profile: true } } } },
+        Post: { include: { User: { select: { id: true, email: true, Profile: true } } } },
+        Service: { include: { User: { select: { id: true, email: true, Profile: true } } } },
+        Survey: { include: { User: { select: { id: true, email: true, Profile: true } } } },
       }
     });
     if (flags.length === 0) throw new HttpException(`no flags found`, HttpStatus.NO_CONTENT);
     return flags.map(flag => ({
       ...flag,
-      Events: flag.target === $Enums.FlagTarget.EVENT ? flag.Events : undefined,
-      Posts: flag.target === $Enums.FlagTarget.POST ? flag.Posts : undefined,
-      Services: flag.target === $Enums.FlagTarget.SERVICE ? flag.Services : undefined,
-      Surveys: flag.target === $Enums.FlagTarget.SURVEY ? flag.Surveys : undefined,
+      Events: flag.target === $Enums.FlagTarget.EVENT ? flag.Event : undefined,
+      Posts: flag.target === $Enums.FlagTarget.POST ? flag.Post : undefined,
+      Services: flag.target === $Enums.FlagTarget.SERVICE ? flag.Service : undefined,
+      Surveys: flag.target === $Enums.FlagTarget.SURVEY ? flag.Survey : undefined,
     }));
   }
 
@@ -67,7 +67,7 @@ export class FlagsService {
       where: { target: $Enums.FlagTarget.EVENT },
       include: {
         User: { select: { id: true, email: true, Profile: true } },
-        Events: true,
+        Event: true,
       }
     });
     if (!flags) throw new HttpException(`no flags found`, HttpStatus.NO_CONTENT);
@@ -79,7 +79,7 @@ export class FlagsService {
       where: { target: $Enums.FlagTarget.EVENT, userId },
       include: {
         User: { select: { id: true, email: true, Profile: true } },
-        Events: true,
+        Event: true,
       }
     });
     if (!flags || flags.length === 0) throw new HttpException(`no flags found`, HttpStatus.NO_CONTENT);
@@ -91,7 +91,7 @@ export class FlagsService {
       where: { target: $Enums.FlagTarget.SURVEY },
       include: {
         User: { select: { id: true, email: true, Profile: true } },
-        Surveys: true,
+        Survey: true,
       }
     });
     if (!flags) throw new HttpException(`no flags found`, HttpStatus.NO_CONTENT);
@@ -103,7 +103,7 @@ export class FlagsService {
       where: { target: $Enums.FlagTarget.SURVEY, userId },
       include: {
         User: { select: { id: true, email: true, Profile: true } },
-        Surveys: true,
+        Survey: true,
       }
     });
     if (!flags) throw new HttpException(`no flags found`, HttpStatus.NO_CONTENT);
@@ -115,7 +115,7 @@ export class FlagsService {
       where: { target: $Enums.FlagTarget.POST },
       include: {
         User: { select: { id: true, email: true, Profile: true } },
-        Posts: true,
+        Post: true,
       }
     });
     if (!flags) throw new HttpException(`no flags found`, HttpStatus.NO_CONTENT);
@@ -127,7 +127,7 @@ export class FlagsService {
       where: { target: $Enums.FlagTarget.POST, userId },
       include: {
         User: { select: { id: true, email: true, Profile: true } },
-        Posts: true,
+        Post: true,
       }
     });
     if (!flags) throw new HttpException(`no flags found`, HttpStatus.NO_CONTENT);
@@ -140,7 +140,7 @@ export class FlagsService {
       where: { target: $Enums.FlagTarget.SERVICE },
       include: {
         User: { select: { id: true, email: true, Profile: true } },
-        Services: true,
+        Service: true,
       }
     });
     if (!flags) throw new HttpException(`no flags found`, HttpStatus.NO_CONTENT);
@@ -152,7 +152,7 @@ export class FlagsService {
       where: { target: $Enums.FlagTarget.SERVICE, userId },
       include: {
         User: { select: { id: true, email: true, Profile: true } },
-        Services: true,
+        Service: true,
       }
     });
     if (!flags) throw new HttpException(`no flags found`, HttpStatus.NO_CONTENT);
@@ -161,28 +161,22 @@ export class FlagsService {
 
 
 
-
-
-
-
-
-
   async findOne(userId: number, targetId: number, target: $Enums.FlagTarget): Promise<Flag> {
     const flag = await this.prisma.flag.findUnique({
       where: { userId_target_targetId: { userId, targetId, target } },
       include: {
         User: { select: { id: true, email: true, Profile: true } },
-        Events: true,
-        Surveys: true,
-        Posts: true,
-        Services: true
+        Event: { include: { User: { select: { id: true, email: true, Profile: true } } } },
+        Survey: { include: { User: { select: { id: true, email: true, Profile: true } } } },
+        Post: { include: { User: { select: { id: true, email: true, Profile: true } } } },
+        Service: { include: { User: { select: { id: true, email: true, Profile: true } } } },
       }
     });
     if (!flag) throw new HttpException(`no flag found`, HttpStatus.NO_CONTENT);
-    flag.Events = flag.target === $Enums.FlagTarget.EVENT ? flag.Events : undefined;
-    flag.Surveys = flag.target === $Enums.FlagTarget.SURVEY ? flag.Surveys : undefined;
-    flag.Posts = flag.target === $Enums.FlagTarget.POST ? flag.Posts : undefined;
-    flag.Services = flag.target === $Enums.FlagTarget.SERVICE ? flag.Services : undefined;
+    flag.Event = flag.target === $Enums.FlagTarget.EVENT ? flag.Event : undefined;
+    flag.Survey = flag.target === $Enums.FlagTarget.SURVEY ? flag.Survey : undefined;
+    flag.Post = flag.target === $Enums.FlagTarget.POST ? flag.Post : undefined;
+    flag.Service = flag.target === $Enums.FlagTarget.SERVICE ? flag.Service : undefined;
     return flag;
   }
 
@@ -191,19 +185,20 @@ export class FlagsService {
       where: { userId },
       include: {
         User: { select: { id: true, email: true, Profile: true } },
-        Events: true,
-        Surveys: true,
-        Posts: true,
-        Services: true
+        Event: { include: { User: { select: { id: true, email: true, Profile: true } } } },
+        Survey: { include: { User: { select: { id: true, email: true, Profile: true } } } },
+        Post: { include: { User: { select: { id: true, email: true, Profile: true } } } },
+        Service: { include: { User: { select: { id: true, email: true, Profile: true } } } },
       }
     });
-    if (!flags || flags.length === 0) throw new HttpException(`no flags found`, HttpStatus.NO_CONTENT);
+    //  if (!flags || flags.length === 0) throw new HttpException(`no flags found`, HttpStatus.NO_CONTENT);
+    console.log(flags)
     return flags.map(flag => ({
       ...flag,
-      Events: flag.target === $Enums.FlagTarget.EVENT ? flag.Events : undefined,
-      Surveys: flag.target === $Enums.FlagTarget.SURVEY ? flag.Surveys : undefined,
-      Posts: flag.target === $Enums.FlagTarget.POST ? flag.Posts : undefined,
-      Services: flag.target === $Enums.FlagTarget.SERVICE ? flag.Services : undefined,
+      Events: flag.target === $Enums.FlagTarget.EVENT ? flag.Event : undefined,
+      Surveys: flag.target === $Enums.FlagTarget.SURVEY ? flag.Survey : undefined,
+      Posts: flag.target === $Enums.FlagTarget.POST ? flag.Post : undefined,
+      Services: flag.target === $Enums.FlagTarget.SERVICE ? flag.Service : undefined,
     }));
   }
 

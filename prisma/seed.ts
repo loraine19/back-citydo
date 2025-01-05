@@ -434,13 +434,13 @@ const seed = async () => {
       const cond = await prisma.flag.findUnique({ where: { userId_target_targetId: { userId, target, targetId } } });
       if (!cond) {
         if (target === $Enums.FlagTarget.EVENT) {
-          await prisma.flag.create({ data: { ...flag, target, User: { connect: { id: userId } }, Events: { connect: { id: targetId } } } });
+          await prisma.flag.create({ data: { ...flag, target, User: { connect: { id: userId } }, Event: { connect: { id: targetId } } } });
         } else if (target === $Enums.FlagTarget.POST) {
-          await prisma.flag.create({ data: { ...flag, target, User: { connect: { id: userId } }, Posts: { connect: { id: targetId } } } });
+          await prisma.flag.create({ data: { ...flag, target, User: { connect: { id: userId } }, Post: { connect: { id: targetId } } } });
         } else if (target === $Enums.FlagTarget.SERVICE) {
-          await prisma.flag.create({ data: { ...flag, target, User: { connect: { id: userId } }, Services: { connect: { id: targetId } } } });
+          await prisma.flag.create({ data: { ...flag, target, User: { connect: { id: userId } }, Service: { connect: { id: targetId } } } });
         } else if (target === $Enums.FlagTarget.SURVEY) {
-          await prisma.flag.create({ data: { ...flag, target, User: { connect: { id: userId } }, Surveys: { connect: { id: targetId } } } });
+          await prisma.flag.create({ data: { ...flag, target, User: { connect: { id: userId } }, Survey: { connect: { id: targetId } } } });
         }
       }
     }

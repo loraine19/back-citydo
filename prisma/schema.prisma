@@ -259,10 +259,10 @@ model Flag {
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
   User      User       @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Cascade)
-  Posts     Post?      @relation(fields: [targetId], references: [id], onUpdate: Cascade, onDelete: Cascade, name: "PostFlag", map: "PostFlag")
-  Events    Event?     @relation(fields: [targetId], references: [id], onUpdate: Cascade, onDelete: Cascade, name: "EventFlag", map: "EventFlag")
-  Surveys   Survey?    @relation(fields: [targetId], references: [id], onUpdate: Cascade, onDelete: Cascade, name: "SurveyFlag", map: "SurveyFlag")
-  Services  Service?   @relation(fields: [targetId], references: [id], onUpdate: Cascade, onDelete: Cascade, name: "ServiceFlag", map: "ServiceFlag")
+  Post      Post?      @relation(fields: [targetId], references: [id], onUpdate: Cascade, onDelete: Cascade, name: "PostFlag", map: "PostFlag")
+  Event     Event?     @relation(fields: [targetId], references: [id], onUpdate: Cascade, onDelete: Cascade, name: "EventFlag", map: "EventFlag")
+  Survey    Survey?    @relation(fields: [targetId], references: [id], onUpdate: Cascade, onDelete: Cascade, name: "SurveyFlag", map: "SurveyFlag")
+  Service   Service?   @relation(fields: [targetId], references: [id], onUpdate: Cascade, onDelete: Cascade, name: "ServiceFlag", map: "ServiceFlag")
 
   @@id([userId, target, targetId])
 }

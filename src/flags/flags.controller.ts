@@ -29,7 +29,9 @@ export class FlagsController {
   @ApiResponse({ type: FlagEntity, isArray: true })
   async findAll(): Promise<Flag[]> {
     const flags = await this.flagsService.findAll()
-    if (!flags.length) throw new HttpException(`no ${route} found`, HttpStatus.NO_CONTENT);
+
+
+    //  if (!flags.length) throw new HttpException(`no ${route} found`, HttpStatus.NO_CONTENT);
     return flags
   }
 
@@ -40,7 +42,7 @@ export class FlagsController {
   async findMines(@Req() req: RequestWithUser): Promise<Flag[]> {
     const userId = req.user.sub
     const flags = await this.flagsService.findAllByUserId(userId)
-    if (!flags.length) throw new HttpException(`no ${route} found`, HttpStatus.NO_CONTENT);
+    // if (!flags.length) throw new HttpException(`no ${route} found`, HttpStatus.NO_CONTENT);
     return flags
   }
 
@@ -139,6 +141,16 @@ export class FlagsController {
   @ApiBearerAuth()
   @ApiResponse({ type: FlagEntity })
   async findOne(@Param('userId', ParseIntPipe) userId: number, @Param('targetId', ParseIntPipe) targetId: number, @Param('target') target: $Enums.FlagTarget,): Promise<Flag> {
+    return await this.flagsService.findOne(userId, targetId, target)
+  }
+
+  //// Retrieve a specific flag by userId, target, and targetId
+  @Get('mine/:target/:targetId')
+  @ApiBearerAuth()
+  @ApiResponse({ type: FlagEntity })
+  async findOneMine(@Req() req: RequestWithUser, @Param('targetId', ParseIntPipe) targetId: number, @Param('target') target: $Enums.FlagTarget,): Promise<Flag> {
+    const userId = req.user.sub
+    console.log(userId, targetId, target)
     return await this.flagsService.findOne(userId, targetId, target)
   }
 
