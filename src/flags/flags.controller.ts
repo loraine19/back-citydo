@@ -21,7 +21,6 @@ export class FlagsController {
   @ApiResponse({ type: FlagEntity })
   async create(@Body() data: CreateFlagDto, @Req() req: RequestWithUser): Promise<Flag> {
     data.userId = req.user.sub
-    console.log(data)
     return this.flagsService.create(data)
   }
 
@@ -99,11 +98,12 @@ export class FlagsController {
   }
 
   //// Retrieve all post flags
-  @Get()
+  @Get('post')
   @ApiBearerAuth()
   @ApiResponse({ type: FlagEntity, isArray: true })
-  async findAllPost(): Promise<Flag[]> {
-    const flags = await this.flagsService.findAllPost()
+  async findAllPost(@Req() req: RequestWithUser): Promise<Flag[]> {
+    const userId = req.user.sub
+    const flags = await this.flagsService.findAllPost(userId)
     // if (!flags.length) throw new HttpException(`no ${route} found`, HttpStatus.NO_CONTENT);
     return flags
   }
@@ -127,6 +127,8 @@ export class FlagsController {
     if (!flags.length) throw new HttpException(`no ${route} found`, HttpStatus.NO_CONTENT);
     return flags
   }
+
+
 
   //// Retrieve all service flags created by a specific user
   @Get('service/user/:userId')

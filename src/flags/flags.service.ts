@@ -106,19 +106,19 @@ export class FlagsService {
         Survey: true,
       }
     });
-    if (!flags) throw new HttpException(`no flags found`, HttpStatus.NO_CONTENT);
+    // if (!flags) throw new HttpException(`no flags found`, HttpStatus.NO_CONTENT);
     return flags;
   }
 
-  async findAllPost(): Promise<Flag[]> {
+  async findAllPost(userId: number): Promise<Flag[]> {
     const flags = await this.prisma.flag.findMany({
-      where: { target: $Enums.FlagTarget.POST },
+      where: { target: $Enums.FlagTarget.POST, userId },
       include: {
         User: { select: { id: true, email: true, Profile: true } },
         Post: true,
       }
     });
-    if (!flags) throw new HttpException(`no flags found`, HttpStatus.NO_CONTENT);
+    // if (!flags) throw new HttpException(`no flags found`, HttpStatus.NO_CONTENT);
     return flags;
   }
 

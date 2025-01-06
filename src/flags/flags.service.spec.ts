@@ -23,9 +23,9 @@ describe('FlagsService', () => {
               findUnique: jest.fn(),
               findUniqueOrThrow: jest.fn(),
               update: jest.fn(),
-              delete: jest.fn(),
-            },
-          },
+              delete: jest.fn()
+            }
+          }
         },
       ],
     }).compile();
@@ -35,7 +35,7 @@ describe('FlagsService', () => {
   });
 
   const flagExampleDto: CreateFlagDto = { userId: 1, targetId: 1, target: $Enums.FlagTarget.POST, reason: $Enums.FlagReason.REASON_1 };
-  const flagExample: Flag = { createdAt: new Date(), updatedAt: new Date(), ...flagExampleDto };
+  const flagExample: Flag = { createdAt: new Date(), updatedAt: new Date(), userId: 1, ...flagExampleDto };
 
   it('should create a flag', async () => {
     jest.spyOn(prismaService.flag, 'create').mockResolvedValue(flagExample);
