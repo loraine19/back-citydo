@@ -19,7 +19,9 @@ export class FlagsController {
   @Post()
   @ApiBearerAuth()
   @ApiResponse({ type: FlagEntity })
-  async create(@Body() data: CreateFlagDto): Promise<Flag> {
+  async create(@Body() data: CreateFlagDto, @Req() req: RequestWithUser): Promise<Flag> {
+    data.userId = req.user.sub
+    console.log(data)
     return this.flagsService.create(data)
   }
 
@@ -97,12 +99,12 @@ export class FlagsController {
   }
 
   //// Retrieve all post flags
-  @Get('post')
+  @Get()
   @ApiBearerAuth()
   @ApiResponse({ type: FlagEntity, isArray: true })
   async findAllPost(): Promise<Flag[]> {
     const flags = await this.flagsService.findAllPost()
-    if (!flags.length) throw new HttpException(`no ${route} found`, HttpStatus.NO_CONTENT);
+    // if (!flags.length) throw new HttpException(`no ${route} found`, HttpStatus.NO_CONTENT);
     return flags
   }
 
@@ -169,6 +171,16 @@ export class FlagsController {
   @ApiResponse({ type: FlagEntity })
   remove(@Param('userId', ParseIntPipe) userId: number, @Param('targetId', ParseIntPipe) targetId: number, @Param('target') target: $Enums.FlagTarget,): Promise<Flag> {
     const flag = this.flagsService.remove(userId, targetId, target);
+    return flag
+  }
+
+
+  @Delete('mine/:target/:targetId')
+  @ApiBearerAuth()
+  @ApiResponse({ type: FlagEntity })
+  async removeMine(@Param('targetId', ParseIntPipe) targetId: number, @Param('target') target: $Enums.FlagTarget, @Req() req: RequestWithUser): Promise<Flag> {
+    const userId = req.user.sub
+    const flag = await this.flagsService.remove(userId, targetId, target);
     return flag
   }
 }

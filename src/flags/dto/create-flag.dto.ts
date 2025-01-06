@@ -4,8 +4,7 @@ import { IsNotEmpty, IsEnum } from "class-validator";
 
 export class CreateFlagDto {
     @ApiProperty()
-    @IsNotEmpty({ message: 'userId should not be empty' })
-    userId: number;
+    userId?: number;
 
     @ApiProperty()
     @IsNotEmpty({ message: 'targetId should not be empty' })
