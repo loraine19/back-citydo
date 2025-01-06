@@ -7,7 +7,7 @@ export class CreateServiceDto {
 
     ///FOR DTO
     @ApiProperty()
-    @IsNotEmpty({ message: 'user id is required' })
+    @IsOptional()
     @IsNumber({}, { message: 'user id must be a number' })
     @Type(() => Number)
     userId: number;

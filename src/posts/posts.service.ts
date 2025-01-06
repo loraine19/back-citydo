@@ -14,11 +14,14 @@ export class PostsService {
   }
 
   async findAll(): Promise<Post[]> {
-    return await this.prisma.post.findMany(
-      {
-        include: { User: { select: { email: true, Profile: true } }, Likes: { include: { User: { select: { email: true, Profile: true, id: true } } } } }
+    const posts = await this.prisma.post.findMany({
+      include: {
+        User: { select: { email: true, Profile: true } },
+        Likes: { include: { User: { select: { email: true, Profile: true, id: true } } } }
       }
-    );
+    });
+
+    return posts.sort((a, b) => b.Likes.length - a.Likes.length);
   }
 
 
@@ -36,7 +39,7 @@ export class PostsService {
       include: { User: { select: { email: true, Profile: true, id: true } }, Likes: { include: { User: { select: { email: true, Profile: true, id: true } } } } }
     });
     // if (!posts || posts.length === 0) throw new HttpException(`no posts found for ${userId}`, HttpStatus.NO_CONTENT);
-    return posts
+    return posts.sort((a, b) => b.Likes.length - a.Likes.length);
   }
 
   async findAllByLikeId(userId: number): Promise<Post[]> {
@@ -46,9 +49,8 @@ export class PostsService {
         User: { select: { id: true, email: true, Profile: true } },
         Likes: { include: { User: { select: { email: true, Profile: true, id: true } } } },
       }
-    })
-    //if (!events.length) throw new HttpException(`no events found`, HttpStatus.NO_CONTENT);
-    return posts
+    });
+    return posts.sort((a, b) => b.Likes.length - a.Likes.length);
   }
 
 

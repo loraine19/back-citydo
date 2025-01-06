@@ -22,7 +22,6 @@ export class CreateEventDto {
     @IsNotEmpty({ message: 'Start date is required' })
     @Transform(({ value }) => new Date(value))
     @IsDate({ message: 'Start date is not conformè' })
-    @Transform(({ value }) => new Date(value))
     start: Date
 
     @ApiProperty({ type: Date })
@@ -38,10 +37,9 @@ export class CreateEventDto {
     addressId: number
 
     @ApiProperty({ type: 'number' })
-
-    @IsNotEmpty({ message: 'User id is required' })
     @Transform(({ value }) => parseInt(value))
     @IsNumber()
+    @IsOptional()
     userId: number
 
     @ApiProperty({ type: 'number' })
