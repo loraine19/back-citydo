@@ -39,15 +39,26 @@ describe('ProfilesController', () => {
   });
 
   const profileExampleDto: CreateProfileDto = {
-    userId: 1, firstName: 'Test', lastName: 'User', image: 'test.jpg', skills: 'Test Skills', assistance: $Enums.AssistanceLevel.LEVEL_0, phone: '1234567890', addressId: 1, addressShared: true, points: 0, userIdSp: 2
+    firstName: 'Test', lastName: 'User', image: 'test.jpg', skills: 'Test Skills', assistance: $Enums.AssistanceLevel.LEVEL_0, phone: '1234567890', addressId: 1, addressShared: true, points: 0, userIdSp: 2, userId: 1
   };
   const profileExample: Profile = { userId: 1, createdAt: new Date(), updatedAt: new Date(), ...profileExampleDto };
 
   it('should create a profile', async () => {
     jest.spyOn(service, 'create').mockResolvedValue(profileExample);
     const image = null;
-    const created = await controller.create(profileExampleDto, image);
+    const req = { user: { sub: 1 } } as RequestWithUser;
+    const created = await controller.create(profileExampleDto, image, req);
     expect(created).toEqual(profileExample);
+  });
+
+
+  it('should update a profile', async () => {
+    jest.spyOn(service, 'update').mockResolvedValue(profileExample);
+    const image = null;
+    const req = { user: { sub: 1 } } as RequestWithUser;
+    const updateProfileDto: UpdateProfileDto = { ...profileExampleDto };
+    const updated = await controller.update(updateProfileDto, image, req);
+    expect(updated).toEqual(profileExample);
   });
 
   it('should return all profiles', async () => {
@@ -75,12 +86,7 @@ describe('ProfilesController', () => {
     expect(await controller.findOneByUserId(1)).toEqual(profileExample);
   });
 
-  it('should update a profile', async () => {
-    const updateProfileDto: UpdateProfileDto = { ...profileExampleDto };
-    const image = null
-    jest.spyOn(service, 'update').mockResolvedValue(profileExample);
-    expect(await controller.update(1, updateProfileDto, image)).toEqual(profileExample);
-  });
+
 
   it('should delete a profile', async () => {
     const profile: Profile = profileExample;

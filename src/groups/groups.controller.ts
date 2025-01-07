@@ -6,7 +6,7 @@ import { GroupEntity } from './entities/group.entity';
 import { GroupsService } from '../groups/groups.service';
 import { AddressService } from '../addresses/address.service';
 import { AuthGuard } from '../../src/auth/auth.guard';
-import { RequestWithUser } from 'src/auth/auth.entities/auth.entity';
+import { RequestWithUser } from '../../src/auth/auth.entities/auth.entity';
 import { Group } from '@prisma/client';
 
 //// CONTROLLER DO ROUTE 

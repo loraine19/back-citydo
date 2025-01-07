@@ -25,22 +25,23 @@ export class ProfilesController {
   @ApiBody({ type: CreateProfileDto })
   @UseInterceptors(ImageInterceptor.create('profiles'))
   @ApiConsumes('multipart/form-data', 'application/json')
-  async create(@Body() data: CreateProfileDto, @UploadedFile() image: Express.Multer.File,): Promise<Profile> {
+  async create(@Body() data: CreateProfileDto, @UploadedFile() image: Express.Multer.File, @Req() req: RequestWithUser): Promise<Profile> {
+    data.userId = req.user.sub
     data = await parseData(data, image)
     return this.profilesService.create(data)
   }
 
 
-  @Patch(':id')
+  @Patch()
   @ApiBearerAuth()
   @ApiOkResponse({ type: ProfileEntity })
   @ApiBody({ type: UpdateProfileDto })
   @UseInterceptors(ImageInterceptor.create('profiles'))
   @ApiConsumes('multipart/form-data')
-  async update(@Param('id', ParseIntPipe) id: number, @Body() data: UpdateProfileDto, @UploadedFile() image: Express.Multer.File)
-    : Promise<Profile> {
+  async update(@Body() data: UpdateProfileDto, @UploadedFile() image: Express.Multer.File, @Req() req: RequestWithUser): Promise<Profile> {
+    data.userId = req.user.sub
     data = await parseData(data, image)
-    return this.profilesService.update(id, data);
+    return this.profilesService.update(data);
   }
 
   @Get()

@@ -30,6 +30,10 @@ describe('ServicesController', () => {
             service: {
               create: jest.fn(),
               findMany: jest.fn(),
+              findAll: jest.fn(),
+              findAllByUserId: jest.fn(),
+              findOne: jest.fn(),
+              remove: jest.fn(),
               findUniqueOrThrow: jest.fn(),
               update: jest.fn(),
               delete: jest.fn(),
@@ -50,6 +54,11 @@ describe('ServicesController', () => {
     jest.spyOn(service, 'create').mockResolvedValue(serviceExample);
     const req = { user: { sub: 1 } } as RequestWithUser;
     expect(await controller.create(serviceExampleDto, null, req)).toEqual(serviceExample);
+  });
+  it('should update a service', async () => {
+    const updateServiceDto: UpdateServiceDto = { ...serviceExampleDto };
+    jest.spyOn(service, 'update').mockResolvedValue(serviceExample);
+    expect(await controller.update(1, updateServiceDto, null)).toEqual(serviceExample);
   });
 
   it('should return all services', async () => {
@@ -76,11 +85,7 @@ describe('ServicesController', () => {
     expect(await controller.findOne(1)).toEqual(serviceExample);
   });
 
-  it('should update a service', async () => {
-    const updateServiceDto: UpdateServiceDto = { ...serviceExampleDto };
-    jest.spyOn(service, 'update').mockResolvedValue(serviceExample);
-    expect(await controller.update(1, updateServiceDto, null)).toEqual(serviceExample);
-  });
+
 
   it('should delete a service', async () => {
     jest.spyOn(service, 'remove').mockResolvedValue(serviceExample);

@@ -19,6 +19,7 @@ describe('ProfilesService', () => {
             profile: {
               create: jest.fn(),
               findMany: jest.fn(),
+              findFirst: jest.fn(),
               findUniqueOrThrow: jest.fn(),
               update: jest.fn(),
               delete: jest.fn(),
@@ -54,7 +55,7 @@ describe('ProfilesService', () => {
   it('should update a profile', async () => {
     const updateProfileDto: UpdateProfileDto = { ...profileExampleDto };
     jest.spyOn(prismaService.profile, 'update').mockResolvedValue(profileExample);
-    expect(await service.update(1, updateProfileDto)).toEqual(profileExample);
+    expect(await service.update(updateProfileDto)).toEqual(profileExample);
   });
 
   it('should delete a profile', async () => {

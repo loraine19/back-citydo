@@ -21,7 +21,7 @@ export class CreateProfileDto {
     userIdSp: number;
 
     @ApiProperty()
-    @IsNotEmpty({ message: 'User id is required' })
+    @IsOptional()
     @Type(() => Number)
     @IsNumber({}, { message: 'User id must be a number' })
     userId: number;
@@ -52,7 +52,7 @@ export class CreateProfileDto {
     assistance: $Enums.AssistanceLevel;
 
     @ApiProperty()
-    @IsNotEmpty({ message: 'Address id is required' })
+    @IsOptional()
     @Type(() => Number)
     @IsNumber({}, { message: 'Address id must be a number' })
     points: number;

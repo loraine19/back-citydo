@@ -3,7 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { $Enums, Profile, Service } from '@prisma/client';
 import { CreateServiceDto } from './dto/create-service.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
-import { GetPoints } from 'middleware/GetPoints';
+import { GetPoints } from '../../middleware/GetPoints';
 
 //// SERVICE MAKE ACTION
 @Injectable()
@@ -164,10 +164,19 @@ export class ServicesService {
 
 
   async update(id: number, data: any): Promise<Service> {
-    const { userId, userIdResp, ...service } = data
+    const { userId, userIdResp, ...service } = data;
+    const updateData: any = { ...service };
+
+    if (userId) {
+      updateData.User = { connect: { id: userId } };
+    }
+    if (userIdResp) {
+      updateData.UserResp = { connect: { id: userIdResp } };
+    }
+
     return await this.prisma.service.update({
       where: { id },
-      data: { ...service }
+      data: updateData,
     });
   }
   async updateUserResp(id: number, data: { userIdResp: number }): Promise<Service> {

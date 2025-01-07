@@ -7,7 +7,7 @@ import { ApiTags, ApiBearerAuth, ApiConsumes, ApiOkResponse, ApiBody } from '@ne
 import { AuthGuard } from '../auth/auth.guard';
 import { parseData } from 'middleware/BodyParser';
 import { IssueEntity } from './entities/issue.entity';
-import { ImageInterceptor } from 'middleware/ImageInterceptor';
+import { ImageInterceptor } from '../../middleware/ImageInterceptor';
 
 @ApiTags('issues')
 @Controller('issues')

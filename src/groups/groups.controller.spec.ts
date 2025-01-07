@@ -8,7 +8,7 @@ import { Group, } from '@prisma/client';
 import { AddressController } from '../addresses/address.controller';
 import { AddressService } from '../addresses/address.service';
 import { JwtModule } from '@nestjs/jwt';
-import { RequestWithUser } from 'src/auth/auth.entities/auth.entity';
+import { RequestWithUser } from '../auth/auth.entities/auth.entity';
 
 describe('GroupsController', () => {
   let controller: GroupsController;

@@ -89,7 +89,7 @@ model Profile {
   phone         String
   addressShared Boolean         @default(false)
   assistance    AssistanceLevel @default(LEVEL_0)
-  points        Int
+  points        Int?            @default(10)
   skills        String          @db.MediumText
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt

@@ -9,9 +9,19 @@ export class ProfilesService {
   constructor(private prisma: PrismaService) { }
   async create(data: CreateProfileDto): Promise<Profile> {
     const { userId, addressId, userIdSp, ...profile } = data
-    return await this.prisma.profile.create({ data: { ...profile, User: { connect: { id: userId } }, Address: { connect: { id: addressId } }, UserSp: { connect: { id: userIdSp } } } })
+    const cond = await this.prisma.profile.findFirst({ where: { userId: userId } });
+    if (cond) { throw new HttpException(`Profile already exists for user ${userId}`, HttpStatus.CONFLICT) }
+    const createData: any = { ...profile, User: { connect: { id: userId } }, Address: { connect: { id: addressId } } };
+
+    if (userIdSp) {
+      createData.UserSp = { connect: { id: userIdSp } };
+    }
+
+    return await this.prisma.profile.create({
+      data: createData
+    });
   }
-  async update(id: number, data: UpdateProfileDto): Promise<Profile> {
+  async update(data: UpdateProfileDto): Promise<Profile> {
     const { userId, addressId, userIdSp, ...profile } = data;
     const updateData: any = { ...profile };
 
@@ -26,7 +36,7 @@ export class ProfilesService {
     }
 
     return await this.prisma.profile.update({
-      where: { userId: id },
+      where: { userId },
       data: updateData,
     });
   }
