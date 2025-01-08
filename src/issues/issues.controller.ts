@@ -22,7 +22,6 @@ export class IssuesController {
   @UseInterceptors(ImageInterceptor.create('issues'))
   @ApiConsumes('multipart/form-data')
   async create(@Body() data: any, @UploadedFile() image: Express.Multer.File, @Req() req: RequestWithUser) {
-    // console.log('data', data);
     const userId = req.user.sub;
     data.userId = userId;
     data = await parseData(data, image)

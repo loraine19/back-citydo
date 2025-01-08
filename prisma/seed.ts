@@ -12,11 +12,8 @@ import { CreateParticipantDto } from 'src/participants/dto/create-participant.dt
 import { CreatePostDto } from 'src/posts/dto/create-post.dto';
 import { CreateLikeDto } from 'src/likes/dto/create-like.dto';
 import * as argon2 from 'argon2';
-import { CreatePoolDto } from 'src/pools/dto/create-pool.dto';
-import { CreateSurveyDto } from 'src/surveys/dto/create-survey.dto';
 import { CreateVoteDto } from 'src/votes/dto/create-vote.dto';
-import { Decimal, empty } from '@prisma/client/runtime/library';
-import { isNotEmpty, isDate } from 'class-validator';
+import { Decimal, } from '@prisma/client/runtime/library';
 import { CreateFlagDto } from 'src/flags/dto/create-flag.dto';
 import { CreateIssueDto } from 'src/issues/dto/create-issue.dto';
 
@@ -71,7 +68,8 @@ const CreateRandomUser = async (): Promise<CreateUserDto> => {
   const password = await argon2.hash(newFaker.internet.password());
   return {
     email: newFaker.internet.email(),
-    password
+    password,
+    status: $Enums.UserStatus.INACTIVE,
   }
 }
 
@@ -83,8 +81,6 @@ const CreateRandomGroupUser = (): CreateGroupUserDto => {
     //role: $Enums.Role.MODO
   }
 }
-
-
 
 
 const CreateRandomProfile = async (): Promise<CreateProfileDto> => {
@@ -188,7 +184,6 @@ const CreateRandomLike = (): CreateLikeDto => {
   }
 }
 
-
 const CreateRandomPool = (): any => {
   return {
     userId: newFaker.number.int({ min: 1, max: max / 3 }),
@@ -208,7 +203,6 @@ const CreateRandomSurvey = (): any => {
   }
 }
 
-
 const CreateRandomVote = (): CreateVoteDto => {
   return {
     userId: newFaker.number.int({ min: 1, max: max / 3 }),
@@ -217,7 +211,6 @@ const CreateRandomVote = (): CreateVoteDto => {
     opinion: newFaker.helpers.arrayElement(Object.values($Enums.VoteOpinion)),
   }
 }
-
 
 const CreateRandomFlag = (): CreateFlagDto => {
   return {

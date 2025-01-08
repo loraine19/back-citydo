@@ -43,7 +43,6 @@ export class ServicesController {
     return this.serviceService.update(id, data);
   }
 
-
   @Put('userResp/:id')
   @ApiBearerAuth()
   @ApiOkResponse({ type: ServiceEntity })
@@ -69,9 +68,6 @@ export class ServicesController {
     const userId = req.user.sub
     return this.serviceService.updateFinish(id, userId);
   }
-
-
-
 
   @Get()
   @ApiBearerAuth()
@@ -153,7 +149,6 @@ export class ServicesController {
   findOne(@Param('id', ParseIntPipe) id: number): Promise<Service> {
     return this.serviceService.findOne(id);
   }
-
 
   @Get('user/:id')
   @ApiBearerAuth()

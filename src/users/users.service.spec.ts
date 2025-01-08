@@ -3,7 +3,7 @@ import { UsersService } from './users.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { User } from '@prisma/client';
+import { $Enums, User } from '@prisma/client';
 import * as argon2 from 'argon2';
 
 describe('UsersService', () => {
@@ -34,7 +34,7 @@ describe('UsersService', () => {
     prismaService = module.get<PrismaService>(PrismaService);
   });
 
-  const userExampleDto: CreateUserDto = { email: 'test@example.com', password: 'password' };
+  const userExampleDto: CreateUserDto = { email: 'test@example.com', password: 'password', verified: $Enums.UserStatus.ACTIVE };
   const hashedPassword = argon2.hash(userExampleDto.password);
   const userExample: User = { id: 1, createdAt: new Date(), updatedAt: new Date(), lastConnection: new Date(), password: hashedPassword, ...userExampleDto };
 

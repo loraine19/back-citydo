@@ -1,5 +1,6 @@
 import { ApiProperty, PartialType } from '@nestjs/swagger';
-import { IsDate, isDate, IsEmail, IsNotEmpty, IsNumber, isNumber, IsString, MinLength } from 'class-validator';
+import { UserStatus } from '@prisma/client';
+import { IsBoolean, IsDate, isDate, IsEmail, IsNotEmpty, IsNumber, isNumber, IsString, MinLength } from 'class-validator';
 import { User } from '@prisma/client';
 
 export class UserEntity implements User {
@@ -20,6 +21,10 @@ export class UserEntity implements User {
     @IsDate()
     lastConnection: Date;
 
+    @ApiProperty({ enum: UserStatus, default: UserStatus.INACTIVE })
+    @IsNotEmpty()
+    status: UserStatus;
+
     ////FOR DTO
     @ApiProperty()
     @IsEmail()
@@ -32,6 +37,9 @@ export class UserEntity implements User {
     @IsString()
     @MinLength(6)
     password: string;
+
+
+
 
 }
 

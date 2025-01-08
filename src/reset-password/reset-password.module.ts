@@ -1,13 +1,11 @@
 import { Module } from '@nestjs/common';
 import { ResetPasswordController } from './reset-password.controller';
-import { PrismaService } from '../prisma/prisma.service';
 import { ResetPasswordService } from './reset-password.service';
-import { PrismaModule } from '../prisma/prisma.module';
-import { UsersModule } from '../users/users.module';
 import { UsersService } from '../users/users.service';
+import { PrismaClient } from '@prisma/client';
 
 @Module({
   controllers: [ResetPasswordController],
-  providers: [ResetPasswordService, UsersService]
+  providers: [ResetPasswordService, UsersService, PrismaClient]
 })
 export class ResetPasswordModule { }

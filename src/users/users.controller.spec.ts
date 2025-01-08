@@ -4,7 +4,7 @@ import { UsersController } from '../users/users.controller';
 import { UsersService } from '../users/users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { User } from '@prisma/client';
+import { $Enums, User } from '@prisma/client';
 import { JwtService } from '@nestjs/jwt';
 import * as argon2 from 'argon2';
 
@@ -46,7 +46,7 @@ describe('UsersController', () => {
 
   const userExampleDto: CreateUserDto = { email: 'test@example.com', password: 'password' };
   const hashedPassword = argon2.hash(userExampleDto.password);
-  const userExample: User = { id: 1, createdAt: new Date(), updatedAt: new Date(), lastConnection: new Date(), password: hashedPassword, ...userExampleDto };
+  const userExample: User = { id: 1, createdAt: new Date(), updatedAt: new Date(), lastConnection: new Date(), password: hashedPassword, status: $Enums.UserStatus.ACTIVE, ...userExampleDto };
 
   it('should create a user', async () => {
     jest.spyOn(service, 'create').mockResolvedValue(userExample);

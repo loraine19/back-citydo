@@ -4,6 +4,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import { ConflictException, UnauthorizedException } from '@nestjs/common';
 import * as argon2 from 'argon2';
+import { $Enums } from '@prisma/client';
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -53,6 +54,7 @@ describe('AuthService', () => {
       createdAt: new Date(),
       updatedAt: new Date(),
       lastConnection: new Date(),
+      status: $Enums.UserStatus.ACTIVE,
     });
 
     const token = await service.signIn(userTest);
@@ -68,6 +70,7 @@ describe('AuthService', () => {
       createdAt: new Date(),
       updatedAt: new Date(),
       lastConnection: new Date(),
+      verified: $Enums.UserStatus.ACTIVE,
     });
 
     await expect(service.signIn(userTest)).rejects.toThrow(UnauthorizedException);
@@ -81,6 +84,7 @@ describe('AuthService', () => {
       createdAt: new Date(),
       updatedAt: new Date(),
       lastConnection: new Date(),
+      verified: $Enums.UserStatus.ACTIVE,
     });
 
     await expect(service.signUp(userTest)).rejects.toThrow(ConflictException);
@@ -95,6 +99,7 @@ describe('AuthService', () => {
       createdAt: new Date(),
       updatedAt: new Date(),
       lastConnection: new Date(),
+      verified: $Enums.UserStatus.ACTIVE,
     });
 
     const token = await service.signUp(userTest);

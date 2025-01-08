@@ -20,7 +20,7 @@ export class GroupsController {
   @Post()
   @ApiBearerAuth()
   @ApiOkResponse({ type: GroupEntity })
-  async create(@Body(new ValidationPipe()) data: CreateGroupDto): Promise<Group> {
+  async create(@Body() data: CreateGroupDto): Promise<Group> {
     return this.groupsService.create(data);
   }
 

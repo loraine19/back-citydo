@@ -44,8 +44,6 @@ export class UsersController {
   }
 
 
-
-
   @Get('me')
   @ApiBearerAuth()
   @ApiOkResponse({ type: UserEntity })
@@ -55,13 +53,18 @@ export class UsersController {
   }
 
 
-
-
   @Get(':id')
   @ApiBearerAuth()
   @ApiOkResponse({ type: UserEntity })
   async findOne(@Param('id', ParseIntPipe) id: number): Promise<User> {
     return this.usersService.findOne(id)
+  }
+
+  @Get('email/:email')
+  @ApiBearerAuth()
+  @ApiOkResponse({ type: UserEntity })
+  async findUnique(@Param('email', ParseIntPipe) email: string): Promise<User> {
+    return this.usersService.findUnique(email)
   }
 
 

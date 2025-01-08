@@ -196,7 +196,6 @@ export class ServicesService {
 
   async updateValidUserResp(id: number, data: { userIdResp: number, userId: number }): Promise<Service> {
     const { userIdResp } = data;
-
     const service = await this.prisma.service.findUnique({ where: { id } });
     console.log((service.userIdResp === userIdResp))
     if (service.userId !== data.userId) {

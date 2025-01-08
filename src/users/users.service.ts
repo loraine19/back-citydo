@@ -3,7 +3,6 @@ import { PrismaService } from '../../src/prisma/prisma.service';
 import { $Enums, User } from '@prisma/client';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { Prisma } from '@prisma/client';
 import * as argon2 from 'argon2';
 
 

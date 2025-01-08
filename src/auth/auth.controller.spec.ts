@@ -3,10 +3,8 @@ import { TestingModule, Test } from "@nestjs/testing";
 import { PrismaService } from "../prisma/prisma.service";
 import { AuthController } from "../auth/auth.controller";
 import { AuthService } from "./auth.service";
-import { SignInDto } from "./dto/signIn.dto";
 import { UsersService } from "../../src/users/users.service";
-import { RefreshDto } from "./dto/refresh.dto";
-import { RequestWithUser } from "./auth.entities/auth.entity";
+import { AuthEntity, RequestWithUser } from "./auth.entities/auth.entity";
 
 describe('AuthController', () => {
   let controller: AuthController;
@@ -54,8 +52,8 @@ describe('AuthController', () => {
 
 
   const userExampleDto = { email: 'test@mail.com', password: 'passwordtest' };
-  const userExample = { id: 1, createdAt: new Date(), updatedAt: new Date(), ...userExampleDto };
-  const refreshTokenDto: RefreshDto = { refreshToken: 'mockToken' };
+  const userExample = { id: 1, createdAt: new Date(), updatedAt: new Date(), lastConnection: new Date(), verified: true, ...userExampleDto };
+  const refreshTokenDto: AuthEntity = { refreshToken: 'mockToken', accessToken: 'mockToken' };
 
   it('should return a token on signIn', async () => {
     const result = { accessToken: 'mockToken', refreshToken: 'mockToken' };

@@ -33,6 +33,7 @@ model User {
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
   lastConnection DateTime      @default(now())
+  status         UserStatus    @default(INACTIVE)
   Token          Token[]
   GroupUser      GroupUser[]
   Event          Event[]
@@ -165,7 +166,6 @@ model Service {
 
 ////// ISSUE
 model Issue {
-  // id          Int       @id @default(autoincrement())
   serviceId   Int       @id @unique
   description String?   @db.MediumText
   date        DateTime
@@ -268,6 +268,11 @@ model Flag {
 }
 
 ///// ENUM
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+}
+
 enum TokenType {
   REFRESH
   RESET
