@@ -16,7 +16,7 @@ export async function sendResetPasswordEmail(to: string, token: string) {
         subject: 'Initialisation de votre mot de passe',
         text: `Bonjour, \n
       Vous avez demande une initialisation de votre mot de passe : \n
-      https://imagindev-app.fr//motdepasse_oublie/reset?token=${token} \n
+      https://imagindev-app.fr/motdepasse_oublie/reset?token=${token} \n
     `,
     };
 
