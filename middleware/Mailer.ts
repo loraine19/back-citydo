@@ -43,7 +43,7 @@ export const sendVerificationEmail = async (to: string, token: string) => {
     const subject = 'Activation de votre compte Collectif';
     const text = `Bonjour, \n
      Pouvez-vous activer votre compte en cliquant sur le lien suivant : \n
-      https://imagindev-app.fr/signin/verify?email=${to}&token=${token} \n
+      https://imagindev-app.fr/signin?email=${to}&token=${token} \n
     `;
     await sendEmail(to, subject, text);
 };
