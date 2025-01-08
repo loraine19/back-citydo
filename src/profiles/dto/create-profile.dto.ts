@@ -20,7 +20,7 @@ export class CreateProfileDto {
     @IsNumber({}, { message: 'User id sp must be a number' })
     userIdSp: number;
 
-    @ApiProperty()
+    @ApiProperty({ type: 'number', required: false })
     @IsOptional()
     @Type(() => Number)
     @IsNumber({}, { message: 'User id must be a number' })
@@ -42,9 +42,11 @@ export class CreateProfileDto {
     @IsOptional()
     image: any;
 
-    @ApiProperty({ type: 'boolean', required: false })
+    @ApiProperty({ default: false, type: 'boolean', required: false })
+    @IsOptional()
     @Transform(({ value }) => value === 'true' ? true : false)
     @IsBoolean({ message: 'AddressShared must be a boolean' })
+
     addressShared: boolean;
 
     @ApiProperty({ enum: $Enums.AssistanceLevel, required: false })
