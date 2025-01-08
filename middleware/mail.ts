@@ -1,4 +1,5 @@
 import * as nodemailer from 'nodemailer';
+
 export async function sendResetPasswordEmail(to: string, token: string) {
     const transporter = nodemailer.createTransport({
         host: process.env.SMTP_HOST,
@@ -26,6 +27,3 @@ export async function sendResetPasswordEmail(to: string, token: string) {
         console.log(error);
     }
 }
-
-
-

@@ -1,7 +1,6 @@
 import { Controller, Post, Body, HttpException, HttpStatus } from '@nestjs/common';
 import { ResetPasswordService } from './reset-password.service';
 import { sendResetPasswordEmail } from '../../middleware/mail';
-import { PrismaClient, } from '@prisma/client';
 import { UsersService } from '../users/users.service';
 
 @Controller('reset-password')
