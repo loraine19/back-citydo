@@ -34,8 +34,8 @@ describe('AddressService', () => {
     prismaService = module.get<PrismaService>(PrismaService);
   });
 
-  const addressExampleDto: CreateAddressDto = { address: 'Test Address', city: 'Test City', zipcode: '13000', lat: new Decimal(0), lng: new Decimal(0) };
-  const addressExample: Address = { id: 1, createdAt: new Date(), updatedAt: new Date(), ...addressExampleDto };
+  const addressExampleDto: CreateAddressDto = { address: 'Test Address', city: 'Test City', zipcode: '13000', lat: 0, lng: 0 };
+  const addressExample: Address = { id: 1, createdAt: new Date(), updatedAt: new Date(), ...addressExampleDto, lat: new Decimal(addressExampleDto.lat), lng: new Decimal(addressExampleDto.lng) };
 
   it('should create an address', async () => {
     jest.spyOn(prismaService.address, 'create').mockResolvedValue(addressExample);

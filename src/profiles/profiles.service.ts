@@ -23,7 +23,8 @@ export class ProfilesService {
   }
   async update(data: UpdateProfileDto): Promise<Profile> {
     const { userId, addressId, userIdSp, ...profile } = data;
-    const updateData: any = { ...profile };
+    const updateData: any = { ...profile, User: { connect: { id: userId } }, Address: { connect: { id: addressId } } };
+
 
     if (userId) {
       updateData.User = { connect: { id: userId } };
@@ -35,6 +36,7 @@ export class ProfilesService {
       updateData.UserSp = { connect: { id: userIdSp } };
     }
 
+    console.log(updateData)
     return await this.prisma.profile.update({
       where: { userId },
       data: updateData,

@@ -19,6 +19,7 @@ import { join } from 'path';
 import { FlagsModule } from './flags/flags.module';
 import { IssuesModule } from './issues/issues.module';
 import { NotifsModule } from './notifs/notifs.module';
+import { ResetPasswordModule } from './reset-password/reset-password.module';
 
 
 @Module({
@@ -46,6 +47,7 @@ import { NotifsModule } from './notifs/notifs.module';
     FlagsModule,
     IssuesModule,
     NotifsModule,
+    ResetPasswordModule,
   ],
 })
 export class AppModule { }

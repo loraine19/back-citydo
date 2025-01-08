@@ -1,0 +1,9 @@
+
+import * as jwt from 'jsonwebtoken';
+
+export const generateResetToken = (email: string): string => {
+    const payload = { email };
+    const secret = 'secret';
+    const options = { expiresIn: '1h' };
+    return jwt.sign(payload, secret, options);
+};
