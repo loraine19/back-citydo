@@ -20,6 +20,7 @@ import { FlagsModule } from './flags/flags.module';
 import { IssuesModule } from './issues/issues.module';
 import { NotifsModule } from './notifs/notifs.module';
 import { ResetPasswordModule } from './reset-password/reset-password.module';
+import { PoolsSurveysModule } from './pools-surveys/pools-surveys.module';
 
 
 @Module({
@@ -48,6 +49,7 @@ import { ResetPasswordModule } from './reset-password/reset-password.module';
     IssuesModule,
     NotifsModule,
     ResetPasswordModule,
+    PoolsSurveysModule,
   ],
 })
 export class AppModule { }

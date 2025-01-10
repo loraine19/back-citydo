@@ -34,7 +34,9 @@ export class SurveysController {
   @ApiBody({ type: UpdateSurveyDto })
   @UseInterceptors(ImageInterceptor.create('survey'))
   @ApiConsumes('multipart/form-data', 'application/json')
-  update(@Param('id', ParseIntPipe) id: number, @Body() data: UpdateSurveyDto, @UploadedFile() image: Express.Multer.File,): Promise<Survey> {
+  async update(@Param('id', ParseIntPipe) id: number, @Body() data: UpdateSurveyDto, @UploadedFile() image: Express.Multer.File,): Promise<Survey> {
+    const survey = await this.surveysService.findOne(id)
+    survey.image && image && ImageInterceptor.deleteImage(survey.image)
     data = parseData(data, image)
     return this.surveysService.update(id, data);
   }

@@ -26,6 +26,7 @@ export class ProfilesController {
   @UseInterceptors(ImageInterceptor.create('profiles'))
   @ApiConsumes('multipart/form-data')
   async create(@Body() data: CreateProfileDto, @UploadedFile() image: Express.Multer.File, @Req() req: RequestWithUser): Promise<Profile> {
+    console.log(image)
     try {
       console.log(data)
       data.userId = req.user.sub
@@ -44,7 +45,10 @@ export class ProfilesController {
   @UseInterceptors(ImageInterceptor.create('profiles'))
   @ApiConsumes('multipart/form-data')
   async update(@Body() data: UpdateProfileDto, @UploadedFile() image: Express.Multer.File, @Req() req: RequestWithUser): Promise<Profile> {
-    console.log(data)
+    const profile = await this.profilesService.findOneByUserId(req.user.sub)
+    if (profile.image && image) {
+      ImageInterceptor.deleteImage(profile.image)
+    }
     data.userId = req.user.sub
     data = await parseData(data, image)
     return this.profilesService.update(data);

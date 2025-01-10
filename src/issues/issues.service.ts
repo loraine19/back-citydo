@@ -4,10 +4,11 @@ import { $Enums, Profile, Issue } from '@prisma/client';
 import { CreateIssueDto } from './dto/create-issue.dto';
 import { UpdateIssueDto } from './dto/update-issue.dto';
 import { GetPoints } from 'middleware/GetPoints';
+import { ImageInterceptor } from '../../middleware/ImageInterceptor';
 
 @Injectable()
 export class IssuesService {
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService, private ImageInterceptor: ImageInterceptor) { }
 
   async create(data: any): Promise<Issue> {
     const { userId, userIdModo, serviceId, userIdModo2, ...issue } = data;
@@ -161,6 +162,8 @@ export class IssuesService {
 
 
   async remove(id: number): Promise<Issue> {
+    const element = await this.prisma.issue.findUniqueOrThrow({ where: { serviceId: id } });
+    element.image && ImageInterceptor.deleteImage(element.image);
     return await this.prisma.issue.delete({ where: { serviceId: id } });
   }
 }

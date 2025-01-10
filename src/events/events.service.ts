@@ -3,6 +3,7 @@ import { PrismaService } from '../../src/prisma/prisma.service';
 import { Event } from '@prisma/client';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
+import { ImageInterceptor } from 'middleware/ImageInterceptor';
 
 //// SERVICE MAKE ACTION
 @Injectable()
@@ -71,22 +72,25 @@ export class EventsService {
     return await this.prisma.event.findUniqueOrThrow({
       where: { id },
       include: {
-        User: { select: { email: true, Profile: true } }, Participants: { include: { User: { select: { email: true, Profile: true, id: true } } } }, Address: true
+        User: { select: { email: true, Profile: true } },
+        Participants: { include: { User: { select: { email: true, Profile: true, id: true } } } },
+        Address: true
       },
     });
   }
 
   async update(updateId: number, data: UpdateEventDto): Promise<Event> {
-    const oldData = await this.prisma.event.findUniqueOrThrow({ where: { id: updateId } });
-    const NewData = { ...oldData, ...data }
-    const { id, userId, addressId, ...event } = NewData
+    const { userId, addressId, ...event } = data
     return await this.prisma.event.update({
-      where: { id },
+      where: { id: updateId },
       data: { ...event, Address: { connect: { id: addressId } }, User: { connect: { id: userId } } }
     });
   }
 
+
   async remove(id: number): Promise<Event> {
+    const element = await this.prisma.event.findUniqueOrThrow({ where: { id } });
+    element.image && ImageInterceptor.deleteImage(element.image);
     return await this.prisma.event.delete({ where: { id } });
   }
 }

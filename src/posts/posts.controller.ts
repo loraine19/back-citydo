@@ -42,6 +42,8 @@ export class PostsController {
   @ApiConsumes('multipart/form-data', 'application/json')
   async update(@Param('id', ParseIntPipe) id: number, @Body() data: UpdatePostDto, @UploadedFile() image: Express.Multer.File, @Req() req: RequestWithUser): Promise<PostEntity> {
     data.userId = req.user.sub
+    const post = await this.postsService.findOne(id)
+    post.image && image && ImageInterceptor.deleteImage(post.image)
     data = await parseData(data, image)
     return this.postsService.update(id, data)
   }

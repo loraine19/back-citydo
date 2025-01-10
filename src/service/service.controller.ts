@@ -10,9 +10,7 @@ import { ImageInterceptor } from '../../middleware/ImageInterceptor';
 import { AuthGuard } from '../auth/auth.guard';
 import { Service, ServiceStep } from '@prisma/client';
 
-
 const route = 'services'
-
 @UseGuards(AuthGuard)
 @Controller(route)
 @ApiTags(route)
@@ -38,7 +36,9 @@ export class ServicesController {
   @ApiBody({ type: UpdateServiceDto })
   @UseInterceptors(ImageInterceptor.create('service'))
   @ApiConsumes('multipart/form-data', 'application/json')
-  update(@Param('id', ParseIntPipe) id: number, @Body() data: UpdateServiceDto, @UploadedFile() image: Express.Multer.File,): Promise<Service> {
+  async update(@Param('id', ParseIntPipe) id: number, @Body() data: UpdateServiceDto, @UploadedFile() image: Express.Multer.File,): Promise<Service> {
+    const service = await this.serviceService.findOne(id)
+    service.image && image && ImageInterceptor.deleteImage(service.image)
     data = parseData(data, image)
     return this.serviceService.update(id, data);
   }

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Req, UseGuards, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Req, UseGuards, UploadedFile, UseInterceptors, ParseIntPipe } from '@nestjs/common';
 import { IssuesService } from './issues.service';
 import { CreateIssueDto } from './dto/create-issue.dto';
 import { UpdateIssueDto } from './dto/update-issue.dto';
@@ -21,12 +21,26 @@ export class IssuesController {
   @ApiBody({ type: CreateIssueDto })
   @UseInterceptors(ImageInterceptor.create('issues'))
   @ApiConsumes('multipart/form-data')
-  async create(@Body() data: any, @UploadedFile() image: Express.Multer.File, @Req() req: RequestWithUser) {
+  async create(@Body() data: CreateIssueDto, @UploadedFile() image: Express.Multer.File, @Req() req: RequestWithUser) {
     const userId = req.user.sub;
     data.userId = userId;
     data = await parseData(data, image)
-    console.log('parsed', data);
     return this.issuesService.create(data);
+  }
+
+  @Patch(':id')
+  @ApiBearerAuth()
+  @ApiOkResponse({ type: IssueEntity })
+  @ApiBody({ type: UpdateIssueDto })
+  @UseInterceptors(ImageInterceptor.create('issues'))
+  @ApiConsumes('multipart/form-data')
+  async update(@Param('id', ParseIntPipe) id: number, @Body() data: UpdateIssueDto, @UploadedFile() image: Express.Multer.File) {
+    const issue = await this.issuesService.findOne(id);
+    if (issue.image && data.image) {
+      ImageInterceptor.deleteImage(issue.image);
+    }
+    data = await parseData(data, image)
+    return this.issuesService.update(id, data);
   }
 
   @Get()
@@ -41,11 +55,6 @@ export class IssuesController {
     return this.issuesService.findOne(+id);
   }
 
-  @Patch(':id')
-  @ApiBearerAuth()
-  update(@Param('id') id: string, @Body() updateIssueDto: UpdateIssueDto) {
-    return this.issuesService.update(+id, updateIssueDto);
-  }
 
   @Delete(':id')
   @ApiBearerAuth()

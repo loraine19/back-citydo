@@ -3,6 +3,7 @@ import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { PrismaService } from '../../src/prisma/prisma.service';
 import { Post } from '@prisma/client';
+import { ImageInterceptor } from 'middleware/ImageInterceptor';
 
 @Injectable()
 export class PostsService {
@@ -63,6 +64,8 @@ export class PostsService {
   }
 
   async remove(id: number): Promise<Post> {
+    const element = await this.prisma.post.findUniqueOrThrow({ where: { id } });
+    element.image && ImageInterceptor.deleteImage(element.image);
     return await this.prisma.post.delete({ where: { id } });
   }
 }

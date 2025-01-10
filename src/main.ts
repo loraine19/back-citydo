@@ -19,8 +19,9 @@ async function bootstrap() {
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
-  const { httpAdapter } = app.get(HttpAdapterHost);
+
   app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
+  const { httpAdapter } = app.get(HttpAdapterHost);
   app.useGlobalFilters(
     new ErrorFilter(),
     new HttpExeptionFilter(),

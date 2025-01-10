@@ -36,6 +36,8 @@ export class EventsController {
   @UseInterceptors(ImageInterceptor.create('events'))
   @ApiConsumes('multipart/form-data')
   async update(@Param('id', ParseIntPipe) id: number, @Body() data: UpdateEventDto, @UploadedFile() image: Express.Multer.File): Promise<Event> {
+    const event = await this.eventsService.findOne(id)
+    event.image && image && ImageInterceptor.deleteImage(event.image)
     data = await parseData(data, image)
     return this.eventsService.update(id, data)
   }

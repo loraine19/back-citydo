@@ -46,7 +46,6 @@ export class CreateProfileDto {
     @IsOptional()
     @Transform(({ value }) => value === 'true' ? true : false)
     @IsBoolean({ message: 'AddressShared must be a boolean' })
-
     addressShared: boolean;
 
     @ApiProperty({ enum: $Enums.AssistanceLevel, required: false })

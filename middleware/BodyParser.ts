@@ -24,3 +24,7 @@ export function parseData(dto: any, image?: Express.Multer.File) {
     (image && typeof image === 'object') && (dto = { ...dto, image: process.env.STORAGE + image.path.replace('dist', '') })
     return dto;
 }
+
+export const getDate = (days: number): Date => {
+    return new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+}

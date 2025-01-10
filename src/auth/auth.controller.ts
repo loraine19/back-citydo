@@ -36,7 +36,7 @@ export class AuthController {
   @ApiBearerAuth()
   @Post('refresh')
   @ApiOkResponse({ type: RefreshEntity })
-  async refresh(@Body() { refreshToken }: RefreshDto, @Req() req: RequestWithUser,): Promise<AuthEntity> {
+  async refresh(@Body() { refreshToken }: RefreshDto, @Req() req: RequestWithUser,): Promise<AuthEntity | { message: string }> {
 
     try {
       const id = req.user.sub

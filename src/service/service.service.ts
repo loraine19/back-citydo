@@ -4,6 +4,7 @@ import { $Enums, Profile, Service } from '@prisma/client';
 import { CreateServiceDto } from './dto/create-service.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
 import { GetPoints } from '../../middleware/GetPoints';
+import { ImageInterceptor } from 'middleware/ImageInterceptor';
 
 //// SERVICE MAKE ACTION
 @Injectable()
@@ -241,6 +242,8 @@ export class ServicesService {
   }
 
   async remove(id: number): Promise<Service> {
+    const service = await this.prisma.service.findUniqueOrThrow({ where: { id } });
+    service.image && ImageInterceptor.deleteImage(service.image)
     return await this.prisma.service.delete({ where: { id } });
   }
 }

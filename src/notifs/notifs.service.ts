@@ -2,12 +2,13 @@ import { Injectable } from '@nestjs/common';
 import { CreateNotifDto } from './dto/create-notif.dto';
 import { UpdateNotifDto } from './dto/update-notif.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { getDate } from 'middleware/BodyParser';
 
 @Injectable()
 export class NotifsService {
   constructor(private prisma: PrismaService) { }
 
-
+  before: number = 5
   async findAllByUserId(id: number): Promise<any[]> {
     const userId = id;
     const events = await this.prisma.event.findMany({
@@ -16,7 +17,7 @@ export class NotifsService {
           { userId },
           { Participants: { some: { userId } } }
         ],
-        AND: [{ updatedAt: { gte: new Date(new Date().setDate(new Date().getDate() - 5)) } }]
+        AND: [{ updatedAt: { gte: getDate(this.before) } }]
       }
     })
     const posts = await this.prisma.post.findMany({
@@ -24,7 +25,7 @@ export class NotifsService {
         OR: [
           { userId },
           { Likes: { some: { userId } } }],
-        AND: [{ updatedAt: { gte: new Date(new Date().setDate(new Date().getDate() - 5)) } }]
+        AND: [{ updatedAt: { gte: getDate(this.before) } }]
       }
     })
     const services = await this.prisma.service.findMany({
@@ -32,7 +33,7 @@ export class NotifsService {
         OR: [
           { userId },
           { userIdResp: userId }],
-        AND: [{ updatedAt: { gte: new Date(new Date().setDate(new Date().getDate() - 5)) } }]
+        AND: [{ updatedAt: { gte: getDate(this.before) } }]
       }
     })
     const issues = await this.prisma.issue.findMany({
@@ -42,15 +43,36 @@ export class NotifsService {
           { userIdModo: userId },
           { userIdModo2: userId }
         ],
-        AND: [{ updatedAt: { gte: new Date(new Date().setDate(new Date().getDate() - 5)) } }]
+        AND: [{ updatedAt: { gte: getDate(this.before) } }]
       }, include: { Service: true }
+    })
+    const pools = await this.prisma.pool.findMany({
+      where: {
+        OR: [
+          { userId },
+          { userIdBenef: userId },
+          { Votes: { some: { userId } } }
+        ],
+        AND: [{ updatedAt: { gte: getDate(this.before) } }]
+      }
+    })
+    const surveys = await this.prisma.survey.findMany({
+      where: {
+        OR: [
+          { userId },
+          { Votes: { some: { userId } } }
+        ],
+        AND: [{ updatedAt: { gte: getDate(this.before) } }]
+      }
     })
     const all = []
     const combinedResults = all.concat(
       events.map(event => ({ ...event, element: 'EVENT' })),
       posts.map(post => ({ ...post, element: 'POST' })),
       services.map(service => ({ ...service, element: 'SERVICE' })),
-      issues.map(issue => ({ ...issue, title: `${issue.Service.title}`, element: 'ISSUE' }))
+      issues.map(issue => ({ ...issue, title: `${issue.Service.title}`, element: 'ISSUE' })),
+      pools.map(pool => ({ ...pool, element: 'POOL' })),
+      surveys.map(survey => ({ ...survey, element: 'SURVEY' }))
     )
     return combinedResults.sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
   }

@@ -82,7 +82,6 @@ const CreateRandomGroupUser = (): CreateGroupUserDto => {
   }
 }
 
-
 const CreateRandomProfile = async (): Promise<CreateProfileDto> => {
   return {
     userId: newFaker.number.int({ min: 1, max: max / 3 }),
@@ -133,13 +132,14 @@ const CreateRandomService = async (): Promise<CreateServiceDto> => {
     hard: newFaker.helpers.arrayElement(Object.values($Enums.HardLevel)),
     status: userIdResp ? newFaker.helpers.arrayElement(Object.values($Enums.ServiceStep)) : $Enums.ServiceStep.STEP_0,
     image: (newFaker.image.urlPicsumPhotos({ width: 600, height: 400, blur: 0, grayscale: false })),
+    points: newFaker.number.int({ min: 0, max: 30 }),
+
   }
 }
 
 const CreateRandomIssue = async (): Promise<CreateIssueDto> => {
   const serviceId = newFaker.number.int({ min: 1, max })
   const service = await prisma.service.findUnique({ where: { id: serviceId } });
-
   const user = await prisma.user.findUnique({ where: { id: service.userId }, include: { GroupUser: true } })
   const modos = await prisma.user.findMany({
     where: {

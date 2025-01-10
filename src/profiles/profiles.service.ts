@@ -3,10 +3,11 @@ import { PrismaService } from '../../src/prisma/prisma.service';
 import { Profile } from '@prisma/client';
 import { CreateProfileDto } from './dto/create-profile.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { ImageInterceptor } from 'middleware/ImageInterceptor';
 //// SERVICE MAKE ACTION
 @Injectable()
 export class ProfilesService {
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService,) { }
   async create(data: CreateProfileDto): Promise<Profile> {
     const { userId, addressId, userIdSp, ...profile } = data
     const cond = await this.prisma.profile.findFirst({ where: { userId: userId } });
@@ -36,7 +37,6 @@ export class ProfilesService {
       updateData.UserSp = { connect: { id: userIdSp } };
     }
 
-    console.log(updateData)
     return await this.prisma.profile.update({
       where: { userId },
       data: updateData,
@@ -60,6 +60,8 @@ export class ProfilesService {
   }
 
   async remove(id: number): Promise<Profile> {
+    const element = await this.prisma.profile.findUniqueOrThrow({ where: { userId: id } });
+    element.image && ImageInterceptor.deleteImage(element.image)
     return await this.prisma.profile.delete({ where: { userId: id } });
   }
 }

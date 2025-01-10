@@ -57,4 +57,10 @@ export class CreateServiceDto {
     @IsOptional()
     @IsString({ message: 'image must be a link' })
     image: string;
+
+    @ApiProperty({ type: 'number', required: false })
+    @IsOptional()
+    @IsNumber({}, { message: 'points must be a number' })
+    @Type(() => Number)
+    points: number;
 }

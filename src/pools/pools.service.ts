@@ -24,7 +24,7 @@ export class PoolsService {
       include: {
         User: { select: { id: true, email: true, Profile: true } },
         UserBenef: { select: { id: true, email: true, Profile: true } },
-        Votes: { select: { User: { select: { id: true, email: true, Profile: true } } }, where: { target: $Enums.VoteTarget.POOL } }
+        Votes: { include: { User: { select: { id: true, email: true, Profile: true } } }, where: { target: $Enums.VoteTarget.POOL } }
       }
     }
     );

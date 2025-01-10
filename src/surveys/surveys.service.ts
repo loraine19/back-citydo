@@ -3,13 +3,12 @@ import { CreateSurveyDto } from './dto/create-survey.dto';
 import { $Enums, Survey } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { SurveyWithVote } from './entities/survey.entity';
+import { ImageInterceptor } from 'middleware/ImageInterceptor';
 
 
 @Injectable()
 export class SurveysService {
   constructor(private prisma: PrismaService) { }
-
-
   async create(data: CreateSurveyDto): Promise<Survey> {
     const { userId, ...survey } = data
     return await this.prisma.survey.create({ data: { ...survey, User: { connect: { id: userId } } } })
@@ -57,6 +56,8 @@ export class SurveysService {
   }
 
   async remove(id: number): Promise<Survey> {
+    const survey = await this.prisma.survey.findUniqueOrThrow({ where: { id } })
+    survey.image && ImageInterceptor.deleteImage(survey.image)
     return await this.prisma.survey.delete({ where: { id } });
   }
 }
