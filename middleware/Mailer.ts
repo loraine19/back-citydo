@@ -39,7 +39,7 @@ const sendEmail = async (to: string, subject: string, html: any) => {
 export const sendResetPasswordEmail = async (to: string, token: string) => {
     const subject = 'Initialisation de votre mot de passe';
     const html = generateVerificationEmailHtml('Vous avez demande une initialisation de votre mot de passe :',
-        `<a href=" ${process.env.STORAGE}/motdepasse_oublie/reset?email=${to}&token=${token}">Initialiser mon mot de passe</a>`);
+        `<a href="${process.env.FRONT_URL}/motdepasse_oublie/reset?email=${to}&token=${token}">Initialiser mon mot de passe</a>`);
     await sendEmail(to, subject, html);
 };
 
