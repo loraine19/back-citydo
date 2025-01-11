@@ -15,11 +15,15 @@ const createTransporter = () => {
 const sendEmail = async (to: string, subject: string, html: any) => {
     const transporter = createTransporter();
     const mailOptions = {
-        from: process.env.SMTP_FROM, to, subject, html, attachments: [
+        from: `${process.env.SMTP_FROM_NAME} <${process.env.SMTP_FROM}>`,
+        to,
+        subject,
+        html,
+        attachments: [
             {
                 filename: 'logo.png',
                 path: 'middleware/logo.png',
-                cid: 'unique@example.com' // The same value as in the img src
+                cid: 'collectif@images.com' // The same value as in the img src
             }
         ]
     };
@@ -102,7 +106,7 @@ const generateVerificationEmailHtml = (text: string, link: string) => {
     <body>
         <div class="container">
             <div class="header">
-                <h1>Collectif</h1> <img src="cid:unique@example.com" alt="Image">
+                <h1>Collectif</h1> <img src="cid:collectif@images.com" alt="Image">
             </div>
             <div class="content">
                 <p>Bonjour,</p>
