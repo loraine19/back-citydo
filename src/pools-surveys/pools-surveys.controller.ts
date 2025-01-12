@@ -12,8 +12,9 @@ export class PoolsSurveysController {
 
 
   @Get()
-  async findAll(): Promise<(Pool | Survey)[]> {
-    return this.poolsSurveysService.findAll();
+  async findAll(@Req() req: RequestWithUser): Promise<(Pool | Survey)[]> {
+    const userId = req.user.sub
+    return this.poolsSurveysService.findAll(userId);
   }
 
   @ApiBearerAuth()
@@ -25,8 +26,9 @@ export class PoolsSurveysController {
 
   @ApiBearerAuth()
   @Get('new')
-  async findNew(): Promise<(Pool | Survey)[]> {
-    return this.poolsSurveysService.findAllNew()
+  async findNew(@Req() req: RequestWithUser): Promise<(Pool | Survey)[]> {
+    const userId = req.user.sub
+    return this.poolsSurveysService.findAllNew(userId)
   }
 }
 

@@ -35,8 +35,9 @@ export class EventsController {
   @ApiBody({ type: UpdateEventDto })
   @UseInterceptors(ImageInterceptor.create('events'))
   @ApiConsumes('multipart/form-data')
-  async update(@Param('id', ParseIntPipe) id: number, @Body() data: UpdateEventDto, @UploadedFile() image: Express.Multer.File): Promise<Event> {
-    const event = await this.eventsService.findOne(id)
+  async update(@Param('id', ParseIntPipe) id: number, @Body() data: UpdateEventDto, @UploadedFile() image: Express.Multer.File, @Req() req: RequestWithUser): Promise<Event> {
+    const userId = req.user.sub
+    const event = await this.eventsService.findOne(id, userId)
     event.image && image && ImageInterceptor.deleteImage(event.image)
     data = await parseData(data, image)
     return this.eventsService.update(id, data)
@@ -46,8 +47,9 @@ export class EventsController {
   @Get()
   @ApiBearerAuth()
   @ApiOkResponse({ type: EventEntity, isArray: true })
-  async findAll(): Promise<Event[]> {
-    const events = await this.eventsService.findAll()
+  async findAll(@Req() req: RequestWithUser): Promise<Event[]> {
+    const userId = req.user.sub
+    const events = await this.eventsService.findAll(userId)
     return events;
   }
 
@@ -72,8 +74,9 @@ export class EventsController {
   @Get('validated')
   @ApiBearerAuth()
   @ApiOkResponse({ type: EventEntity })
-  async findAllValidated(): Promise<Event[]> {
-    return this.eventsService.findAllValidated()
+  async findAllValidated(@Req() req: RequestWithUser): Promise<Event[]> {
+    const userId = req.user.sub
+    return this.eventsService.findAllValidated(userId)
   }
 
   @Get('user/:id')
@@ -93,8 +96,9 @@ export class EventsController {
   @Get(':id')
   @ApiBearerAuth()
   @ApiOkResponse({ type: EventEntity })
-  async findOne(@Param('id', ParseIntPipe) id: number): Promise<Event> {
-    return this.eventsService.findOne(id)
+  async findOne(@Param('id', ParseIntPipe) id: number, @Req() req: RequestWithUser): Promise<Event> {
+    const userId = req.user.sub
+    return this.eventsService.findOne(id, userId)
   }
 
   @Delete(':id')

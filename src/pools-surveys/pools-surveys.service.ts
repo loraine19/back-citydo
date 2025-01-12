@@ -11,13 +11,13 @@ export class PoolsSurveysService {
   create(createPoolsSurveyDto: CreatePoolsSurveyDto) { }
 
 
-  async findAll(): Promise<(Pool | Survey)[]> {
+  async findAll(userId: number): Promise<(Pool | Survey)[]> {
     const pools = await this.prisma.pool.findMany(
       {
         include: {
           Votes: true,
           User: { select: { id: true, email: true, Profile: true } },
-          UserBenef: { select: { id: true, email: true, Profile: true } }
+          UserBenef: { select: { id: true, email: true, Profile: true } },
         }, orderBy: { updatedAt: 'desc' }
 
       }
@@ -26,6 +26,7 @@ export class PoolsSurveysService {
       include: {
         Votes: true,
         User: { select: { id: true, email: true, Profile: true } },
+        Flags: { where: { target: $Enums.FlagTarget.SURVEY, userId } }
       }, orderBy: { updatedAt: 'desc' }
 
     })
@@ -48,6 +49,7 @@ export class PoolsSurveysService {
       include: {
         Votes: true,
         User: { select: { id: true, email: true, Profile: true } },
+        Flags: { where: { target: $Enums.FlagTarget.SURVEY, userId } }
       }, orderBy: { updatedAt: 'desc' }
 
     })
@@ -55,7 +57,7 @@ export class PoolsSurveysService {
     return poolsSurveys.sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())
   }
 
-  async findAllNew(): Promise<(Pool | Survey)[]> {
+  async findAllNew(userId: number): Promise<(Pool | Survey)[]> {
     const pools = await this.prisma.pool.findMany({
       where: { createdAt: { gt: getDate(7) } },
       include: {
@@ -70,6 +72,9 @@ export class PoolsSurveysService {
       include: {
         Votes: true,
         User: { select: { id: true, email: true, Profile: true } },
+        Flags: {
+          where: { target: $Enums.FlagTarget.SURVEY, userId }
+        }
       }, orderBy: { updatedAt: 'desc' }
 
     })

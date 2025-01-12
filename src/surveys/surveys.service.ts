@@ -14,11 +14,12 @@ export class SurveysService {
     return await this.prisma.survey.create({ data: { ...survey, User: { connect: { id: userId } } } })
   }
 
-  async findAll(): Promise<Survey[]> {
+  async findAll(userId: number): Promise<Survey[]> {
     const surveys = await this.prisma.survey.findMany({
       include: {
         User: { select: { id: true, email: true, Profile: true } },
-        Votes: { select: { User: { select: { id: true, email: true, Profile: true } } }, where: { target: $Enums.VoteTarget.SURVEY } }
+        Votes: { select: { User: { select: { id: true, email: true, Profile: true } } }, where: { target: $Enums.VoteTarget.SURVEY } },
+        Flags: { where: { target: $Enums.FlagTarget.SURVEY, userId } }
       }
     })
     return surveys
@@ -30,18 +31,20 @@ export class SurveysService {
         where: { User: { is: { id: userId } } },
         include: {
           User: { select: { id: true, email: true, Profile: true } },
-          Votes: { select: { User: { select: { id: true, email: true, Profile: true } } }, where: { target: $Enums.VoteTarget.SURVEY } }
+          Votes: { select: { User: { select: { id: true, email: true, Profile: true } } }, where: { target: $Enums.VoteTarget.SURVEY } },
+          Flags: { where: { target: $Enums.FlagTarget.SURVEY, userId } }
         }
       })
     return surveys
   }
 
-  async findOne(id: number): Promise<Survey> {
+  async findOne(id: number, userId: number): Promise<Survey> {
     const survey = await this.prisma.survey.findUniqueOrThrow({
       where: { id },
       include: {
         User: { select: { id: true, email: true, Profile: true } },
-        Votes: { select: { User: { select: { id: true, email: true, Profile: true } } }, where: { target: $Enums.VoteTarget.SURVEY } }
+        Votes: { select: { User: { select: { id: true, email: true, Profile: true } } }, where: { target: $Enums.VoteTarget.SURVEY } },
+        Flags: { where: { target: $Enums.FlagTarget.SURVEY, userId } }
       }
     })
     return survey

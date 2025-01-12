@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { PrismaService } from '../../src/prisma/prisma.service';
-import { Event } from '@prisma/client';
+import { $Enums, Event } from '@prisma/client';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { ImageInterceptor } from 'middleware/ImageInterceptor';
@@ -16,7 +16,7 @@ export class EventsService {
     });
   }
 
-  async findAll(): Promise<Event[]> {
+  async findAll(userId: number): Promise<Event[]> {
     return await this.prisma.event.findMany(
       {
         include: {
@@ -24,8 +24,10 @@ export class EventsService {
           Participants: {
             include: { User: { select: { email: true, Profile: true, id: true } } }
           },
-          Address: true
+          Address: true,
+          Flags: { where: { target: $Enums.FlagTarget.EVENT, userId } }
         }
+        , orderBy: { start: 'asc' }
       }
     );
   }
@@ -36,8 +38,9 @@ export class EventsService {
       include: {
         User: { select: { id: true, email: true, Profile: true } },
         Participants: { include: { User: { select: { email: true, Profile: true, id: true } } } },
-        Address: true
-      }
+        Address: true,
+        Flags: { where: { target: $Enums.FlagTarget.EVENT } }
+      }, orderBy: { start: 'asc' }
     })
     //if (!events.length) throw new HttpException(`no events found`, HttpStatus.NO_CONTENT);
     return events
@@ -49,32 +52,34 @@ export class EventsService {
       include: {
         User: { select: { id: true, email: true, Profile: true } },
         Participants: { include: { User: { select: { email: true, Profile: true, id: true } } } },
-        Address: true
-      }
+        Address: true,
+        Flags: { where: { target: $Enums.FlagTarget.EVENT, userId } }
+      }, orderBy: { start: 'asc' }
     })
-    //if (!events.length) throw new HttpException(`no events found`, HttpStatus.NO_CONTENT);
     return events
   }
 
-  async findAllValidated(): Promise<Event[]> {
+  async findAllValidated(userId: number): Promise<Event[]> {
     const events = await this.prisma.event.findMany({
       include: {
         User: { select: { email: true, Profile: true } },
         Participants: { include: { User: { select: { email: true, Profile: true, id: true } } } },
-        Address: true
-      }
+        Address: true,
+        Flags: { where: { target: $Enums.FlagTarget.EVENT, userId } }
+      }, orderBy: { start: 'asc' }
     });
     return events.filter(event => event.Participants.length >= event.participantsMin);
   }
 
 
-  async findOne(id: number): Promise<Event> {
+  async findOne(id: number, userId: number): Promise<Event> {
     return await this.prisma.event.findUniqueOrThrow({
       where: { id },
       include: {
         User: { select: { email: true, Profile: true } },
         Participants: { include: { User: { select: { email: true, Profile: true, id: true } } } },
-        Address: true
+        Address: true,
+        Flags: { where: { target: $Enums.FlagTarget.EVENT, userId } }
       },
     });
   }

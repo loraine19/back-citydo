@@ -15,12 +15,13 @@ export class ServicesService {
     return await this.prisma.service.create({ data: { ...service, User: { connect: { id: userId } } } })
   }
 
-  async findAll(): Promise<Service[]> {
+  async findAll(userId: number): Promise<Service[]> {
     return await this.prisma.service.findMany({
       where: { status: { in: [$Enums.ServiceStep.STEP_0, $Enums.ServiceStep.STEP_1] } },
       include: {
         User: { select: { id: true, email: true, Profile: true } },
-        UserResp: { select: { id: true, email: true, Profile: true } }
+        UserResp: { select: { id: true, email: true, Profile: true } },
+        Flags: { where: { target: $Enums.FlagTarget.SERVICE, userId } }
       }
     });
   }
@@ -36,7 +37,8 @@ export class ServicesService {
         },
         include: {
           User: { select: { id: true, email: true, Profile: true } },
-          UserResp: { select: { id: true, email: true, Profile: true } }
+          UserResp: { select: { id: true, email: true, Profile: true } },
+          Flags: { where: { target: $Enums.FlagTarget.SERVICE, userId } }
         }
       }
     )
@@ -53,7 +55,8 @@ export class ServicesService {
       },
       include: {
         User: { select: { id: true, email: true, Profile: true } },
-        UserResp: { select: { id: true, email: true, Profile: true } }
+        UserResp: { select: { id: true, email: true, Profile: true } },
+        Flags: { where: { target: $Enums.FlagTarget.SERVICE, userId } }
       }
     });
     return services;
@@ -71,7 +74,8 @@ export class ServicesService {
         },
         include: {
           User: { select: { id: true, email: true, Profile: true } },
-          UserResp: { select: { id: true, email: true, Profile: true } }
+          UserResp: { select: { id: true, email: true, Profile: true } },
+          Flags: { where: { target: $Enums.FlagTarget.SERVICE, userId } }
         }
       }
     )
@@ -89,7 +93,8 @@ export class ServicesService {
         },
         include: {
           User: { select: { id: true, email: true, Profile: true } },
-          UserResp: { select: { id: true, email: true, Profile: true } }
+          UserResp: { select: { id: true, email: true, Profile: true } },
+          Flags: { where: { target: $Enums.FlagTarget.SERVICE, userId } }
         }
       }
     )
@@ -101,7 +106,8 @@ export class ServicesService {
       {
         where: { User: { is: { id: userId } } }, include: {
           User: { select: { id: true, email: true, Profile: true } },
-          UserResp: { select: { id: true, email: true, Profile: true } }
+          UserResp: { select: { id: true, email: true, Profile: true } },
+          Flags: { where: { target: $Enums.FlagTarget.SERVICE, userId } }
         }
       }
     )
@@ -114,50 +120,52 @@ export class ServicesService {
         where: { UserResp: { is: { id: userId } } },
         include: {
           User: { select: { id: true, email: true, Profile: true } },
-          UserResp: { select: { id: true, email: true, Profile: true } }
+          UserResp: { select: { id: true, email: true, Profile: true } },
+          Flags: { where: { target: $Enums.FlagTarget.SERVICE, userId } }
         }
       }
     )
-    //   if (!services.length) throw new HttpException(`no services found`, HttpStatus.NO_CONTENT);
     return services
   }
 
-  async findAllGet(): Promise<Service[]> {
+  async findAllGet(userId: number): Promise<Service[]> {
     const services = await this.prisma.service.findMany(
       {
         where: { type: $Enums.ServiceType.GET, status: { notIn: [$Enums.ServiceStep.STEP_3, $Enums.ServiceStep.STEP_4] } },
         include: {
           User: { select: { id: true, email: true, Profile: true } },
-          UserResp: { select: { id: true, email: true, Profile: true } }
+          UserResp: { select: { id: true, email: true, Profile: true } },
+          Flags: { where: { target: $Enums.FlagTarget.SERVICE, userId } }
         }
       }
     )
-    //   if (!services.length) throw new HttpException(`no services found`, HttpStatus.NO_CONTENT);
     return services
   }
 
 
-  async findAllDo(): Promise<Service[]> {
+  async findAllDo(userId: number): Promise<Service[]> {
     const services = await this.prisma.service.findMany(
       {
         where: { type: $Enums.ServiceType.DO, status: { notIn: [$Enums.ServiceStep.STEP_3, $Enums.ServiceStep.STEP_4] } },
         include: {
           User: { select: { id: true, email: true, Profile: true } },
-          UserResp: { select: { id: true, email: true, Profile: true } }
+          UserResp: { select: { id: true, email: true, Profile: true } },
+          Flags: { where: { target: $Enums.FlagTarget.SERVICE, userId } }
         }
       }
     )
-    //   if (!services.length) throw new HttpException(`no services found`, HttpStatus.NO_CONTENT);
+
     return services
   }
 
 
-  async findOne(id: number): Promise<Service> {
+  async findOne(id: number, userId: number): Promise<Service> {
     return await this.prisma.service.findUniqueOrThrow({
       where: { id },
       include: {
         User: { select: { id: true, email: true, Profile: true } },
-        UserResp: { select: { id: true, email: true, Profile: true } }
+        UserResp: { select: { id: true, email: true, Profile: true } },
+        Flags: { where: { target: $Enums.FlagTarget.SERVICE, userId } }
       }
     });
   }

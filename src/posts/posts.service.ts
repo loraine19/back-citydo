@@ -2,7 +2,7 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { PrismaService } from '../../src/prisma/prisma.service';
-import { Post } from '@prisma/client';
+import { $Enums, Post } from '@prisma/client';
 import { ImageInterceptor } from 'middleware/ImageInterceptor';
 
 @Injectable()
@@ -14,22 +14,27 @@ export class PostsService {
     return await this.prisma.post.create({ data: { ...post, User: { connect: { id: userId } } } })
   }
 
-  async findAll(): Promise<Post[]> {
+  async findAll(userId: number): Promise<Post[]> {
     const posts = await this.prisma.post.findMany({
       include: {
         User: { select: { email: true, Profile: true } },
-        Likes: { include: { User: { select: { email: true, Profile: true, id: true } } } }
-      }
+        Likes: { include: { User: { select: { email: true, Profile: true, id: true } } } },
+        Flags: { where: { target: $Enums.FlagTarget.POST, userId } }
+      },
+      orderBy: { Likes: { _count: 'desc' } }
     });
-
-    return posts.sort((a, b) => b.Likes.length - a.Likes.length);
+    return posts
   }
 
 
-  async findOne(id: number): Promise<Post> {
+  async findOne(id: number, userId: number): Promise<Post> {
     return await this.prisma.post.findUniqueOrThrow({
       where: { id },
-      include: { User: { select: { email: true, Profile: true, id: true } }, Likes: { include: { User: { select: { email: true, Profile: true, id: true } } } } }
+      include: {
+        User: { select: { email: true, Profile: true, id: true } },
+        Likes: { include: { User: { select: { email: true, Profile: true, id: true } } } },
+        Flags: { where: { target: $Enums.FlagTarget.POST, userId } }
+      }
 
     });
   }
@@ -37,11 +42,13 @@ export class PostsService {
   async findAllByUserId(userId: number): Promise<Post[]> {
     const posts = await this.prisma.post.findMany({
       where: { userId },
-      include: { User: { select: { email: true, Profile: true, id: true } }, Likes: { include: { User: { select: { email: true, Profile: true, id: true } } } } }
+      include: { User: { select: { email: true, Profile: true, id: true } }, Likes: { include: { User: { select: { email: true, Profile: true, id: true } } } } },
+      orderBy: { Likes: { _count: 'desc' } }
     });
-    // if (!posts || posts.length === 0) throw new HttpException(`no posts found for ${userId}`, HttpStatus.NO_CONTENT);
-    return posts.sort((a, b) => b.Likes.length - a.Likes.length);
+    return posts
   }
+
+
 
   async findAllByLikeId(userId: number): Promise<Post[]> {
     const posts = await this.prisma.post.findMany({
@@ -49,9 +56,24 @@ export class PostsService {
       include: {
         User: { select: { id: true, email: true, Profile: true } },
         Likes: { include: { User: { select: { email: true, Profile: true, id: true } } } },
-      }
+      },
+      orderBy: { Likes: { _count: 'desc' } }
     });
-    return posts.sort((a, b) => b.Likes.length - a.Likes.length);
+    return posts
+  }
+
+
+  async findAllILike(userId: number): Promise<Post[]> {
+    const posts = await this.prisma.post.findMany({
+      where: { Likes: { some: { userId } } },
+      include: {
+        User: { select: { id: true, email: true, Profile: true } },
+        Likes: { include: { User: { select: { email: true, Profile: true, id: true } } } },
+        Flags: { where: { target: $Enums.FlagTarget.POST, userId } }
+      },
+      orderBy: { Likes: { _count: 'desc' } }
+    });
+    return posts
   }
 
 

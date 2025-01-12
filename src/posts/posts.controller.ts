@@ -42,7 +42,7 @@ export class PostsController {
   @ApiConsumes('multipart/form-data', 'application/json')
   async update(@Param('id', ParseIntPipe) id: number, @Body() data: UpdatePostDto, @UploadedFile() image: Express.Multer.File, @Req() req: RequestWithUser): Promise<PostEntity> {
     data.userId = req.user.sub
-    const post = await this.postsService.findOne(id)
+    const post = await this.postsService.findOne(id, data.userId)
     post.image && image && ImageInterceptor.deleteImage(post.image)
     data = await parseData(data, image)
     return this.postsService.update(id, data)
@@ -51,8 +51,9 @@ export class PostsController {
   @Get()
   @ApiBearerAuth()
   @ApiOkResponse({ type: PostEntity, isArray: true })
-  async findAll(): Promise<PostEntity[]> {
-    const posts = await this.postsService.findAll()
+  async findAll(@Req() req: RequestWithUser): Promise<PostEntity[]> {
+    const userId = req.user.sub
+    const posts = await this.postsService.findAll(userId)
     if (posts.length === 0) throw new NotFoundException(`no one ${route} find`)
     return posts
   }
@@ -75,8 +76,9 @@ export class PostsController {
 
   @Get(':id')
   @ApiBearerAuth()
-  findOne(@Param('id', ParseIntPipe) id: number): Promise<PostEntity> {
-    return this.postsService.findOne(id);
+  findOne(@Param('id', ParseIntPipe) id: number, @Req() req: RequestWithUser): Promise<PostEntity> {
+    const userId = req.user.sub
+    return this.postsService.findOne(id, userId);
   }
 
 

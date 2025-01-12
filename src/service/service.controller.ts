@@ -37,7 +37,7 @@ export class ServicesController {
   @UseInterceptors(ImageInterceptor.create('service'))
   @ApiConsumes('multipart/form-data', 'application/json')
   async update(@Param('id', ParseIntPipe) id: number, @Body() data: UpdateServiceDto, @UploadedFile() image: Express.Multer.File,): Promise<Service> {
-    const service = await this.serviceService.findOne(id)
+    const service = await this.serviceService.findOne(id, data.userId)
     service.image && image && ImageInterceptor.deleteImage(service.image)
     data = parseData(data, image)
     return this.serviceService.update(id, data);
@@ -72,24 +72,27 @@ export class ServicesController {
   @Get()
   @ApiBearerAuth()
   @ApiResponse({ type: ServiceEntity, isArray: true })
-  async findAll(): Promise<Service[]> {
-    const services = await this.serviceService.findAll();
+  async findAll(@Req() req: RequestWithUser): Promise<Service[]> {
+    const userId = req.user.sub
+    const services = await this.serviceService.findAll(userId);
     return services;
   }
 
   @Get('get')
   @ApiBearerAuth()
   @ApiResponse({ type: ServiceEntity, isArray: true })
-  async findAllGet(): Promise<Service[]> {
-    const services = await this.serviceService.findAllGet();
+  async findAllGet(@Req() req: RequestWithUser): Promise<Service[]> {
+    const userId = req.user.sub
+    const services = await this.serviceService.findAllGet(userId);
     return services;
   }
 
   @Get('do')
   @ApiBearerAuth()
   @ApiResponse({ type: ServiceEntity, isArray: true })
-  async findAllDo(): Promise<Service[]> {
-    const services = await this.serviceService.findAllDo();
+  async findAllDo(@Req() req: RequestWithUser): Promise<Service[]> {
+    const userId = req.user.sub
+    const services = await this.serviceService.findAllDo(userId);
     return services;
   }
 
@@ -146,8 +149,9 @@ export class ServicesController {
   @Get(':id')
   @ApiBearerAuth()
   @ApiOkResponse({ type: ServiceEntity })
-  findOne(@Param('id', ParseIntPipe) id: number): Promise<Service> {
-    return this.serviceService.findOne(id);
+  findOne(@Param('id', ParseIntPipe) id: number, @Req() req: RequestWithUser): Promise<Service> {
+    const userId = req.user.sub
+    return this.serviceService.findOne(id, userId);
   }
 
   @Get('user/:id')

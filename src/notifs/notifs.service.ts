@@ -67,12 +67,12 @@ export class NotifsService {
     })
     const all = []
     const combinedResults = all.concat(
-      events.map(event => ({ ...event, element: 'EVENT' })),
-      posts.map(post => ({ ...post, element: 'POST' })),
-      services.map(service => ({ ...service, element: 'SERVICE' })),
-      issues.map(issue => ({ ...issue, title: `${issue.Service.title}`, element: 'ISSUE' })),
-      pools.map(pool => ({ ...pool, element: 'POOL' })),
-      surveys.map(survey => ({ ...survey, element: 'SURVEY' }))
+      events.map(event => ({ ...event, element: 'EVENT', read: false })),
+      posts.map(post => ({ ...post, element: 'POST', read: false })),
+      services.map(service => ({ ...service, element: 'SERVICE', read: false })),
+      issues.map(issue => ({ ...issue, title: `${issue.Service.title}`, element: 'ISSUE', read: false })),
+      pools.map(pool => ({ ...pool, element: 'POOL', read: false })),
+      surveys.map(survey => ({ ...survey, element: 'SURVEY', read: false }))
     )
     return combinedResults.sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
   }

@@ -61,41 +61,24 @@ export class FlagsController {
   @Get('event')
   @ApiBearerAuth()
   @ApiResponse({ type: FlagEntity, isArray: true })
-  async findAllEvent(): Promise<Flag[]> {
-    const flags = await this.flagsService.findAllEvent()
-    if (!flags.length) throw new HttpException(`no ${route} found`, HttpStatus.NO_CONTENT);
+  async findAllEvent(@Req() req: RequestWithUser): Promise<Flag[]> {
+    const userId = req.user.sub
+    const flags = await this.flagsService.findAllEventByUserId(userId)
     return flags
   }
 
-  //// Retrieve all event flags created by a specific user
-  @Get('event/user/:userId')
-  @ApiBearerAuth()
-  @ApiResponse({ type: FlagEntity, isArray: true })
-  async findAllEventByUserId(@Param('userId', ParseIntPipe) userId: number): Promise<Flag[]> {
-    const flags = await this.flagsService.findAllEventByUserId(userId)
-    if (!flags.length) throw new HttpException(`no ${route} found`, HttpStatus.NO_CONTENT);
-    return flags
-  }
+
 
   //// Retrieve all survey flags
   @Get('survey')
   @ApiBearerAuth()
   @ApiResponse({ type: FlagEntity, isArray: true })
-  async findAllSurvey(): Promise<Flag[]> {
-    const flags = await this.flagsService.findAllSurvey()
-    if (!flags.length) throw new HttpException(`no ${route} found`, HttpStatus.NO_CONTENT);
+  async findAllSurvey(@Req() req: RequestWithUser): Promise<Flag[]> {
+    const userId = req.user.sub
+    const flags = await this.flagsService.findAllSurveyByUserId(userId)
     return flags
   }
 
-  //// Retrieve all survey flags created by a specific user
-  @Get('survey/user/:userId')
-  @ApiBearerAuth()
-  @ApiResponse({ type: FlagEntity, isArray: true })
-  async findAllSurveyByUserId(@Param('userId', ParseIntPipe) userId: number): Promise<Flag[]> {
-    const flags = await this.flagsService.findAllSurveyByUserId(userId)
-    if (!flags.length) throw new HttpException(`no ${route} found`, HttpStatus.NO_CONTENT);
-    return flags
-  }
 
   //// Retrieve all post flags
   @Get('post')
@@ -104,41 +87,21 @@ export class FlagsController {
   async findAllPost(@Req() req: RequestWithUser): Promise<Flag[]> {
     const userId = req.user.sub
     const flags = await this.flagsService.findAllPost(userId)
-    // if (!flags.length) throw new HttpException(`no ${route} found`, HttpStatus.NO_CONTENT);
     return flags
   }
 
-  //// Retrieve all post flags created by a specific user
-  @Get('post/user/:userId')
-  @ApiBearerAuth()
-  @ApiResponse({ type: FlagEntity, isArray: true })
-  async findAllPostByUserId(@Param('userId', ParseIntPipe) userId: number): Promise<Flag[]> {
-    const flags = await this.flagsService.findAllPostByUserId(userId)
-    if (!flags.length) throw new HttpException(`no ${route} found`, HttpStatus.NO_CONTENT);
-    return flags
-  }
+
 
   //// Retrieve all service flags
   @Get('service')
   @ApiBearerAuth()
   @ApiResponse({ type: FlagEntity, isArray: true })
-  async findAllService(): Promise<Flag[]> {
-    const flags = await this.flagsService.findAllService()
-    if (!flags.length) throw new HttpException(`no ${route} found`, HttpStatus.NO_CONTENT);
-    return flags
-  }
-
-
-
-  //// Retrieve all service flags created by a specific user
-  @Get('service/user/:userId')
-  @ApiBearerAuth()
-  @ApiResponse({ type: FlagEntity, isArray: true })
-  async findAllServiceByUserId(@Param('userId', ParseIntPipe) userId: number): Promise<Flag[]> {
+  async findAllService(@Req() req: RequestWithUser): Promise<Flag[]> {
+    const userId = req.user.sub;
     const flags = await this.flagsService.findAllServiceByUserId(userId)
-    if (!flags.length) throw new HttpException(`no ${route} found`, HttpStatus.NO_CONTENT);
     return flags
   }
+
 
   //// Retrieve a specific flag by userId, target, and targetId
   @Get('user:userId/target:target/targetId:targetId')

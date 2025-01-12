@@ -34,8 +34,9 @@ export class SurveysController {
   @ApiBody({ type: UpdateSurveyDto })
   @UseInterceptors(ImageInterceptor.create('survey'))
   @ApiConsumes('multipart/form-data', 'application/json')
-  async update(@Param('id', ParseIntPipe) id: number, @Body() data: UpdateSurveyDto, @UploadedFile() image: Express.Multer.File,): Promise<Survey> {
-    const survey = await this.surveysService.findOne(id)
+  async update(@Param('id', ParseIntPipe) id: number, @Body() data: UpdateSurveyDto, @UploadedFile() image: Express.Multer.File, @Req() req: RequestWithUser): Promise<Survey> {
+    const userId = req.user.sub
+    const survey = await this.surveysService.findOne(id, userId)
     survey.image && image && ImageInterceptor.deleteImage(survey.image)
     data = parseData(data, image)
     return this.surveysService.update(id, data);
@@ -45,8 +46,9 @@ export class SurveysController {
   @Get()
   @ApiBearerAuth()
   @ApiOkResponse({ type: SurveyEntity, isArray: true })
-  findAll(): Promise<Survey[]> {
-    return this.surveysService.findAll();
+  findAll(@Req() req: RequestWithUser): Promise<Survey[]> {
+    const userId = req.user.sub
+    return this.surveysService.findAll(userId);
   }
 
 
@@ -55,8 +57,9 @@ export class SurveysController {
   @Get(':id')
   @ApiBearerAuth()
   @ApiOkResponse({ type: SurveyEntity })
-  findOne(@Param('id', ParseIntPipe) id: number): Promise<Survey> {
-    return this.surveysService.findOne(id);
+  findOne(@Param('id', ParseIntPipe) id: number, @Req() req: RequestWithUser): Promise<Survey> {
+    const userId = req.user.sub
+    return this.surveysService.findOne(id, userId);
   }
   @Get('mines')
   @ApiBearerAuth()

@@ -45,4 +45,6 @@ export class PostEntity implements Post {
     @ApiProperty({ enum: $Enums.Share })
     @IsEnum($Enums.Share)
     share: $Enums.Share;
+
+
 }
