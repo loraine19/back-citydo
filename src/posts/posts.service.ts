@@ -17,7 +17,7 @@ export class PostsService {
   async findAll(userId: number): Promise<Post[]> {
     const posts = await this.prisma.post.findMany({
       include: {
-        User: { select: { email: true, Profile: true } },
+        User: { select: { email: true, Profile: { include: { Address: true } } } },
         Likes: { include: { User: { select: { email: true, Profile: true, id: true } } } },
         Flags: { where: { target: $Enums.FlagTarget.POST, userId } }
       },
@@ -31,7 +31,7 @@ export class PostsService {
     return await this.prisma.post.findUniqueOrThrow({
       where: { id },
       include: {
-        User: { select: { email: true, Profile: true, id: true } },
+        User: { select: { email: true, Profile: { include: { Address: true } }, id: true } },
         Likes: { include: { User: { select: { email: true, Profile: true, id: true } } } },
         Flags: { where: { target: $Enums.FlagTarget.POST, userId } }
       }
