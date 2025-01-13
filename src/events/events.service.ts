@@ -20,7 +20,7 @@ export class EventsService {
     return await this.prisma.event.findMany(
       {
         include: {
-          User: { select: { email: true, Profile: true } },
+          User: { select: { email: true, Profile: { include: { Address: true } } } },
           Participants: {
             include: { User: { select: { email: true, Profile: true, id: true } } }
           },
@@ -36,7 +36,9 @@ export class EventsService {
     const events = await this.prisma.event.findMany({
       where: { userId },
       include: {
-        User: { select: { id: true, email: true, Profile: true } },
+        User: {
+          select: { id: true, email: true, Profile: { include: { Address: true } } }
+        },
         Participants: { include: { User: { select: { email: true, Profile: true, id: true } } } },
         Address: true,
         Flags: { where: { target: $Enums.FlagTarget.EVENT } }
@@ -50,7 +52,7 @@ export class EventsService {
     const events = await this.prisma.event.findMany({
       where: { Participants: { some: { userId } } },
       include: {
-        User: { select: { id: true, email: true, Profile: true } },
+        User: { select: { id: true, email: true, Profile: { include: { Address: true } } } },
         Participants: { include: { User: { select: { email: true, Profile: true, id: true } } } },
         Address: true,
         Flags: { where: { target: $Enums.FlagTarget.EVENT, userId } }
@@ -62,7 +64,7 @@ export class EventsService {
   async findAllValidated(userId: number): Promise<Event[]> {
     const events = await this.prisma.event.findMany({
       include: {
-        User: { select: { email: true, Profile: true } },
+        User: { select: { email: true, Profile: { include: { Address: true } } } },
         Participants: { include: { User: { select: { email: true, Profile: true, id: true } } } },
         Address: true,
         Flags: { where: { target: $Enums.FlagTarget.EVENT, userId } }
@@ -76,7 +78,7 @@ export class EventsService {
     return await this.prisma.event.findUniqueOrThrow({
       where: { id },
       include: {
-        User: { select: { email: true, Profile: true } },
+        User: { select: { email: true, Profile: { include: { Address: true } } } },
         Participants: { include: { User: { select: { email: true, Profile: true, id: true } } } },
         Address: true,
         Flags: { where: { target: $Enums.FlagTarget.EVENT, userId } }

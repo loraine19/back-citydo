@@ -22,8 +22,8 @@ export class PoolsService {
   async findAll(): Promise<Pool[]> {
     const pools = await this.prisma.pool.findMany({
       include: {
-        User: { select: { id: true, email: true, Profile: true } },
-        UserBenef: { select: { id: true, email: true, Profile: true } },
+        User: { select: { id: true, email: true, Profile: { include: { Address: true } } } },
+        UserBenef: { select: { id: true, email: true, Profile: { include: { Address: true } } } },
         Votes: { include: { User: { select: { id: true, email: true, Profile: true } } }, where: { target: $Enums.VoteTarget.POOL } }
       }
     }
@@ -37,8 +37,8 @@ export class PoolsService {
     const pools = await this.prisma.pool.findMany({
       where: { userId },
       include: {
-        User: { select: { id: true, email: true, Profile: true } },
-        UserBenef: { select: { id: true, email: true, Profile: true } },
+        User: { select: { id: true, email: true, Profile: { include: { Address: true } } } },
+        UserBenef: { select: { id: true, email: true, Profile: { include: { Address: true } } } },
         Votes: { select: { User: { select: { id: true, email: true, Profile: true } } }, where: { target: $Enums.VoteTarget.POOL } }
       }
     })
@@ -49,8 +49,8 @@ export class PoolsService {
   async findOne(id: number): Promise<Pool> {
     return await this.prisma.pool.findUniqueOrThrow({
       where: { id }, include: {
-        User: { select: { id: true, email: true, Profile: true } },
-        UserBenef: { select: { id: true, email: true, Profile: true } },
+        User: { select: { id: true, email: true, Profile: { include: { Address: true } } } },
+        UserBenef: { select: { id: true, email: true, Profile: { include: { Address: true } } } },
         Votes: { select: { User: { select: { id: true, email: true, Profile: true } } }, where: { target: $Enums.VoteTarget.POOL } }
       }
 

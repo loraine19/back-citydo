@@ -18,7 +18,7 @@ RUN npx prisma generate
 RUN npx run migrate
 
 
-# Expose the port the app runs on, here, I was using port 3333
+# Expose the port the app runs on, here
 EXPOSE 3333
 EXPOSE 3000
 # Command to run the app

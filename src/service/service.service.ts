@@ -19,8 +19,8 @@ export class ServicesService {
     return await this.prisma.service.findMany({
       where: { status: { in: [$Enums.ServiceStep.STEP_0, $Enums.ServiceStep.STEP_1] } },
       include: {
-        User: { select: { id: true, email: true, Profile: true } },
-        UserResp: { select: { id: true, email: true, Profile: true } },
+        User: { select: { id: true, email: true, Profile: { include: { Address: true } } } },
+        UserResp: { select: { id: true, email: true, Profile: { include: { Address: true } } } },
         Flags: { where: { target: $Enums.FlagTarget.SERVICE, userId } }
       }
     });
@@ -36,8 +36,8 @@ export class ServicesService {
           ]
         },
         include: {
-          User: { select: { id: true, email: true, Profile: true } },
-          UserResp: { select: { id: true, email: true, Profile: true } },
+          User: { select: { id: true, email: true, Profile: { include: { Address: true } } } },
+          UserResp: { select: { id: true, email: true, Profile: { include: { Address: true } } } },
           Flags: { where: { target: $Enums.FlagTarget.SERVICE, userId } }
         }
       }
@@ -54,8 +54,8 @@ export class ServicesService {
         status: status
       },
       include: {
-        User: { select: { id: true, email: true, Profile: true } },
-        UserResp: { select: { id: true, email: true, Profile: true } },
+        User: { select: { id: true, email: true, Profile: { include: { Address: true } } } },
+        UserResp: { select: { id: true, email: true, Profile: { include: { Address: true } } } },
         Flags: { where: { target: $Enums.FlagTarget.SERVICE, userId } }
       }
     });
@@ -73,8 +73,8 @@ export class ServicesService {
           type: $Enums.ServiceType.GET
         },
         include: {
-          User: { select: { id: true, email: true, Profile: true } },
-          UserResp: { select: { id: true, email: true, Profile: true } },
+          User: { select: { id: true, email: true, Profile: { include: { Address: true } } } },
+          UserResp: { select: { id: true, email: true, Profile: { include: { Address: true } } } },
           Flags: { where: { target: $Enums.FlagTarget.SERVICE, userId } }
         }
       }
@@ -92,8 +92,8 @@ export class ServicesService {
           type: $Enums.ServiceType.DO
         },
         include: {
-          User: { select: { id: true, email: true, Profile: true } },
-          UserResp: { select: { id: true, email: true, Profile: true } },
+          User: { select: { id: true, email: true, Profile: { include: { Address: true } } } },
+          UserResp: { select: { id: true, email: true, Profile: { include: { Address: true } } } },
           Flags: { where: { target: $Enums.FlagTarget.SERVICE, userId } }
         }
       }
@@ -105,8 +105,8 @@ export class ServicesService {
     const services = await this.prisma.service.findMany(
       {
         where: { User: { is: { id: userId } } }, include: {
-          User: { select: { id: true, email: true, Profile: true } },
-          UserResp: { select: { id: true, email: true, Profile: true } },
+          User: { select: { id: true, email: true, Profile: { include: { Address: true } } } },
+          UserResp: { select: { id: true, email: true, Profile: { include: { Address: true } } } },
           Flags: { where: { target: $Enums.FlagTarget.SERVICE, userId } }
         }
       }
@@ -119,8 +119,8 @@ export class ServicesService {
       {
         where: { UserResp: { is: { id: userId } } },
         include: {
-          User: { select: { id: true, email: true, Profile: true } },
-          UserResp: { select: { id: true, email: true, Profile: true } },
+          User: { select: { id: true, email: true, Profile: { include: { Address: true } } } },
+          UserResp: { select: { id: true, email: true, Profile: { include: { Address: true } } } },
           Flags: { where: { target: $Enums.FlagTarget.SERVICE, userId } }
         }
       }
@@ -133,8 +133,8 @@ export class ServicesService {
       {
         where: { type: $Enums.ServiceType.GET, status: { notIn: [$Enums.ServiceStep.STEP_3, $Enums.ServiceStep.STEP_4] } },
         include: {
-          User: { select: { id: true, email: true, Profile: true } },
-          UserResp: { select: { id: true, email: true, Profile: true } },
+          User: { select: { id: true, email: true, Profile: { include: { Address: true } } } },
+          UserResp: { select: { id: true, email: true, Profile: { include: { Address: true } } } },
           Flags: { where: { target: $Enums.FlagTarget.SERVICE, userId } }
         }
       }
@@ -148,8 +148,8 @@ export class ServicesService {
       {
         where: { type: $Enums.ServiceType.DO, status: { notIn: [$Enums.ServiceStep.STEP_3, $Enums.ServiceStep.STEP_4] } },
         include: {
-          User: { select: { id: true, email: true, Profile: true } },
-          UserResp: { select: { id: true, email: true, Profile: true } },
+          User: { select: { id: true, email: true, Profile: { include: { Address: true } } } },
+          UserResp: { select: { id: true, email: true, Profile: { include: { Address: true } } } },
           Flags: { where: { target: $Enums.FlagTarget.SERVICE, userId } }
         }
       }
@@ -163,8 +163,8 @@ export class ServicesService {
     return await this.prisma.service.findUniqueOrThrow({
       where: { id },
       include: {
-        User: { select: { id: true, email: true, Profile: true } },
-        UserResp: { select: { id: true, email: true, Profile: true } },
+        User: { select: { id: true, email: true, Profile: { include: { Address: true } } } },
+        UserResp: { select: { id: true, email: true, Profile: { include: { Address: true } } } },
         Flags: { where: { target: $Enums.FlagTarget.SERVICE, userId } }
       }
     });
@@ -227,8 +227,8 @@ export class ServicesService {
 
   async updateFinish(id: number, userId: number): Promise<Service> {
     const service = await this.prisma.service.findUnique({ where: { id } });
-    const user = await this.prisma.user.findUnique({ where: { id: userId }, include: { Profile: true } });
-    const userResp = await this.prisma.user.findUnique({ where: { id: service.userIdResp }, include: { Profile: true } });
+    const user = await this.prisma.user.findUnique({ where: { id: userId }, include: { Profile: { include: { Address: true } } } });
+    const userResp = await this.prisma.user.findUnique({ where: { id: service.userIdResp }, include: { Profile: { include: { Address: true } } } });
     const points = GetPoints(service, userResp.Profile);
     if (service.userId !== userId) {
       throw new HttpException(`You are not allowed to update this service`, HttpStatus.FORBIDDEN)
