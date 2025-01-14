@@ -1,4 +1,4 @@
-import { $Enums, PrismaClient } from '@prisma/client';
+import { $Enums, AssistanceLevel, PrismaClient } from '@prisma/client';
 import { CreateServiceDto } from 'src/service/dto/create-service.dto';
 import { fr, base, Faker, } from '@faker-js/faker';
 import type { LocaleDefinition } from '@faker-js/faker';
@@ -16,6 +16,7 @@ import { CreateVoteDto } from 'src/votes/dto/create-vote.dto';
 import { Decimal, } from '@prisma/client/runtime/library';
 import { CreateFlagDto } from 'src/flags/dto/create-flag.dto';
 import { CreateIssueDto } from 'src/issues/dto/create-issue.dto';
+import { getEnumVal, GetPoints } from 'middleware/GetPoints';
 
 const prisma = new PrismaClient();
 
@@ -122,7 +123,13 @@ const CreateRandomParticipant = (): CreateParticipantDto => {
 
 const CreateRandomService = async (): Promise<CreateServiceDto> => {
   const userIdResp = newFaker.number.int({ min: 0, max: max / 3 })
-
+  const UserResp = userIdResp > 0 && await prisma.profile.findUnique({ where: { userId: userIdResp } })
+  const skill = newFaker.helpers.arrayElement(Object.values($Enums.SkillLevel))
+  const hard = newFaker.helpers.arrayElement(Object.values($Enums.HardLevel))
+  const userRespPoints = UserResp ? getEnumVal(UserResp.assistance, AssistanceLevel) : 0
+  const status = !userIdResp && $Enums.ServiceStep.STEP_0 || newFaker.helpers.arrayElement(Object.values($Enums.ServiceStep))
+  const base = Number(((getEnumVal(hard, $Enums.HardLevel) / 2 + getEnumVal(skill, $Enums.SkillLevel) / 2) + 1).toFixed(1))
+  const points = base + userRespPoints / 2
   return {
     userId: newFaker.number.int({ min: 1, max: max / 3 }),
     ...(userIdResp !== 0 && { userIdResp }),
@@ -130,11 +137,11 @@ const CreateRandomService = async (): Promise<CreateServiceDto> => {
     title: 'Service ' + newFaker.lorem.words({ min: 2, max: 3 }),
     description: newFaker.lorem.lines({ min: 1, max: 2 }),
     category: newFaker.helpers.arrayElement(Object.values($Enums.ServiceCategory)),
-    skill: newFaker.helpers.arrayElement(Object.values($Enums.SkillLevel)),
-    hard: newFaker.helpers.arrayElement(Object.values($Enums.HardLevel)),
-    status: userIdResp > 0 ? newFaker.helpers.arrayElement(Object.values($Enums.ServiceStep)) : $Enums.ServiceStep.STEP_0,
+    skill,
+    hard,
+    status,
     image: (newFaker.image.urlPicsumPhotos({ width: 600, height: 400, blur: 0, grayscale: false })),
-    points: newFaker.number.int({ min: 0, max: 30 }),
+    points: getEnumVal(status, $Enums.ServiceStep) > 2 && points || 0
   }
 }
 
@@ -158,7 +165,7 @@ const CreateRandomIssue = async (): Promise<CreateIssueDto> => {
     serviceId: serviceId,
     userId: newFaker.helpers.arrayElement([service.userId, service.userIdResp]),
     userIdModo: newFaker.helpers.arrayElement(modos.map(m => m.id)),
-    userIdModo2: newFaker.helpers.arrayElement(modos.map(m => m.id)),
+    userIdModoResp: newFaker.helpers.arrayElement(modos.map(m => m.id)),
     description: newFaker.lorem.lines({ min: 1, max: 2 }),
     date: newFaker.date.recent(),
     status: newFaker.helpers.arrayElement(Object.values($Enums.IssueStep)),
@@ -359,15 +366,15 @@ const seed = async () => {
   }
   await service();
 
-  // ISSUE fk user fk userModo fk userModo2 fk service
+  // ISSUE fk user fk userModo fk userModoResp fk service
   const issue = async () => {
     const serviceIssue = await prisma.service.findMany({ where: { status: { equals: $Enums.ServiceStep.STEP_4 } } });
     while (await prisma.issue.count() < serviceIssue.length) {
-      const { userId, userIdModo, userIdModo2, serviceId, ...issue } = await CreateRandomIssue();
+      const { userId, userIdModo, userIdModoResp, serviceId, ...issue } = await CreateRandomIssue();
       const cond = await prisma.issue.findUnique({ where: { serviceId: serviceId } });
       const cond2 = await prisma.service.findUnique({ where: { id: serviceId } });
       if (!cond && cond2) {
-        await prisma.issue.create({ data: { ...issue, User: { connect: { id: userId } }, UserModo: { connect: { id: userIdModo } }, ...(userIdModo2 && { UserModo2: { connect: { id: userIdModo2 } } }), Service: { connect: { id: serviceId } } } })
+        await prisma.issue.create({ data: { ...issue, User: { connect: { id: userId } }, UserModo: { connect: { id: userIdModo } }, ...(userIdModoResp && { UserModoResp: { connect: { id: userIdModoResp } } }), Service: { connect: { id: serviceId } } } })
       }
     }
   }

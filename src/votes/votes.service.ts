@@ -9,13 +9,22 @@ export class VotesService {
   constructor(private prisma: PrismaService) { }
   async create(data: CreateVoteDto): Promise<Vote> {
     const { userId, targetId, ...vote } = data;
-    return await this.prisma.vote.create({
-      data: {
+    let dataCopy
+    if (vote.target === $Enums.VoteTarget.POOL) {
+      dataCopy = {
         ...vote,
         User: { connect: { id: userId } },
-        Pools: vote.target === $Enums.VoteTarget.POOL && { connect: { id: targetId } },
-        Surveys: vote.target === $Enums.VoteTarget.SURVEY && { connect: { id: targetId } },
-      },
+        Pools: { connect: { id: targetId } }
+      }
+    } else if (vote.target === $Enums.VoteTarget.SURVEY) {
+      dataCopy = {
+        ...vote,
+        User: { connect: { id: userId } },
+        Surveys: { connect: { id: targetId } }
+      }
+    }
+    return await this.prisma.vote.create({
+      data: dataCopy,
     });
   }
 

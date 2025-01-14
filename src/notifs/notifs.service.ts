@@ -41,7 +41,7 @@ export class NotifsService {
         OR: [
           { userId },
           { userIdModo: userId },
-          { userIdModo2: userId }
+          { userIdModoResp: userId }
         ],
         AND: [{ updatedAt: { gte: getDate(this.before) } }]
       }, include: { Service: true }

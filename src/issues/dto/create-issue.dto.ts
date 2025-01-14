@@ -11,39 +11,41 @@ export class CreateIssueDto {
     @IsOptional()
     userId: number;
 
-    @ApiProperty()
+    @ApiProperty({ type: 'number' })
+    @Type(() => Number)
     @IsNotEmpty({ message: 'The serviceId should not be empty' })
     @IsNumber({}, { message: 'The serviceId must be a number' })
     serviceId: number;
 
-    @ApiProperty()
+    @ApiProperty({ type: 'string' })
     @IsNotEmpty({ message: 'The description should not be empty' })
     @IsString({ message: 'The description must be a string' })
     description: string;
 
-    @ApiProperty()
+    @ApiProperty({ type: Date })
+    @Type(() => Date)
     @IsNotEmpty({ message: 'The date should not be empty' })
     @IsDate({ message: 'The date must be a valid date' })
     date: Date;
 
-    @ApiProperty({ required: false })
+    @ApiProperty({ required: false, enum: IssueStep })
     @IsOptional()
     @IsEnum(IssueStep, { message: 'The status must be a part of ' + Object.values(IssueStep).join(', ') })
     status: IssueStep;
 
-    @ApiProperty({ required: false })
+    @ApiProperty({ required: false, type: 'number' })
     @IsOptional()
     @Type(() => Number)
     @IsNumber({}, { message: 'The userIdModo must be a number' })
     userIdModo: number;
 
-    @ApiProperty({ required: false })
+    @ApiProperty({ required: false, type: 'number' })
     @IsOptional()
     @Type(() => Number)
     @IsNumber({}, { message: 'The userIdModo2 must be a number' })
-    userIdModo2: number;
+    userIdModoResp: number;
 
-    @ApiProperty()
-    @IsString({ message: 'The image must be a link' })
-    image: string | null;
+    @ApiProperty({ type: 'string', format: 'binary', required: false, })
+    @IsOptional()
+    image: any;
 }

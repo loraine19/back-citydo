@@ -45,24 +45,23 @@ describe('EventsController', () => {
 
   const eventExampleDto: CreateEventDto = { title: 'Test Event', description: 'Test Content', category: $Enums.EventCategory.CATEGORY_1, userId: 1, image: 'image', addressId: 1, participantsMin: 1, start: new Date(), end: new Date() };
   const eventExample: Event = { id: 1, createdAt: new Date(), updatedAt: new Date(), ...eventExampleDto };
+  const req = { user: { sub: 1 } } as RequestWithUser;
 
   it('should create an event', async () => {
     jest.spyOn(service, 'create').mockResolvedValue(eventExample);
-    const req = { user: { sub: 1 } } as RequestWithUser;
     expect(await controller.create(eventExampleDto, null, req)).toEqual(eventExample);
   });
 
   it('should return all events', async () => {
     const events: Event[] = [eventExample];
     jest.spyOn(service, 'findAll').mockResolvedValue(events);
-    expect(await controller.findAll()).toEqual(events);
+    expect(await controller.findAll(req)).toEqual(events);
   });
 
 
   it('should return all my events', async () => {
     const events: Event[] = [eventExample];
     jest.spyOn(service, 'findAllByUserId').mockResolvedValue(events);
-    const req = { user: { sub: 1 } } as RequestWithUser;
     expect(await controller.findMine(req)).toEqual(events);
   });
 
@@ -77,13 +76,13 @@ describe('EventsController', () => {
   it('should return a single event', async () => {
     const event: Event = eventExample;
     jest.spyOn(service, 'findOne').mockResolvedValue(event);
-    expect(await controller.findOne(1)).toEqual(event);
+    expect(await controller.findOne(1, req)).toEqual(event);
   });
 
   it('should update an event', async () => {
     const updateEventDto: UpdateEventDto = { ...eventExampleDto };
     jest.spyOn(service, 'update').mockResolvedValue(eventExample);
-    expect(await controller.update(1, updateEventDto, null)).toEqual(eventExample);
+    expect(await controller.update(1, updateEventDto, null, req)).toEqual(eventExample);
   });
 
   it('should delete an event', async () => {

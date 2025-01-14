@@ -21,10 +21,11 @@ export class IssuesController {
   @ApiBody({ type: CreateIssueDto })
   @UseInterceptors(ImageInterceptor.create('issues'))
   @ApiConsumes('multipart/form-data')
-  async create(@Body() data: CreateIssueDto, @UploadedFile() image: Express.Multer.File, @Req() req: RequestWithUser) {
+  async create(@Body() data: any, @UploadedFile() image: Express.Multer.File, @Req() req: RequestWithUser) {
     const userId = req.user.sub;
-    data.userId = userId;
+    data.userid && (data.userId = userId);
     data = await parseData(data, image)
+    console.log(data)
     return this.issuesService.create(data);
   }
 
@@ -54,7 +55,6 @@ export class IssuesController {
   findOne(@Param('id') id: string) {
     return this.issuesService.findOne(+id);
   }
-
 
   @Delete(':id')
   @ApiBearerAuth()

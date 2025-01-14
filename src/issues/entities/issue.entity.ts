@@ -49,7 +49,7 @@ export class IssueEntity implements Issue {
 
     @ApiProperty()
     @IsNumber({}, { message: 'The userIdModo2 must be a number' })
-    userIdModo2: number;
+    userIdModoResp: number;
 
     @ApiProperty()
     @IsString({ message: 'The image must be a link' })

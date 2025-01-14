@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { $Enums, Profile, Issue } from '@prisma/client';
+import { $Enums, Profile, Issue, Service, Prisma } from '@prisma/client';
 import { CreateIssueDto } from './dto/create-issue.dto';
 import { UpdateIssueDto } from './dto/update-issue.dto';
 import { GetPoints } from 'middleware/GetPoints';
@@ -8,25 +8,37 @@ import { ImageInterceptor } from '../../middleware/ImageInterceptor';
 
 @Injectable()
 export class IssuesService {
-  constructor(private prisma: PrismaService, private ImageInterceptor: ImageInterceptor) { }
+  constructor(private prisma: PrismaService) { }
 
-  async create(data: any): Promise<Issue> {
-    const { userId, userIdModo, serviceId, userIdModo2, ...issue } = data;
-
-    const createdIssue = await this.prisma.issue.create({
-      data: {
-        ...issue,
-        User: { connect: { id: userId } },
-        Service: { connect: { id: serviceId } },
-        ...(userIdModo2 && { UserModo2: { connect: { id: userIdModo2 } } }),
-        ...(userIdModo && { UserModo: { connect: { id: userIdModo } } })
-      }
-    });
-    await this.prisma.service.update({
-      where: { id: serviceId },
-      data: { status: $Enums.ServiceStep.STEP_4 }
-    });
-    return createdIssue;
+  async create(data: CreateIssueDto): Promise<Issue> {
+    const { userId, userIdModo, serviceId, userIdModoResp, ...issue } = data;
+    const service = await this.prisma.service.findUnique({ where: { id: serviceId } });
+    if (!service) {
+      throw new HttpException('Service not found', HttpStatus.NOT_FOUND);
+    }
+    let createData: Prisma.IssueCreateArgs;
+    if (service.userId === userId) {
+      createData = {
+        data: {
+          ...issue,
+          User: { connect: { id: userId } },
+          Service: { connect: { id: serviceId } },
+          UserModo: { connect: { id: userIdModo } }
+        }
+      };
+    } else if (service.userIdResp === userId) {
+      createData = {
+        data: {
+          ...issue,
+          User: { connect: { id: userId } },
+          Service: { connect: { id: serviceId } },
+          UserModoResp: { connect: { id: userIdModoResp } }
+        }
+      };
+    } else {
+      throw new HttpException('User not authorized to create issue for this service', HttpStatus.FORBIDDEN);
+    }
+    return await this.prisma.issue.create(createData);
   }
 
   async findAll(): Promise<Issue[]> {
@@ -35,7 +47,7 @@ export class IssuesService {
       include: {
         User: { select: { id: true, email: true, Profile: true } },
         UserModo: { select: { id: true, email: true, Profile: true } },
-        UserModo2: { select: { id: true, email: true, Profile: true } },
+        UserModoResp: { select: { id: true, email: true, Profile: true } },
         Service: {
           include: {
             User: { select: { id: true, email: true, Profile: true } },
@@ -57,7 +69,7 @@ export class IssuesService {
       include: {
         User: { select: { id: true, email: true, Profile: true } },
         UserModo: { select: { id: true, email: true, Profile: true } },
-        UserModo2: { select: { id: true, email: true, Profile: true } },
+        UserModoResp: { select: { id: true, email: true, Profile: true } },
         Service: {
           include: {
             User: { select: { id: true, email: true, Profile: true } },
@@ -80,7 +92,7 @@ export class IssuesService {
       include: {
         User: { select: { id: true, email: true, Profile: true } },
         UserModo: { select: { id: true, email: true, Profile: true } },
-        UserModo2: { select: { id: true, email: true, Profile: true } },
+        UserModoResp: { select: { id: true, email: true, Profile: true } },
         Service: {
           include: {
             User: { select: { id: true, email: true, Profile: true } },
@@ -99,7 +111,7 @@ export class IssuesService {
       include: {
         User: { select: { id: true, email: true, Profile: true } },
         UserModo: { select: { id: true, email: true, Profile: true } },
-        UserModo2: { select: { id: true, email: true, Profile: true } },
+        UserModoResp: { select: { id: true, email: true, Profile: true } },
         Service: {
           include: {
             User: { select: { id: true, email: true, Profile: true } },
@@ -115,13 +127,13 @@ export class IssuesService {
       where: {
         OR: [
           { UserModo: { is: { id: userId } } },
-          { UserModo2: { is: { id: userId } } }
+          { UserModoResp: { is: { id: userId } } }
         ]
       },
       include: {
         User: { select: { id: true, email: true, Profile: true } },
         UserModo: { select: { id: true, email: true, Profile: true } },
-        UserModo2: { select: { id: true, email: true, Profile: true } },
+        UserModoResp: { select: { id: true, email: true, Profile: true } },
         Service: {
           include: {
             User: { select: { id: true, email: true, Profile: true } },
@@ -140,7 +152,7 @@ export class IssuesService {
       include: {
         User: { select: { id: true, email: true, Profile: true } },
         UserModo: { select: { id: true, email: true, Profile: true } },
-        UserModo2: { select: { id: true, email: true, Profile: true } },
+        UserModoResp: { select: { id: true, email: true, Profile: true } },
         Service: {
           include: {
             User: { select: { id: true, email: true, Profile: true } },
