@@ -42,7 +42,7 @@ export class EventsService {
         Participants: { include: { User: { select: { email: true, Profile: true, id: true } } } },
         Address: true,
         Flags: { where: { target: $Enums.FlagTarget.EVENT } }
-      }, orderBy: { start: 'asc' }
+      }
     })
     //if (!events.length) throw new HttpException(`no events found`, HttpStatus.NO_CONTENT);
     return events

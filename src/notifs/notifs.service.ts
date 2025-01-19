@@ -8,8 +8,10 @@ import { getDate } from 'middleware/BodyParser';
 export class NotifsService {
   constructor(private prisma: PrismaService) { }
 
-  before: number = 5
+  before: number = 7
+
   async findAllByUserId(id: number): Promise<any[]> {
+    console.log('before', getDate(this.before))
     const userId = id;
     const events = await this.prisma.event.findMany({
       where: {

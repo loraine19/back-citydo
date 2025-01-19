@@ -47,11 +47,10 @@ export class UsersService {
     return await this.prisma.user.findUniqueOrThrow(
       {
         where: { id },
-        include: {
-          Profile: { include: { Address: true } },
-        }
+        select: { id: true, email: true, password: true, createdAt: true, updatedAt: true, lastConnection: true, status: true, Profile: { include: { Address: true } } },
       });
   }
+
   async findUnique(email: string): Promise<User> {
     return await this.prisma.user.findUniqueOrThrow({ where: { email } });
   }

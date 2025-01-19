@@ -48,7 +48,9 @@ export class UsersController {
   @ApiBearerAuth()
   @ApiOkResponse({ type: UserEntity })
   async FindMe(@Req() req: RequestWithUser): Promise<User> {
+    console.log('ff', req.user.sub)
     const id = req.user.sub
+    console.log(this.usersService.findOne(id))
     return this.usersService.findOne(id)
   }
 

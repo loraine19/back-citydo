@@ -17,8 +17,9 @@ export class NotifsController {
   @Get()
   @ApiBearerAuth()
   // @ApiResponse()
-  findAll(@Req() req: RequestWithUser): Promise<any[]> {
+  async findAll(@Req() req: RequestWithUser): Promise<any[]> {
     const id = req.user.sub;
-    return this.notifsService.findAllByUserId(id);
+    const notifs = await this.notifsService.findAllByUserId(id);
+    return notifs
   }
 }

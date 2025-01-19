@@ -62,7 +62,7 @@ export class ProfilesController {
     return profiles
   }
 
-  @Get('mines')
+  @Get('me')
   @ApiBearerAuth()
   @ApiOkResponse({ type: ProfileEntity })
   async findMine(@Req() req: RequestWithUser): Promise<Profile> {
