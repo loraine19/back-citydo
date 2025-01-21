@@ -43,12 +43,19 @@ export class UsersService {
   }
 
 
-  async findOne(id: number): Promise<User> {
-    return await this.prisma.user.findUniqueOrThrow(
-      {
-        where: { id },
-        select: { id: true, email: true, password: true, createdAt: true, updatedAt: true, lastConnection: true, status: true, Profile: { include: { Address: true } } },
-      });
+  async findOne(id: number): Promise<Partial<User>> {
+    return await this.prisma.user.findUniqueOrThrow({
+      where: { id },
+      select: {
+        id: true,
+        email: true,
+        createdAt: true,
+        updatedAt: true,
+        lastConnection: true,
+        status: true,
+        Profile: { include: { Address: true } }
+      },
+    });
   }
 
   async findUnique(email: string): Promise<User> {

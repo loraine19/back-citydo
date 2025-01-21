@@ -3,7 +3,7 @@ import { AuthService } from './auth.service';
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { AuthEntity, RefreshEntity, RequestWithUser } from './auth.entities/auth.entity';
 import { UsersService } from '../../src/users/users.service';
-import { SignInDto } from './dto/signIn.dto';
+import { SignInDto, SignInVerifyDto } from './dto/signIn.dto';
 import { SignUpDto } from './dto/signUp.dto';
 import { RefreshDto } from './dto/refresh.dto';
 import { AuthGuard } from '../auth/auth.guard';
@@ -13,18 +13,19 @@ import { AuthGuard } from '../auth/auth.guard';
 export class AuthController {
   constructor(private readonly authService: AuthService, readonly usersService: UsersService) { }
 
+
+  @Post('signin/verify')
+  @ApiOkResponse({ type: AuthEntity })
+  async signinVerify(@Body() data: SignInVerifyDto): Promise<AuthEntity> {
+    return this.authService.signInVerify(data);
+  }
   @Post('signin')
   @ApiOkResponse({ type: AuthEntity })
   async signin(@Body() data: SignInDto): Promise<AuthEntity | { message: string }> {
     return this.authService.signIn(data);
   }
 
-  @Post('signin/verify')
-  @ApiOkResponse({ type: AuthEntity })
-  async signinVerify(@Body() data: SignInDto & { verifyToken: string }): Promise<AuthEntity> {
-    data.verifyToken = data.verifyToken
-    return this.authService.signInVerify(data);
-  }
+
 
   @Post('signup')
   @ApiOkResponse({ type: AuthEntity })

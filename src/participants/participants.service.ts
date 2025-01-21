@@ -10,14 +10,17 @@ import { Participant } from '@prisma/client';
 @Injectable()
 export class ParticipantsService {
   constructor(private prisma: PrismaService) { }
-  async create(data: CreateParticipantDto): Promise<Participant> {
+  async create(data: CreateParticipantDto): Promise<any> {
     const { userId, eventId } = data;
-    return await this.prisma.participant.create({
+    const user = await this.prisma.user.findUnique({ where: { id: userId }, select: { id: true, email: true, Profile: true } });
+    console.log('user', user)
+    const post = await this.prisma.participant.create({
       data: {
         User: { connect: { id: userId } },
         Event: { connect: { id: eventId } },
-      },
+      }
     });
+    return { ...post, User: user }
   }
 
   async findAll(): Promise<Participant[]> {

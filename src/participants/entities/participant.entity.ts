@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { Participant } from "@prisma/client";
-import { IsDate, IsNotEmpty } from "class-validator";
+import { Participant, User } from "@prisma/client";
+import { IsDate, IsNotEmpty, IsOptional } from "class-validator";
 
 export class ParticpantEntity implements Participant {
 
@@ -19,4 +19,8 @@ export class ParticpantEntity implements Participant {
     @ApiProperty()
     @IsNotEmpty()
     eventId: number;
+
+    @ApiProperty()
+    @IsOptional()
+    User: User
 }

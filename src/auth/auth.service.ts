@@ -31,7 +31,7 @@ export class AuthService {
         return { message: 'Votre compte à bien été crée, veuillez vérifier votre email' }
     }
 
-    //  sign_in
+    //// SIGN IN
     async signIn(data: SignInDto): Promise<AuthEntity | { message: string }> {
         let { email, password } = data
         const user = await this.prisma.user.findUniqueOrThrow({ where: { email: email } });
@@ -40,7 +40,7 @@ export class AuthService {
         if (!isPasswordValid) return { message: 'mot de passe incorrect' }
         if (user.status === $Enums.UserStatus.INACTIVE) {
             sendVerificationEmail(email, await this.generateVerifyToken(user.id));
-            return { message: 'User not verified, verification email sent' }
+            return { message: 'Votre compte est inactif, veuillez verifier votre email' }
         }
         const refreshToken = await this.generateRefreshToken(user.id);
         await this.prisma.token.deleteMany({ where: { userId: user.id } })
@@ -52,6 +52,7 @@ export class AuthService {
         }
     }
 
+    //// SIGN IN VERIFY
     async signInVerify(data: SignInDto & { verifyToken: string }): Promise<AuthEntity> {
         let { email, password, verifyToken } = data
         const user = await this.prisma.user.findUniqueOrThrow({ where: { email: email } });
@@ -79,7 +80,6 @@ export class AuthService {
         const userToken = await this.prisma.token.findFirst({ where: { userId: userId, type: $Enums.TokenType.REFRESH } })
         if (!userToken) return { message: 'utilisateur non enregistré' }
         const decode = this.jwtService.decode(refreshToken)
-        console.log('decode', decode)
         const refreshTokenValid = await argon2.verify(userToken.token, refreshToken)
         if (!refreshTokenValid) throw new UnauthorizedException('crypt dont match')
         const newRefreshToken = await this.generateRefreshToken(userId);

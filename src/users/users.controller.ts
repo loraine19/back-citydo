@@ -47,18 +47,17 @@ export class UsersController {
   @Get('me')
   @ApiBearerAuth()
   @ApiOkResponse({ type: UserEntity })
-  async FindMe(@Req() req: RequestWithUser): Promise<User> {
-    console.log('ff', req.user.sub)
+  async FindMe(@Req() req: RequestWithUser): Promise<Partial<User>> {
     const id = req.user.sub
-    console.log(this.usersService.findOne(id))
-    return this.usersService.findOne(id)
+    const user = await this.usersService.findOne(id)
+    return user
   }
 
 
   @Get(':id')
   @ApiBearerAuth()
   @ApiOkResponse({ type: UserEntity })
-  async findOne(@Param('id', ParseIntPipe) id: number): Promise<User> {
+  async findOne(@Param('id', ParseIntPipe) id: number): Promise<Partial<User>> {
     return this.usersService.findOne(id)
   }
 

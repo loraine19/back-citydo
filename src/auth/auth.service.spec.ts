@@ -70,7 +70,7 @@ describe('AuthService', () => {
       createdAt: new Date(),
       updatedAt: new Date(),
       lastConnection: new Date(),
-      verified: $Enums.UserStatus.ACTIVE,
+      status: $Enums.UserStatus.ACTIVE,
     });
 
     await expect(service.signIn(userTest)).rejects.toThrow(UnauthorizedException);
@@ -84,7 +84,7 @@ describe('AuthService', () => {
       createdAt: new Date(),
       updatedAt: new Date(),
       lastConnection: new Date(),
-      verified: $Enums.UserStatus.ACTIVE,
+      status: $Enums.UserStatus.ACTIVE,
     });
 
     await expect(service.signUp(userTest)).rejects.toThrow(ConflictException);
@@ -99,7 +99,7 @@ describe('AuthService', () => {
       createdAt: new Date(),
       updatedAt: new Date(),
       lastConnection: new Date(),
-      verified: $Enums.UserStatus.ACTIVE,
+      status: $Enums.UserStatus.ACTIVE,
     });
 
     const token = await service.signUp(userTest);

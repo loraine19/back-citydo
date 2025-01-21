@@ -22,7 +22,7 @@ export class ParticipantsController {
   @Post()
   @ApiBearerAuth()
   @ApiResponse({ type: ParticpantEntity })
-  async create(@Body() data: CreateParticipantDto, @Req() req: RequestWithUser): Promise<Participant> {
+  async create(@Body() data: CreateParticipantDto, @Req() req: RequestWithUser): Promise<any> {
     const id = req.user.sub
     data.userId = id
     return this.participantsService.create(data)

@@ -7,10 +7,10 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
     constructor() {
         super({
             log: [
-                {
-                    level: 'query', // Log les requêtes SQL
-                    emit: 'stdout', // Affiche-les dans la stdout
-                },
+                // {
+                //     level: 'query', // Log les requêtes SQL
+                //     emit: 'stdout', // Affiche-les dans la stdout
+                // },
                 {
                     level: 'info', // Log les informations supplémentaires
                     emit: 'stdout',

@@ -8,7 +8,7 @@ import { getDate } from 'middleware/BodyParser';
 export class NotifsService {
   constructor(private prisma: PrismaService) { }
 
-  before: number = 7
+  before: number = 15
 
   async findAllByUserId(id: number): Promise<any[]> {
     console.log('before', getDate(this.before))
@@ -76,6 +76,7 @@ export class NotifsService {
       pools.map(pool => ({ ...pool, element: 'POOL', read: false })),
       surveys.map(survey => ({ ...survey, element: 'SURVEY', read: false }))
     )
-    return combinedResults.sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
+    const result = combinedResults.sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
+    return result
   }
 }
