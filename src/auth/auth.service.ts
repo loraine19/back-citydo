@@ -6,12 +6,12 @@ import { AuthEntity, RefreshEntity } from './auth.entities/auth.entity';
 import * as argon2 from 'argon2';
 import { SignInDto } from './dto/signIn.dto';
 import { $Enums } from '@prisma/client';
-import { sendVerificationEmail } from 'middleware/Mailer';
+import { MailerService } from 'src/mailer/mailer.service';
 
 
 @Injectable()
 export class AuthService {
-    constructor(private prisma: PrismaService, private jwtService: JwtService) { }
+    constructor(private prisma: PrismaService, private jwtService: JwtService, private mailerService: MailerService) { }
 
     async generateAccessToken(sub: number) { return this.jwtService.sign({ sub }, { secret: process.env.JWT_SECRET, expiresIn: process.env.JWT_EXPIRES_ACCESS }) }
 
@@ -27,7 +27,7 @@ export class AuthService {
         const createdUser = await this.prisma.user.create({ data: { email, password } });
         const verifyToken = await this.generateRefreshToken(createdUser.id);
         await this.prisma.token.create({ data: { userId: createdUser.id, token: await argon2.hash(verifyToken), type: $Enums.TokenType.VERIFY } })
-        sendVerificationEmail(email, verifyToken)
+        this.mailerService.sendVerificationEmail(email, verifyToken)
         return { message: 'Votre compte à bien été crée, veuillez vérifier votre email' }
     }
 
@@ -39,7 +39,7 @@ export class AuthService {
         const isPasswordValid = await argon2.verify(user.password, password)
         if (!isPasswordValid) return { message: 'mot de passe incorrect' }
         if (user.status === $Enums.UserStatus.INACTIVE) {
-            sendVerificationEmail(email, await this.generateVerifyToken(user.id));
+            this.mailerService.sendVerificationEmail(email, await this.generateVerifyToken(user.id));
             return { message: 'Votre compte est inactif, veuillez verifier votre email' }
         }
         const refreshToken = await this.generateRefreshToken(user.id);
