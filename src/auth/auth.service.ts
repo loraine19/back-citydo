@@ -80,6 +80,7 @@ export class AuthService {
         const userToken = await this.prisma.token.findFirst({ where: { userId: userId, type: $Enums.TokenType.REFRESH } })
         if (!userToken) throw new HttpException('Impossible de renouveller la connexion , identifiez vous ', 401)
         const decode = this.jwtService.decode(refreshToken)
+        if (!decode) throw new HttpException('Token invalide', 401)
         const refreshTokenValid = await argon2.verify(userToken.token, refreshToken)
         if (!refreshTokenValid) throw new HttpException('connexion interrompue, identifiez vous ', 401)
         const newRefreshToken = await this.generateRefreshToken(userId);

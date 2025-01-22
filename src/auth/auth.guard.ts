@@ -15,7 +15,7 @@ export class AuthGuard implements CanActivate {
         }
         catch (error) {
             console.log('error', error)
-            throw new HttpException('Guard exeption' + error, 401)
+            throw new HttpException('Guard token exeption' + error, 401)
         }
         return true;
     }
