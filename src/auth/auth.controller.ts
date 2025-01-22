@@ -44,7 +44,8 @@ export class AuthController {
       return this.authService.refresh(refreshToken, id);
     }
     catch (error) {
-      throw new HttpException(error.message, 400);
+      console.log('catch error', error)
+      throw new HttpException(error.message, 401);
     }
   }
 

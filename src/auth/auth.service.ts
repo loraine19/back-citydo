@@ -1,5 +1,5 @@
 //src/auth/auth.service.ts
-import { ConflictException, HttpException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { HttpException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import { AuthEntity, RefreshEntity } from './auth.entities/auth.entity';
@@ -56,13 +56,13 @@ export class AuthService {
     async signInVerify(data: SignInDto & { verifyToken: string }): Promise<AuthEntity> {
         let { email, password, verifyToken } = data
         const user = await this.prisma.user.findUniqueOrThrow({ where: { email: email } });
-        !user && new HttpException('User not found', 404)
+        !user && new HttpException('Utilisateur introuvable', 404)
         const userToken = await this.prisma.token.findFirst({ where: { userId: user.id, type: $Enums.TokenType.VERIFY } })
-        if (!userToken) throw new HttpException('User have no verify token', 404)
+        if (!userToken) throw new HttpException('Erreur de verification', 404)
         const refreshTokenValid = await argon2.verify(userToken.token, verifyToken)
-        if (!refreshTokenValid) throw new UnauthorizedException('Tokens dont match ' + userToken.createdAt)
+        if (!refreshTokenValid) throw new HttpException('Probleme de verification' + userToken.createdAt, 401)
         const isPasswordValid = await argon2.verify(user.password, password)
-        if (!isPasswordValid) throw new UnauthorizedException('Invalid password')
+        if (!isPasswordValid) throw new HttpException('Invalid password', 401)
         const refreshToken = await this.generateRefreshToken(user.id);
         await this.prisma.user.update({ where: { id: user.id }, data: { status: $Enums.UserStatus.ACTIVE } })
         await this.prisma.token.deleteMany({ where: { userId: user.id, type: $Enums.TokenType.REFRESH } })
@@ -76,12 +76,12 @@ export class AuthService {
 
     /// RERESH TOKEN
     async refresh(refreshToken: string, userId: number): Promise<AuthEntity | { message: string }> {
-        if (!refreshToken) throw new UnauthorizedException('no refresh token')
+        if (!refreshToken) throw new HttpException('Impossible de rafraichir la connexion, identifiez vous ', 401)
         const userToken = await this.prisma.token.findFirst({ where: { userId: userId, type: $Enums.TokenType.REFRESH } })
-        if (!userToken) return { message: 'utilisateur non enregistré' }
+        if (!userToken) throw new HttpException('Impossible de renouveller la connexion , identifiez vous ', 401)
         const decode = this.jwtService.decode(refreshToken)
         const refreshTokenValid = await argon2.verify(userToken.token, refreshToken)
-        if (!refreshTokenValid) throw new UnauthorizedException('crypt dont match')
+        if (!refreshTokenValid) throw new HttpException('connexion interrompue, identifiez vous ', 401)
         const newRefreshToken = await this.generateRefreshToken(userId);
         const deleted = await this.prisma.token.deleteMany({ where: { userId, type: $Enums.TokenType.REFRESH } })
         deleted && await this.prisma.token.create({ data: { userId, token: await argon2.hash(newRefreshToken), type: $Enums.TokenType.REFRESH } })
