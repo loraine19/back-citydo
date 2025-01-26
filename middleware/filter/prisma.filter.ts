@@ -43,5 +43,6 @@ export class PrismaFilter extends BaseExceptionFilter {
       statusCode: status,
       message: `${exception.code}: ${message}`,
     });
+    console.log('catch error', exception)
   }
 }

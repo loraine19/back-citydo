@@ -6,39 +6,21 @@ import { Participant } from '@prisma/client';
 
 
 //// SERVICE MAKE ACTION
-
 @Injectable()
 export class ParticipantsService {
   constructor(private prisma: PrismaService) { }
   async create(data: CreateParticipantDto): Promise<any> {
     const { userId, eventId } = data;
     const user = await this.prisma.user.findUnique({ where: { id: userId }, select: { id: true, email: true, Profile: true } });
-    console.log('user', user)
-    const post = await this.prisma.participant.create({
+    const participation = await this.prisma.participant.create({
       data: {
         User: { connect: { id: userId } },
         Event: { connect: { id: eventId } },
       }
     });
-    return { ...post, User: user }
+    return { ...participation, User: user }
   }
 
-  async findAll(): Promise<Participant[]> {
-    return await this.prisma.participant.findMany();
-  }
-
-  async findOne(userId: number, eventId: number): Promise<Participant> {
-    return await this.prisma.participant.findUniqueOrThrow({
-      where: { userId_eventId: { userId, eventId } }
-    });
-  }
-
-  async update(userId: number, eventId: number, updatePartcicipantDto: UpdateParticipantDto): Promise<Participant> {
-    return await this.prisma.participant.update({
-      where: { userId_eventId: { userId, eventId } },
-      data: updatePartcicipantDto,
-    });
-  }
 
   async remove(userId: number, eventId: number): Promise<Participant> {
     return await this.prisma.participant.delete({ where: { userId_eventId: { userId, eventId } }, });

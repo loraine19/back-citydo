@@ -7,6 +7,7 @@ import * as argon2 from 'argon2';
 import { SignInDto } from './dto/signIn.dto';
 import { $Enums } from '@prisma/client';
 import { MailerService } from 'src/mailer/mailer.service';
+import PrismaClientTransaction from '@prisma/client';
 
 
 @Injectable()
@@ -76,21 +77,41 @@ export class AuthService {
 
     /// RERESH TOKEN
     async refresh(refreshToken: string, userId: number): Promise<AuthEntity | { message: string }> {
-        if (!refreshToken) throw new HttpException('Impossible de rafraichir la connexion, identifiez vous ', 401)
-        const userToken = await this.prisma.token.findFirst({ where: { userId: userId, type: $Enums.TokenType.REFRESH } })
-        if (!userToken) throw new HttpException('Impossible de renouveller la connexion , identifiez vous ', 401)
-        const decode = this.jwtService.decode(refreshToken)
-        if (!decode) throw new HttpException('Token invalide', 401)
-        const refreshTokenValid = await argon2.verify(userToken.token, refreshToken)
-        if (!refreshTokenValid) throw new HttpException('connexion interrompue, identifiez vous ', 401)
-        const newRefreshToken = await this.generateRefreshToken(userId);
-        const deleted = await this.prisma.token.deleteMany({ where: { userId, type: $Enums.TokenType.REFRESH } })
-        deleted && await this.prisma.token.create({ data: { userId, token: await argon2.hash(newRefreshToken), type: $Enums.TokenType.REFRESH } })
-        return {
-            accessToken: await this.generateAccessToken(userId),
-            refreshToken: newRefreshToken
-        }
+        // Use PrismaClientTransaction to avoid errror in case of multi entrance in the same time
+        return await this.prisma.$transaction(async (prisma) => {
+            try {
+                const userToken = await prisma.token.findFirst({ where: { userId: userId, type: $Enums.TokenType.REFRESH } });
+                if (!userToken) throw new HttpException('Impossible de renouveller la connexion , identifiez vous ', 400);
+
+                const refreshTokenValid = await argon2.verify(userToken.token, refreshToken.trim());
+                if (!refreshTokenValid) {
+                    console.log('refreshTokenValid', refreshTokenValid, refreshToken, userToken.token)
+                    console.log(this.jwtService.decode(refreshToken), userToken.createdAt);
+                    throw new HttpException('connexion interrompue, re-identifiez vous ', 400);
+                }
+                await prisma.token.deleteMany({
+                    where: { userId, type: $Enums.TokenType.REFRESH }
+                });
+
+                const newRefreshToken = await this.generateRefreshToken(userId);
+                const newRefreshTokenHash = await argon2.hash(newRefreshToken);
+                const createdToken = await prisma.token.create({
+                    data: {
+                        userId,
+                        token: newRefreshTokenHash,
+                        // temporaire le temps des tests
+                        check: newRefreshToken,
+                        type: $Enums.TokenType.REFRESH
+                    }
+                });
+                return {
+                    accessToken: await this.generateAccessToken(userId),
+                    refreshToken: newRefreshToken
+                };
+            } catch (error) {
+                console.error('Erreur lors du refresh du token :', error);
+                throw new HttpException(error.message, 401);
+            }
+        });
     }
-
-
 }

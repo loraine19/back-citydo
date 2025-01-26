@@ -28,12 +28,9 @@ export class FlagsController {
   @Get()
   @ApiBearerAuth()
   @ApiResponse({ type: FlagEntity, isArray: true })
-  async findAll(): Promise<Flag[]> {
-    const flags = await this.flagsService.findAll()
-
-
-    //  if (!flags.length) throw new HttpException(`no ${route} found`, HttpStatus.NO_CONTENT);
-    return flags
+  async findAll(@Req() req: RequestWithUser): Promise<Flag[]> {
+    const userId = req.user.sub
+    return await this.flagsService.findAll(userId)
   }
 
   //// Retrieve all flags created by the authenticated user
@@ -43,8 +40,7 @@ export class FlagsController {
   async findMines(@Req() req: RequestWithUser): Promise<Flag[]> {
     const userId = req.user.sub
     const flags = await this.flagsService.findAllByUserId(userId)
-    // if (!flags.length) throw new HttpException(`no ${route} found`, HttpStatus.NO_CONTENT);
-    return flags
+    return flags || []
   }
 
   //// Retrieve all flags created by a specific user
@@ -53,8 +49,7 @@ export class FlagsController {
   @ApiResponse({ type: FlagEntity, isArray: true })
   async findAllByUserId(@Param('userId', ParseIntPipe) userId: number): Promise<Flag[]> {
     const flags = await this.flagsService.findAllByUserId(userId)
-    if (!flags.length) throw new HttpException(`no ${route} found`, HttpStatus.NO_CONTENT);
-    return flags
+    return flags || []
   }
 
   //// Retrieve all event flags
@@ -64,7 +59,7 @@ export class FlagsController {
   async findAllEvent(@Req() req: RequestWithUser): Promise<Flag[]> {
     const userId = req.user.sub
     const flags = await this.flagsService.findAllEventByUserId(userId)
-    return flags
+    return flags || []
   }
 
 
@@ -76,7 +71,7 @@ export class FlagsController {
   async findAllSurvey(@Req() req: RequestWithUser): Promise<Flag[]> {
     const userId = req.user.sub
     const flags = await this.flagsService.findAllSurveyByUserId(userId)
-    return flags
+    return flags || []
   }
 
 
@@ -87,7 +82,7 @@ export class FlagsController {
   async findAllPost(@Req() req: RequestWithUser): Promise<Flag[]> {
     const userId = req.user.sub
     const flags = await this.flagsService.findAllPost(userId)
-    return flags
+    return flags || []
   }
 
 

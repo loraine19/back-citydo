@@ -96,6 +96,7 @@ model Profile {
 model Token {
   userId    Int
   token     String
+  check     String?
   type      TokenType
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt

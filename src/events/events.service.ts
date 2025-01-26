@@ -5,7 +5,6 @@ import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { ImageInterceptor } from 'middleware/ImageInterceptor';
 
-//// SERVICE MAKE ACTION
 @Injectable()
 export class EventsService {
   constructor(private prisma: PrismaService) { }
@@ -16,78 +15,82 @@ export class EventsService {
     });
   }
 
-  async findAll(userId: number): Promise<Event[]> {
-    return await this.prisma.event.findMany(
-      {
-        include: {
-          User: { select: { email: true, Profile: { include: { Address: true } } } },
-          Participants: {
-            include: { User: { select: { email: true, Profile: true, id: true } } }
-          },
-          Address: true,
-          Flags: { where: { target: $Enums.FlagTarget.EVENT, userId } }
-        }
-        , orderBy: { start: 'asc' }
-      }
-    );
+  private eventIncludeConfig(userId?: number) {
+    return {
+      User: { select: { email: true, Profile: { include: { Address: true } } } },
+      Participants: { include: { User: { select: { email: true, Profile: true, id: true } } } },
+      Address: true,
+      Flags: { where: { target: $Enums.FlagTarget.EVENT, userId } }
+    };
+  }
+  limit = parseInt(process.env.LIMIT)
+  skip(page: number) { return (page - 1) * this.limit }
+
+  async findAll(userId: number, page?: number, category?: string): Promise<Event[]> {
+    const skip = page ? this.skip(page) : 0;
+    const take = page ? this.limit : await this.prisma.event.count();
+    const where: { category?: $Enums.EventCategory } = category ? { category: $Enums.EventCategory[category] } : {}
+    return this.prisma.event.findMany({
+      skip,
+      take,
+      where,
+      include: this.eventIncludeConfig(userId),
+      orderBy: { start: 'asc' }
+    }) || [];
   }
 
-  async findAllByUserId(userId: number): Promise<Event[]> {
+  async findAllByUserId(userId: number, page?: number, category?: string): Promise<Event[]> {
+    const skip = page ? this.skip(page) : 0;
+    const take = page ? this.limit : await this.prisma.event.count({ where: { userId } });
+    const where = category ? { userId, category: $Enums.EventCategory[category] } : { userId }
     const events = await this.prisma.event.findMany({
-      where: { userId },
-      include: {
-        User: {
-          select: { id: true, email: true, Profile: { include: { Address: true } } }
-        },
-        Participants: { include: { User: { select: { email: true, Profile: true, id: true } } } },
-        Address: true,
-        Flags: { where: { target: $Enums.FlagTarget.EVENT } }
-      }
+      skip,
+      take,
+      where,
+      include: this.eventIncludeConfig(userId),
     })
-    //if (!events.length) throw new HttpException(`no events found`, HttpStatus.NO_CONTENT);
+    return events || [];
+  }
+
+  async findAllByParticipantId(userId: number, page?: number, category?: string): Promise<Event[]> {
+    const skip = page ? this.skip(page) : 0;
+    const take = page ? this.limit : await this.prisma.event.count({ where: { Participants: { some: { userId } } } })
+    const where = category ? { category: $Enums.EventCategory[category], Participants: { some: { userId } } } : { Participants: { some: { userId } } }
+    const events = await this.prisma.event.findMany({
+      skip,
+      take,
+      where,
+      include: this.eventIncludeConfig(userId)
+      , orderBy: { start: 'asc' }
+    })
     return events
   }
-
-  async findAllByParticipantId(userId: number): Promise<Event[]> {
+  async findAllValidated(userId: number, page?: number, category?: string): Promise<Event[]> {
+    const skip = page ? this.skip(page) : 0;
+    const take = page ? this.limit * 4 : await this.prisma.event.count()
+    const where: { category?: $Enums.EventCategory } = category ? { category: $Enums.EventCategory[category] } : {}
     const events = await this.prisma.event.findMany({
-      where: { Participants: { some: { userId } } },
-      include: {
-        User: { select: { id: true, email: true, Profile: { include: { Address: true } } } },
-        Participants: { include: { User: { select: { email: true, Profile: true, id: true } } } },
-        Address: true,
-        Flags: { where: { target: $Enums.FlagTarget.EVENT, userId } }
-      }, orderBy: { start: 'asc' }
-    })
-    return events
-  }
-
-  async findAllValidated(userId: number): Promise<Event[]> {
-    const events = await this.prisma.event.findMany({
-      include: {
-        User: { select: { email: true, Profile: { include: { Address: true } } } },
-        Participants: { include: { User: { select: { email: true, Profile: true, id: true } } } },
-        Address: true,
-        Flags: { where: { target: $Enums.FlagTarget.EVENT, userId } }
-      }, orderBy: { start: 'asc' }
+      skip,
+      take,
+      where,
+      include: this.eventIncludeConfig(userId),
+      orderBy: { start: 'asc' }
     });
-    return events.filter(event => event.Participants.length >= event.participantsMin);
+    return events.filter(event => event.Participants.length >= event.participantsMin) || [];
   }
 
 
   async findOne(id: number, userId: number): Promise<Event> {
     return await this.prisma.event.findUniqueOrThrow({
       where: { id },
-      include: {
-        User: { select: { email: true, Profile: { include: { Address: true } } } },
-        Participants: { include: { User: { select: { email: true, Profile: true, id: true } } } },
-        Address: true,
-        Flags: { where: { target: $Enums.FlagTarget.EVENT, userId } }
-      },
+      include: this.eventIncludeConfig(userId),
     });
   }
 
-  async update(updateId: number, data: UpdateEventDto): Promise<Event> {
-    const { userId, addressId, ...event } = data
+  async update(updateId: number, data: UpdateEventDto, userIdC: number): Promise<Event> {
+    const { userId, addressId, ...event } = data;
+    console.log(userIdC, userId)
+    if (userIdC !== userId) throw new HttpException('Vous n\'avez pas les droits de modifier cet évènement', 403)
     return await this.prisma.event.update({
       where: { id: updateId },
       data: { ...event, Address: { connect: { id: addressId } }, User: { connect: { id: userId } } }
@@ -95,8 +98,9 @@ export class EventsService {
   }
 
 
-  async remove(id: number): Promise<Event> {
+  async remove(id: number, userId: number): Promise<Event> {
     const element = await this.prisma.event.findUniqueOrThrow({ where: { id } });
+    if (userId !== element.userId) throw new HttpException('Vous n\'avez pas les droits de modifier cet évènement', 403)
     element.image && ImageInterceptor.deleteImage(element.image);
     return await this.prisma.event.delete({ where: { id } });
   }

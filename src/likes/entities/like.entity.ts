@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { Like } from "@prisma/client";
+import { Like, User } from "@prisma/client";
 import { IsNotEmpty, IsNumber, IsDate } from "class-validator";
 
 export class LikeEntity implements Like {
@@ -22,5 +22,12 @@ export class LikeEntity implements Like {
     @IsNumber()
     postId: number;
 
+
 }
+
+export interface LikeWithUser extends Like {
+    User: Partial<User>;
+}
+
+
 

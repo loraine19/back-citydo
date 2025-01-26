@@ -25,7 +25,6 @@ export class IssuesController {
     const userId = req.user.sub;
     data.userid && (data.userId = userId);
     data = await parseData(data, image)
-    console.log(data)
     return this.issuesService.create(data);
   }
 
@@ -35,25 +34,43 @@ export class IssuesController {
   @ApiBody({ type: UpdateIssueDto })
   @UseInterceptors(ImageInterceptor.create('issues'))
   @ApiConsumes('multipart/form-data')
-  async update(@Param('id', ParseIntPipe) id: number, @Body() data: UpdateIssueDto, @UploadedFile() image: Express.Multer.File) {
-    const issue = await this.issuesService.findOne(id);
+  async update(@Param('id', ParseIntPipe) id: number, @Body() data: UpdateIssueDto, @UploadedFile() image: Express.Multer.File, @Req() req: RequestWithUser) {
+    const userId = req.user.sub;
+    const issue = await this.issuesService.findOneById(id, userId);
     if (issue.image && data.image) {
       ImageInterceptor.deleteImage(issue.image);
     }
     data = await parseData(data, image)
-    return this.issuesService.update(id, data);
+    return this.issuesService.update(id, data, userId);
   }
+
 
   @Get()
   @ApiBearerAuth()
-  findAll() {
-    return this.issuesService.findAll();
+  findAll(@Req() req: RequestWithUser) {
+    const userId = req.user.sub;
+    return this.issuesService.findAll(userId);
+  }
+
+  @Get('mines')
+  @ApiBearerAuth()
+  findMine(@Req() req: RequestWithUser) {
+    const userId = req.user.sub;
+    return this.issuesService.findAllByUserId(userId);
+  }
+
+  @Get('ImModo')
+  @ApiBearerAuth()
+  findImModo(@Req() req: RequestWithUser) {
+    const userId = req.user.sub;
+    return this.issuesService.findAllByUserModoId(userId);
   }
 
   @Get(':id')
   @ApiBearerAuth()
-  findOne(@Param('id') id: string) {
-    return this.issuesService.findOne(+id);
+  findOneById(@Param('id', ParseIntPipe) id: number, @Req() req: RequestWithUser) {
+    const userId = req.user.sub;
+    return this.issuesService.findOneById(id, userId);
   }
 
   @Delete(':id')

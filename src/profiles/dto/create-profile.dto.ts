@@ -49,6 +49,7 @@ export class CreateProfileDto {
     addressShared: boolean;
 
     @ApiProperty({ enum: $Enums.AssistanceLevel, required: false })
+    @Transform(({ value }) => typeof (value) === 'string' && value.includes('LEVEL_') ? value : $Enums.AssistanceLevel[parseInt(value)])
     @IsEnum($Enums.AssistanceLevel, { message: 'AssistanceLevel must be part of ' + Object.values($Enums.AssistanceLevel).join(', ') })
     assistance: $Enums.AssistanceLevel;
 

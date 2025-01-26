@@ -21,32 +21,15 @@ export class GroupUsersController {
     return this.groupUsersService.create(createGroupUserDto);
   }
 
-  @Get()
-  @ApiBearerAuth()
-  @ApiResponse({ type: GroupUserEntity, isArray: true })
-  async findAll(): Promise<GroupUser[]> {
-    const groupUsers = await this.groupUsersService.findAll()
-    if (!groupUsers.length) throw new HttpException(`no ${route} found`, 204);
-    return this.groupUsersService.findAll();
-  }
 
-  @Get('user:userId&group:groupId')
-  @ApiBearerAuth()
-  @ApiBearerAuth()
-  async findOne(@Param('userId', ParseIntPipe) userId: number, @Param('groupId', ParseIntPipe) groupId: number): Promise<GroupUser> {
-    return this.groupUsersService.findOne(userId, groupId)
-  }
-
-
-  @Patch('user:userId&event:groupId')
+  @Patch('user:userId/event:groupId')
   @ApiBearerAuth()
   @ApiResponse({ type: GroupUserEntity })
   async update(@Param('userId', ParseIntPipe) userId: number, @Param('groupId', ParseIntPipe) groupId: number, @Body() data: UpdateGroupUserDto): Promise<GroupUser> {
-    const participant = this.groupUsersService.update({ ...data, userId, groupId });
-    return participant
+    return this.groupUsersService.update({ ...data, userId, groupId });
   }
 
-  @Delete('user:userId&event:groupId')
+  @Delete('user:userId/event:groupId')
   @ApiBearerAuth()
   @ApiResponse({ type: GroupUserEntity })
   remove(@Param('userId', ParseIntPipe) userId: number, @Param('groupId', ParseIntPipe) groupId: number): Promise<GroupUser> {

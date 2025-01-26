@@ -9,12 +9,11 @@ import { ImageInterceptor } from '../../middleware/ImageInterceptor';
 @Injectable()
 export class IssuesService {
   constructor(private prisma: PrismaService) { }
-
   async create(data: CreateIssueDto): Promise<Issue> {
     const { userId, userIdModo, serviceId, userIdModoResp, ...issue } = data;
     const service = await this.prisma.service.findUnique({ where: { id: serviceId } });
     if (!service) {
-      throw new HttpException('Service not found', HttpStatus.NOT_FOUND);
+      throw new HttpException('Impossible de trouver le service', HttpStatus.NOT_FOUND);
     }
     let createData: Prisma.IssueCreateArgs;
     if (service.userId === userId) {
@@ -36,14 +35,22 @@ export class IssuesService {
         }
       };
     } else {
-      throw new HttpException('User not authorized to create issue for this service', HttpStatus.FORBIDDEN);
+      throw new HttpException('Vous n\'êtes pas autorisé à créer une demande', 403);
     }
     return await this.prisma.issue.create(createData);
   }
 
-  async findAll(): Promise<Issue[]> {
-    return await this.prisma.issue.findMany({
-      where: { status: { in: [$Enums.IssueStep.STEP_0, $Enums.IssueStep.STEP_1] } },
+  async findAll(userId: number): Promise<Issue[]> {
+    const issues = await this.prisma.issue.findMany({
+      where: {
+        OR: [
+          { UserModo: { is: { id: userId } } },
+          { UserModoResp: { is: { id: userId } } },
+          { Service: { is: { userId } } },
+          { Service: { is: { userIdResp: userId } } },
+        ],
+        //  status: { in: [$Enums.IssueStep.STEP_0, $Enums.IssueStep.STEP_1] }
+      },
       include: {
         User: { select: { id: true, email: true, Profile: true } },
         UserModo: { select: { id: true, email: true, Profile: true } },
@@ -55,15 +62,16 @@ export class IssuesService {
           }
         }
       }
-    });
+    })
+    return issues;
   }
 
-  async findAllByUser(userId: number): Promise<Issue[]> {
+  async findAllByUserId(userId: number): Promise<Issue[]> {
     return await this.prisma.issue.findMany({
       where: {
         OR: [
-          { User: { is: { id: userId } } },
-          { UserModo: { is: { id: userId } } }
+          { Service: { is: { userId } } },
+          { Service: { is: { userIdResp: userId } } },
         ]
       },
       include: {
@@ -79,6 +87,30 @@ export class IssuesService {
       }
     });
   }
+
+
+  async findAllByUserModoId(userId: number): Promise<Issue[]> {
+    return await this.prisma.issue.findMany({
+      where: {
+        OR: [
+          { UserModo: { is: { id: userId } } },
+          { UserModoResp: { is: { id: userId } } }
+        ]
+      },
+      include: {
+        User: { select: { id: true, email: true, Profile: true } },
+        UserModo: { select: { id: true, email: true, Profile: true } },
+        UserModoResp: { select: { id: true, email: true, Profile: true } },
+        Service: {
+          include: {
+            User: { select: { id: true, email: true, Profile: true } },
+            UserResp: { select: { id: true, email: true, Profile: true } }
+          }
+        }
+      }
+    });
+  }
+
 
   async findAllByUserAndStatus(userId: number, status: $Enums.IssueStep): Promise<Issue[]> {
     return await this.prisma.issue.findMany({
@@ -104,50 +136,8 @@ export class IssuesService {
   }
 
 
-
-  async findAllByUserId(userId: number): Promise<Issue[]> {
-    return await this.prisma.issue.findMany({
-      where: { User: { is: { id: userId } } },
-      include: {
-        User: { select: { id: true, email: true, Profile: true } },
-        UserModo: { select: { id: true, email: true, Profile: true } },
-        UserModoResp: { select: { id: true, email: true, Profile: true } },
-        Service: {
-          include: {
-            User: { select: { id: true, email: true, Profile: true } },
-            UserResp: { select: { id: true, email: true, Profile: true } }
-          }
-        }
-      }
-    });
-  }
-
-  async findAllByUserModoId(userId: number): Promise<Issue[]> {
-    return await this.prisma.issue.findMany({
-      where: {
-        OR: [
-          { UserModo: { is: { id: userId } } },
-          { UserModoResp: { is: { id: userId } } }
-        ]
-      },
-      include: {
-        User: { select: { id: true, email: true, Profile: true } },
-        UserModo: { select: { id: true, email: true, Profile: true } },
-        UserModoResp: { select: { id: true, email: true, Profile: true } },
-        Service: {
-          include: {
-            User: { select: { id: true, email: true, Profile: true } },
-            UserResp: { select: { id: true, email: true, Profile: true } }
-          }
-        }
-      }
-    });
-  }
-
-
-
-  async findOne(id: number): Promise<Issue> {
-    return await this.prisma.issue.findUniqueOrThrow({
+  async findOneById(id: number, userId: number): Promise<Issue> {
+    const issue = await this.prisma.issue.findUniqueOrThrow({
       where: { serviceId: id },
       include: {
         User: { select: { id: true, email: true, Profile: true } },
@@ -161,13 +151,21 @@ export class IssuesService {
         }
       }
     })
+    if (issue.UserModo.id === userId || issue.UserModoResp.id === userId || issue.Service.User.id === userId || issue.Service.UserResp.id === userId) {
+      return issue
+    }
+    throw new HttpException('Vous n\'êtes pas autorisé à accéder à cette ressource', 403)
   }
 
-  async update(id: number, data: UpdateIssueDto): Promise<Issue> {
-    const { ...issue } = data;
+  async update(id: number, data: UpdateIssueDto, userId: number): Promise<Issue> {
+    const issue = await this.prisma.issue.findUniqueOrThrow({ where: { serviceId: id }, include: { Service: true } });
+    if (issue.userIdModo !== userId && issue.userIdModoResp !== userId && issue.Service.userId !== userId && issue.Service.userIdResp !== userId) {
+      throw new HttpException('Vous n\'êtes pas autorisé à accéder à cette ressource', 403)
+    }
+    const { ...updaptedIssue } = data;
     return await this.prisma.issue.update({
       where: { serviceId: id },
-      data: { ...issue }
+      data: { ...updaptedIssue }
     })
   }
 

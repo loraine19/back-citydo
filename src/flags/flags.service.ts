@@ -22,8 +22,9 @@ export class FlagsService {
     });
   }
 
-  async findAll(): Promise<Flag[]> {
+  async findAll(userId: number): Promise<Flag[]> {
     const flags = await this.prisma.flag.findMany({
+      where: { userId },
       include: {
         User: { select: { id: true, email: true, Profile: true } },
         Event: true,
@@ -69,9 +70,8 @@ export class FlagsService {
         User: { select: { id: true, email: true, Profile: true } },
         Event: true,
       }
-    });
-    if (!flags) throw new HttpException(`no flags found`, HttpStatus.NO_CONTENT);
-    return flags;
+    })
+    return flags || [];
   }
 
   async findAllEventByUserId(userId: number): Promise<Flag[]> {
@@ -81,9 +81,8 @@ export class FlagsService {
         User: { select: { id: true, email: true, Profile: true } },
         Event: true,
       }
-    });
-    if (!flags || flags.length === 0) throw new HttpException(`no flags found`, HttpStatus.NO_CONTENT);
-    return flags;
+    })
+    return flags || [];
   }
 
   async findAllSurvey(): Promise<Flag[]> {
@@ -93,9 +92,8 @@ export class FlagsService {
         User: { select: { id: true, email: true, Profile: true } },
         Survey: true,
       }
-    });
-    if (!flags) throw new HttpException(`no flags found`, HttpStatus.NO_CONTENT);
-    return flags;
+    })
+    return flags || [];
   }
 
   async findAllSurveyByUserId(userId: number): Promise<Flag[]> {
@@ -105,9 +103,8 @@ export class FlagsService {
         User: { select: { id: true, email: true, Profile: true } },
         Survey: true,
       }
-    });
-    // if (!flags) throw new HttpException(`no flags found`, HttpStatus.NO_CONTENT);
-    return flags;
+    })
+    return flags || [];
   }
 
   async findAllPost(userId: number): Promise<Flag[]> {
@@ -118,8 +115,7 @@ export class FlagsService {
         Post: true,
       }
     });
-    // if (!flags) throw new HttpException(`no flags found`, HttpStatus.NO_CONTENT);
-    return flags;
+    return flags || [];
   }
 
   async findAllPostByUserId(userId: number): Promise<Flag[]> {
@@ -130,22 +126,9 @@ export class FlagsService {
         Post: true,
       }
     });
-    if (!flags) throw new HttpException(`no flags found`, HttpStatus.NO_CONTENT);
-    return flags;
+    return flags || [];
   }
 
-
-  async findAllService(): Promise<Flag[]> {
-    const flags = await this.prisma.flag.findMany({
-      where: { target: $Enums.FlagTarget.SERVICE },
-      include: {
-        User: { select: { id: true, email: true, Profile: true } },
-        Service: true,
-      }
-    });
-    if (!flags) throw new HttpException(`no flags found`, HttpStatus.NO_CONTENT);
-    return flags;
-  }
 
   async findAllServiceByUserId(userId: number): Promise<Flag[]> {
     const flags = await this.prisma.flag.findMany({
@@ -154,11 +137,9 @@ export class FlagsService {
         User: { select: { id: true, email: true, Profile: true } },
         Service: true,
       }
-    });
-    if (!flags) throw new HttpException(`no flags found`, HttpStatus.NO_CONTENT);
-    return flags;
+    })
+    return flags || [];
   }
-
 
 
   async findOne(userId: number, targetId: number, target: $Enums.FlagTarget): Promise<Flag> {
@@ -177,30 +158,9 @@ export class FlagsService {
     flag.Survey = flag.target === $Enums.FlagTarget.SURVEY ? flag.Survey : undefined;
     flag.Post = flag.target === $Enums.FlagTarget.POST ? flag.Post : undefined;
     flag.Service = flag.target === $Enums.FlagTarget.SERVICE ? flag.Service : undefined;
-    return flag;
+    return flag
   }
 
-  async findOneByUserId(userId: number): Promise<Flag[]> {
-    const flags = await this.prisma.flag.findMany({
-      where: { userId },
-      include: {
-        User: { select: { id: true, email: true, Profile: true } },
-        Event: { include: { User: { select: { id: true, email: true, Profile: true } } } },
-        Survey: { include: { User: { select: { id: true, email: true, Profile: true } } } },
-        Post: { include: { User: { select: { id: true, email: true, Profile: true } } } },
-        Service: { include: { User: { select: { id: true, email: true, Profile: true } } } },
-      }
-    });
-    //  if (!flags || flags.length === 0) throw new HttpException(`no flags found`, HttpStatus.NO_CONTENT);
-    console.log(flags)
-    return flags.map(flag => ({
-      ...flag,
-      Events: flag.target === $Enums.FlagTarget.EVENT ? flag.Event : undefined,
-      Surveys: flag.target === $Enums.FlagTarget.SURVEY ? flag.Survey : undefined,
-      Posts: flag.target === $Enums.FlagTarget.POST ? flag.Post : undefined,
-      Services: flag.target === $Enums.FlagTarget.SERVICE ? flag.Service : undefined,
-    }));
-  }
 
   async update(userId: number, targetId: number, target: $Enums.FlagTarget, data: UpdateFlagDto): Promise<Flag> {
     return await this.prisma.flag.update({

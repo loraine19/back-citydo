@@ -40,29 +40,6 @@ export class AddressController {
     return await this.addressService.findOne(id)
   }
 
-  @Get('mine')
-  @ApiBearerAuth()
-  @ApiOkResponse({ type: AddressEntity })
-  async findMine(@Req() req: RequestWithUser): Promise<Address> {
-    const id = req.user.sub
-    return await this.addressService.findOneByUserId(id)
-  }
-
-  @Get('user/:id')
-  @ApiBearerAuth()
-  @ApiOkResponse({ type: AddressEntity })
-  async findByUserId(@Param('id', ParseIntPipe) id: number): Promise<Address> {
-    return await this.addressService.findOneByUserId(id)
-  }
-
-
-  @Patch(':id')
-  @ApiBearerAuth()
-  @ApiOkResponse({ type: AddressEntity })
-  async update(@Param('id', ParseIntPipe) id: number, @Body() data: UpdateAddressDto): Promise<Address> {
-    return this.addressService.update(id, data)
-
-  }
 
   @Delete(':id')
   @ApiBearerAuth()

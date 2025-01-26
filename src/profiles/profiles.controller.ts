@@ -46,11 +46,13 @@ export class ProfilesController {
   @ApiConsumes('multipart/form-data')
   async update(@Body() data: UpdateProfileDto, @UploadedFile() image: Express.Multer.File, @Req() req: RequestWithUser): Promise<Profile> {
     const profile = await this.profilesService.findOneByUserId(req.user.sub)
+    console.log(data)
     if (profile.image && image) {
       ImageInterceptor.deleteImage(profile.image)
     }
     data.userId = req.user.sub
     data = await parseData(data, image)
+    console.log(data)
     return this.profilesService.update(data);
   }
 
@@ -68,13 +70,6 @@ export class ProfilesController {
   async findMine(@Req() req: RequestWithUser): Promise<Profile> {
     const id = req.user.sub
     return this.profilesService.findOneByUserId(id)
-  }
-
-  @Get('user/:userId')
-  @ApiBearerAuth()
-  @ApiOkResponse({ type: ProfileEntity })
-  async findOneByUserId(@Param('userId', ParseIntPipe) userId: number): Promise<Profile> {
-    return this.profilesService.findOneByUserId(userId)
   }
 
 
