@@ -8,12 +8,6 @@ import { ImageInterceptor } from 'middleware/ImageInterceptor';
 @Injectable()
 export class EventsService {
   constructor(private prisma: PrismaService) { }
-  async create(data: CreateEventDto): Promise<Event> {
-    const { userId, addressId, ...event } = data
-    return await this.prisma.event.create({
-      data: { ...event, Address: { connect: { id: addressId } }, User: { connect: { id: userId } } }
-    });
-  }
 
   private eventIncludeConfig(userId?: number) {
     return {
@@ -25,6 +19,11 @@ export class EventsService {
   }
   limit = parseInt(process.env.LIMIT)
   skip(page: number) { return (page - 1) * this.limit }
+
+
+
+
+
 
   async findAll(userId: number, page?: number, category?: string): Promise<Event[]> {
     const skip = page ? this.skip(page) : 0;
@@ -84,6 +83,15 @@ export class EventsService {
     return await this.prisma.event.findUniqueOrThrow({
       where: { id },
       include: this.eventIncludeConfig(userId),
+    });
+  }
+
+
+  //// ACTIONS
+  async create(data: CreateEventDto): Promise<Event> {
+    const { userId, addressId, ...event } = data
+    return await this.prisma.event.create({
+      data: { ...event, Address: { connect: { id: addressId } }, User: { connect: { id: userId } } }
     });
   }
 

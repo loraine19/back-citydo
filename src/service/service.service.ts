@@ -10,54 +10,66 @@ import { ImageInterceptor } from 'middleware/ImageInterceptor';
 @Injectable()
 export class ServicesService {
   constructor(private prisma: PrismaService) { }
-  async create(data: CreateServiceDto): Promise<Service> {
-    const { userId, userIdResp, ...service } = data
-    return await this.prisma.service.create({ data: { ...service, User: { connect: { id: userId } } } })
-  }
 
-  async findAll(userId: number): Promise<Service[]> {
-    return await this.prisma.service.findMany({
-      where: { status: { in: [$Enums.ServiceStep.STEP_0, $Enums.ServiceStep.STEP_1] } },
-      include: {
-        User: { select: { id: true, email: true, Profile: { include: { Address: true } } } },
-        UserResp: { select: { id: true, email: true, Profile: { include: { Address: true } } } },
-        Flags: { where: { target: $Enums.FlagTarget.SERVICE, userId } }
-      }
+
+  private serviceIncludeConfig(userId?: number) {
+    return {
+      User: { select: { id: true, email: true, Profile: { include: { Address: true } } } },
+      UserResp: { select: { id: true, email: true, Profile: { include: { Address: true } } } },
+      Flags: { where: { target: $Enums.FlagTarget.SERVICE, userId } }
+    }
+  }
+  limit = parseInt(process.env.LIMIT)
+  skip(page: number) { return (page - 1) * this.limit }
+
+
+
+
+  async findAll(userId: number, page?: number, type?: $Enums.ServiceType, step?: $Enums.ServiceStep, category?: $Enums.ServiceCategory,): Promise<Service[]> {
+    const skip = page ? this.skip(page) : 0;
+    const take = page ? this.limit : await this.prisma.event.count();
+    // const typeS = type ? { type } : ''
+    const status = step ? $Enums.ServiceStep[step] : { in: [$Enums.ServiceStep.STEP_0, $Enums.ServiceStep.STEP_1] }
+    //const categoryS = category ? { category: $Enums.EventCategory[category] } : ''
+    const where = { type, status, category }
+    console.log(where, $Enums.ServiceStep[step])
+    const all = await this.prisma.service.findMany({
+      skip,
+      take,
+      where,
+      include: this.serviceIncludeConfig(userId),
     });
+    // console.log(all)
+    return all
   }
 
-  async findAllByUser(userId: number): Promise<Service[]> {
-    const services = await this.prisma.service.findMany(
-      {
-        where: {
-          OR: [
-            { User: { is: { id: userId } } },
-            { UserResp: { is: { id: userId } } }
-          ]
-        },
-        include: {
-          User: { select: { id: true, email: true, Profile: { include: { Address: true } } } },
-          UserResp: { select: { id: true, email: true, Profile: { include: { Address: true } } } },
-          Flags: { where: { target: $Enums.FlagTarget.SERVICE, userId } }
-        }
-      }
-    )
-    return services
+
+  async findAllByUser(userId: number, page?: number, type?: $Enums.ServiceType, step?: $Enums.ServiceStep, category?: $Enums.ServiceCategory,): Promise<Service[]> {
+    const skip = page ? this.skip(page) : 0;
+    const take = page ? this.limit : await this.prisma.event.count();
+    const where = { OR: [{ User: { is: { id: userId } } }, { UserResp: { is: { id: userId } } }], type, status: $Enums.ServiceStep[step], category }
+    console.log(where)
+    if (step || category || type) {
+      const all = await this.prisma.service.findMany({
+        skip,
+        take,
+        where,
+        include: this.serviceIncludeConfig(userId),
+      });
+      return all
+
+    }
+    return []
   }
+
+
   async findAllByUserAndStatus(userId: number, status: $Enums.ServiceStep): Promise<Service[]> {
     const services = await this.prisma.service.findMany({
       where: {
-        OR: [
-          { User: { is: { id: userId } } },
-          { UserResp: { is: { id: userId } } }
-        ],
+        OR: [{ User: { is: { id: userId } } }, { UserResp: { is: { id: userId } } }],
         status: status
       },
-      include: {
-        User: { select: { id: true, email: true, Profile: { include: { Address: true } } } },
-        UserResp: { select: { id: true, email: true, Profile: { include: { Address: true } } } },
-        Flags: { where: { target: $Enums.FlagTarget.SERVICE, userId } }
-      }
+      include: this.serviceIncludeConfig(userId),
     });
     return services;
   }
@@ -66,17 +78,10 @@ export class ServicesService {
     const services = await this.prisma.service.findMany(
       {
         where: {
-          OR: [
-            { User: { is: { id: userId } } },
-            { UserResp: { is: { id: userId } } }
-          ],
+          OR: [{ User: { is: { id: userId } } }, { UserResp: { is: { id: userId } } }],
           type: $Enums.ServiceType.GET
         },
-        include: {
-          User: { select: { id: true, email: true, Profile: { include: { Address: true } } } },
-          UserResp: { select: { id: true, email: true, Profile: { include: { Address: true } } } },
-          Flags: { where: { target: $Enums.FlagTarget.SERVICE, userId } }
-        }
+        include: this.serviceIncludeConfig(userId),
       }
     )
     return services
@@ -85,17 +90,10 @@ export class ServicesService {
     const services = await this.prisma.service.findMany(
       {
         where: {
-          OR: [
-            { User: { is: { id: userId } } },
-            { UserResp: { is: { id: userId } } }
-          ],
+          OR: [{ User: { is: { id: userId } } }, { UserResp: { is: { id: userId } } }],
           type: $Enums.ServiceType.DO
         },
-        include: {
-          User: { select: { id: true, email: true, Profile: { include: { Address: true } } } },
-          UserResp: { select: { id: true, email: true, Profile: { include: { Address: true } } } },
-          Flags: { where: { target: $Enums.FlagTarget.SERVICE, userId } }
-        }
+        include: this.serviceIncludeConfig(userId),
       }
     )
     return services
@@ -104,11 +102,8 @@ export class ServicesService {
   async findAllByUserId(userId: number): Promise<Service[]> {
     const services = await this.prisma.service.findMany(
       {
-        where: { User: { is: { id: userId } } }, include: {
-          User: { select: { id: true, email: true, Profile: { include: { Address: true } } } },
-          UserResp: { select: { id: true, email: true, Profile: { include: { Address: true } } } },
-          Flags: { where: { target: $Enums.FlagTarget.SERVICE, userId } }
-        }
+        where: { User: { is: { id: userId } } },
+        include: this.serviceIncludeConfig(userId),
       }
     )
     return services
@@ -118,11 +113,7 @@ export class ServicesService {
     const services = await this.prisma.service.findMany(
       {
         where: { UserResp: { is: { id: userId } } },
-        include: {
-          User: { select: { id: true, email: true, Profile: { include: { Address: true } } } },
-          UserResp: { select: { id: true, email: true, Profile: { include: { Address: true } } } },
-          Flags: { where: { target: $Enums.FlagTarget.SERVICE, userId } }
-        }
+        include: this.serviceIncludeConfig(userId),
       }
     )
     return services
@@ -132,11 +123,7 @@ export class ServicesService {
     const services = await this.prisma.service.findMany(
       {
         where: { type: $Enums.ServiceType.GET, status: { notIn: [$Enums.ServiceStep.STEP_3, $Enums.ServiceStep.STEP_4] } },
-        include: {
-          User: { select: { id: true, email: true, Profile: { include: { Address: true } } } },
-          UserResp: { select: { id: true, email: true, Profile: { include: { Address: true } } } },
-          Flags: { where: { target: $Enums.FlagTarget.SERVICE, userId } }
-        }
+        include: this.serviceIncludeConfig(userId),
       }
     )
     return services
@@ -147,11 +134,7 @@ export class ServicesService {
     const services = await this.prisma.service.findMany(
       {
         where: { type: $Enums.ServiceType.DO, status: { notIn: [$Enums.ServiceStep.STEP_3, $Enums.ServiceStep.STEP_4] } },
-        include: {
-          User: { select: { id: true, email: true, Profile: { include: { Address: true } } } },
-          UserResp: { select: { id: true, email: true, Profile: { include: { Address: true } } } },
-          Flags: { where: { target: $Enums.FlagTarget.SERVICE, userId } }
-        }
+        include: this.serviceIncludeConfig(userId),
       }
     )
 
@@ -162,17 +145,17 @@ export class ServicesService {
   async findOne(id: number, userId: number): Promise<Service> {
     return await this.prisma.service.findUniqueOrThrow({
       where: { id },
-      include: {
-        User: { select: { id: true, email: true, Profile: { include: { Address: true } } } },
-        UserResp: { select: { id: true, email: true, Profile: { include: { Address: true } } } },
-        Flags: { where: { target: $Enums.FlagTarget.SERVICE, userId } }
-      }
+      include: this.serviceIncludeConfig(userId),
     });
   }
 
 
+  async create(data: CreateServiceDto): Promise<Service> {
+    const { userId, userIdResp, ...service } = data
+    return await this.prisma.service.create({ data: { ...service, User: { connect: { id: userId } } } })
+  }
 
-  async update(id: number, data: any): Promise<Service> {
+  async update(id: number, data: any,): Promise<Service> {
     const { userId, userIdResp, ...service } = data;
     const updateData: any = { ...service };
 
@@ -188,6 +171,8 @@ export class ServicesService {
       data: updateData,
     });
   }
+
+  //// POST_RESP
   async updateUserResp(id: number, data: { userIdResp: number }): Promise<Service> {
     const { userIdResp } = data;
     if (userIdResp === 0) {
@@ -203,6 +188,7 @@ export class ServicesService {
     }
   }
 
+  //// VALID_RESP
   async updateValidUserResp(id: number, data: { userIdResp: number, userId: number }): Promise<Service> {
     const { userIdResp } = data;
     const service = await this.prisma.service.findUnique({ where: { id } });
@@ -224,7 +210,7 @@ export class ServicesService {
   }
 
 
-
+  //// FINISH
   async updateFinish(id: number, userId: number): Promise<Service> {
     const service = await this.prisma.service.findUnique({ where: { id } });
     const user = await this.prisma.user.findUnique({ where: { id: userId }, include: { Profile: { include: { Address: true } } } });
