@@ -86,7 +86,6 @@ export class AuthService {
                 const refreshTokenValid = await argon2.verify(userToken.token, refreshToken.trim());
                 if (!refreshTokenValid) {
                     console.log('refreshTokenValid', refreshTokenValid, refreshToken, userToken.token)
-                    console.log(this.jwtService.decode(refreshToken), userToken.createdAt);
                     throw new HttpException('connexion interrompue, re-identifiez vous ', 400);
                 }
                 await prisma.token.deleteMany({
@@ -99,8 +98,6 @@ export class AuthService {
                     data: {
                         userId,
                         token: newRefreshTokenHash,
-                        // temporaire le temps des tests
-                        check: newRefreshToken,
                         type: $Enums.TokenType.REFRESH
                     }
                 });
