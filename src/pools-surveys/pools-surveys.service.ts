@@ -15,19 +15,19 @@ export class PoolsSurveysService {
     const pools = await this.prisma.pool.findMany(
       {
         include: {
-          Votes: true,
+          Votes: { where: { target: $Enums.VoteTarget.POOL } },
           User: { select: { id: true, email: true, Profile: true } },
           UserBenef: { select: { id: true, email: true, Profile: true } },
-        }, orderBy: { updatedAt: 'desc' }
+        }
 
       }
     )
     const surveys = await this.prisma.survey.findMany({
       include: {
-        Votes: true,
+        Votes: { where: { target: $Enums.VoteTarget.SURVEY } },
         User: { select: { id: true, email: true, Profile: true } },
         Flags: { where: { target: $Enums.FlagTarget.SURVEY, userId } }
-      }, orderBy: { updatedAt: 'desc' }
+      }
 
     })
     const poolsSurveys = [...pools, ...surveys]

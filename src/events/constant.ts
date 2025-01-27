@@ -6,8 +6,8 @@ export enum EventFilter {
 }
 
 export enum ServiceUpdate {
-    POST_RESP = 'POSTRESP',
-    VALID_RESP = 'VALIDATERESP',
-    REFUSE_RESP = 'REFUSERESP',
+    POST_RESP = 'POST_RESP',
+    VALID_RESP = 'VALIDATE_RESP',
+    CANCEL_RESP = 'CANCEL_RESP',
     FINISH = 'FINISH',
 }

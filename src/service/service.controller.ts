@@ -62,11 +62,11 @@ export class ServicesController {
       case ServiceUpdate.FINISH:
         return this.serviceService.updateFinish(id, userId);
       case ServiceUpdate.POST_RESP:
-        return this.serviceService.updateUserResp(id, { userIdResp: userId });
+        return this.serviceService.updatePostResp(id, userId);
       case ServiceUpdate.VALID_RESP:
-        return this.serviceService.updateValidUserResp(id, { userId, userIdResp: userId },);
-      case ServiceUpdate.REFUSE_RESP:
-        return this.serviceService.updateUserResp(id, { userIdResp: 0 });
+        return this.serviceService.updateValidResp(id, userId);
+      case ServiceUpdate.CANCEL_RESP:
+        return this.serviceService.updateCancelResp(id, userId);
     }
   }
 

@@ -11,7 +11,6 @@ import { ImageInterceptor } from 'middleware/ImageInterceptor';
 export class ServicesService {
   constructor(private prisma: PrismaService) { }
 
-
   private serviceIncludeConfig(userId?: number) {
     return {
       User: { select: { id: true, email: true, Profile: { include: { Address: true } } } },
@@ -23,40 +22,47 @@ export class ServicesService {
   skip(page: number) { return (page - 1) * this.limit }
 
 
-
-
   async findAll(userId: number, page?: number, type?: $Enums.ServiceType, step?: $Enums.ServiceStep, category?: $Enums.ServiceCategory,): Promise<Service[]> {
     const skip = page ? this.skip(page) : 0;
     const take = page ? this.limit : await this.prisma.event.count();
     const status = step ? $Enums.ServiceStep[step] : { in: [$Enums.ServiceStep.STEP_0, $Enums.ServiceStep.STEP_1] }
     const where = { type, status, category }
-    console.log(where, $Enums.ServiceStep[step])
-    const all = await this.prisma.service.findMany({
+    return this.prisma.service.findMany({
       skip,
       take,
       where,
       include: this.serviceIncludeConfig(userId),
     });
-    return all
   }
 
 
-  async findAllByUser(userId: number, page?: number, type?: $Enums.ServiceType, step?: $Enums.ServiceStep, category?: $Enums.ServiceCategory,): Promise<Service[]> {
+  async findAllByUser(userId: number, page?: number, type?: $Enums.ServiceType, step?: $Enums.ServiceStep, category?: $Enums.ServiceCategory): Promise<Service[]> {
     const skip = page ? this.skip(page) : 0;
     const take = page ? this.limit : await this.prisma.event.count();
-    const where = { OR: [{ User: { is: { id: userId } } }, { UserResp: { is: { id: userId } } }], type, status: $Enums.ServiceStep[step], category }
-    console.log(where)
+    const steps = step ? step.includes(',')
+      ? { in: step.split(',').map(s => $Enums.ServiceStep[s]) }
+      : $Enums.ServiceStep[step] : {};
+    const types = type ? type.includes(',')
+      ? { in: type.split(',').map(t => $Enums.ServiceType[t]) }
+      : $Enums.ServiceType[type] : {};
+    const where = {
+      OR: [
+        { User: { is: { id: userId } } },
+        { UserResp: { is: { id: userId } } }
+      ],
+      type: types,
+      status: steps,
+      category
+    }
     if (step || category || type) {
-      const all = await this.prisma.service.findMany({
+      return await this.prisma.service.findMany({
         skip,
         take,
         where,
         include: this.serviceIncludeConfig(userId),
       });
-      return all
-
     }
-    return []
+    return [];
   }
 
 
@@ -69,21 +75,20 @@ export class ServicesService {
 
 
   async create(data: CreateServiceDto): Promise<Service> {
-    const { userId, userIdResp, ...service } = data
+    const { userId, userIdResp, ...service } = data;
+
     return await this.prisma.service.create({ data: { ...service, User: { connect: { id: userId } } } })
   }
 
   async update(id: number, data: any,): Promise<Service> {
     const { userId, userIdResp, ...service } = data;
     const updateData: any = { ...service };
-
     if (userId) {
       updateData.User = { connect: { id: userId } };
     }
     if (userIdResp) {
       updateData.UserResp = { connect: { id: userIdResp } };
     }
-
     return await this.prisma.service.update({
       where: { id },
       data: updateData,
@@ -91,40 +96,33 @@ export class ServicesService {
   }
 
   //// POST_RESP
-  async updateUserResp(id: number, data: { userIdResp: number }): Promise<Service> {
-    const { userIdResp } = data;
-    if (userIdResp === 0) {
-      return await this.prisma.service.update({
-        where: { id },
-        data: { UserResp: { disconnect: true }, status: $Enums.ServiceStep.STEP_0 }
-      });
-    } else {
-      return await this.prisma.service.update({
-        where: { id },
-        data: { UserResp: { connect: { id: userIdResp } }, status: $Enums.ServiceStep.STEP_1 }
-      });
-    }
+  async updatePostResp(id: number, userId: number): Promise<Service> {
+    return await this.prisma.service.update({
+      where: { id },
+      data: { UserResp: { connect: { id: userId } }, status: $Enums.ServiceStep.STEP_1 }
+    });
+  }
+
+  //// CANCEL_RESP
+  async updateCancelResp(id: number, userId: number): Promise<Service> {
+    return await this.prisma.service.update({
+      where: { id },
+      data: { UserResp: { disconnect: true }, status: $Enums.ServiceStep.STEP_0 }
+    });
+
   }
 
   //// VALID_RESP
-  async updateValidUserResp(id: number, data: { userIdResp: number, userId: number }): Promise<Service> {
-    const { userIdResp } = data;
+  async updateValidResp(id: number, userId: number): Promise<Service> {
     const service = await this.prisma.service.findUnique({ where: { id } });
-    console.log((service.userIdResp === userIdResp))
-    if (service.userId !== data.userId) {
+    if (service.userId !== userId) {
       throw new HttpException(`You are not allowed to update this service`, HttpStatus.FORBIDDEN)
     }
-    if (userIdResp === 0) {
-      return await this.prisma.service.update({
-        where: { id },
-        data: { UserResp: { disconnect: true }, status: $Enums.ServiceStep.STEP_0 }
-      });
-    } else {
-      return await this.prisma.service.update({
-        where: { id },
-        data: { UserResp: { connect: { id: userIdResp } }, status: $Enums.ServiceStep.STEP_2 }
-      });
-    }
+    return await this.prisma.service.update({
+      where: { id },
+      data: { UserResp: { connect: { id: service.userIdResp } }, status: $Enums.ServiceStep.STEP_2 }
+    });
+
   }
 
 
