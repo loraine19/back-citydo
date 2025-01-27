@@ -29,8 +29,7 @@ export class AddressController {
   @ApiOkResponse({ type: AddressEntity, isArray: true })
   async findAll(): Promise<Address[]> {
     const address = await this.addressService.findAll()
-    if (!address.length) throw new HttpException(`No ${route} found.`, HttpStatus.NO_CONTENT);
-    return address;
+    return address || [];
   }
 
   @Get(':id')

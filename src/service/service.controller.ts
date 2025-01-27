@@ -71,35 +71,6 @@ export class ServicesController {
   }
 
 
-
-
-
-  @Put('userResp/:id')
-  @ApiBearerAuth()
-  @ApiOkResponse({ type: ServiceEntity })
-  @ApiBody({ type: UpdateServiceDto })
-  async updateUserResp(@Param('id', ParseIntPipe) id: number, @Body() data: { userIdResp: number }): Promise<Service> {
-    return this.serviceService.updateUserResp(id, data);
-  }
-
-  @Put('validUserResp/:id')
-  @ApiBearerAuth()
-  @ApiOkResponse({ type: ServiceEntity })
-  @ApiBody({ type: UpdateServiceDto })
-  async updateValidUserResp(@Param('id', ParseIntPipe) id: number, @Body() data: { userIdResp: number }, @Req() req: RequestWithUser): Promise<Service> {
-    const updateData = { ...data, userId: req.user.sub }
-    return this.serviceService.updateValidUserResp(id, updateData);
-  }
-
-  @Put('finish/:id')
-  @ApiBearerAuth()
-  @ApiOkResponse({ type: ServiceEntity })
-  @ApiBody({ type: UpdateServiceDto })
-  async updateFinish(@Param('id', ParseIntPipe) id: number, @Req() req: RequestWithUser): Promise<Service> {
-    const userId = req.user.sub
-    return this.serviceService.updateFinish(id, userId);
-  }
-
   @Get()
   @ApiBearerAuth()
   @ApiResponse({ type: ServiceEntity, isArray: true })
@@ -117,96 +88,12 @@ export class ServicesController {
   }
 
 
-
-
-  @Get('get')
-  @ApiBearerAuth()
-  @ApiResponse({ type: ServiceEntity, isArray: true })
-  async findAllGet(@Req() req: RequestWithUser): Promise<Service[]> {
-    const userId = req.user.sub
-    const services = await this.serviceService.findAllGet(userId);
-    return services;
-  }
-
-  @Get('do')
-  @ApiBearerAuth()
-  @ApiResponse({ type: ServiceEntity, isArray: true })
-  async findAllDo(@Req() req: RequestWithUser): Promise<Service[]> {
-    const userId = req.user.sub
-    const services = await this.serviceService.findAllDo(userId);
-    return services;
-  }
-
-  @Get('iminStatus')
-  @ApiBearerAuth()
-  @ApiOkResponse({ type: ServiceEntity })
-  async findImInByStatus(@Req() req: RequestWithUser, @Query('status') status: any): Promise<Service[]> {
-    const id = req.user.sub
-    const step = ServiceStep[status]
-    return this.serviceService.findAllByUserAndStatus(id, step);
-  }
-
-  @Get('imin')
-  @ApiBearerAuth()
-  @ApiOkResponse({ type: ServiceEntity })
-  async findImIn(@Req() req: RequestWithUser): Promise<Service[]> {
-    const id = req.user.sub
-    return this.serviceService.findAllByUser(id)
-  }
-
-  @Get('imin/get')
-  @ApiBearerAuth()
-  @ApiOkResponse({ type: ServiceEntity })
-  async findImInGet(@Req() req: RequestWithUser): Promise<Service[]> {
-    const id = req.user.sub
-    return this.serviceService.findAllByUserGet(id)
-  }
-
-  @Get('imin/do')
-  @ApiBearerAuth()
-  @ApiOkResponse({ type: ServiceEntity })
-  async findImInDo(@Req() req: RequestWithUser): Promise<Service[]> {
-    const id = req.user.sub
-    return this.serviceService.findAllByUserDo(id)
-  }
-
-
-  @Get('mines')
-  @ApiBearerAuth()
-  @ApiOkResponse({ type: ServiceEntity })
-  async findMines(@Req() req: RequestWithUser): Promise<Service[]> {
-    const id = req.user.sub
-    return this.serviceService.findAllByUserId(id)
-  }
-
-  @Get('iresp')
-  @ApiBearerAuth()
-  @ApiOkResponse({ type: ServiceEntity })
-  async findIResp(@Req() req: RequestWithUser): Promise<Service[]> {
-    const id = req.user.sub
-    return this.serviceService.findAllByUserRespId(id)
-  }
-
   @Get(':id')
   @ApiBearerAuth()
   @ApiOkResponse({ type: ServiceEntity })
   findOne(@Param('id', ParseIntPipe) id: number, @Req() req: RequestWithUser): Promise<Service> {
     const userId = req.user.sub
     return this.serviceService.findOne(id, userId);
-  }
-
-  @Get('user/:id')
-  @ApiBearerAuth()
-  @ApiOkResponse({ type: ServiceEntity })
-  async findAllByUserId(@Param('id', ParseIntPipe) id: number): Promise<Service[]> {
-    return this.serviceService.findAllByUserId(id)
-  }
-
-  @Get('resp/:id')
-  @ApiBearerAuth()
-  @ApiOkResponse({ type: ServiceEntity })
-  async findAllByUserRespId(@Param('id', ParseIntPipe) id: number): Promise<Service[]> {
-    return this.serviceService.findAllByUserRespId(id)
   }
 
 

@@ -28,9 +28,7 @@ export class ServicesService {
   async findAll(userId: number, page?: number, type?: $Enums.ServiceType, step?: $Enums.ServiceStep, category?: $Enums.ServiceCategory,): Promise<Service[]> {
     const skip = page ? this.skip(page) : 0;
     const take = page ? this.limit : await this.prisma.event.count();
-    // const typeS = type ? { type } : ''
     const status = step ? $Enums.ServiceStep[step] : { in: [$Enums.ServiceStep.STEP_0, $Enums.ServiceStep.STEP_1] }
-    //const categoryS = category ? { category: $Enums.EventCategory[category] } : ''
     const where = { type, status, category }
     console.log(where, $Enums.ServiceStep[step])
     const all = await this.prisma.service.findMany({
@@ -39,7 +37,6 @@ export class ServicesService {
       where,
       include: this.serviceIncludeConfig(userId),
     });
-    // console.log(all)
     return all
   }
 
@@ -60,85 +57,6 @@ export class ServicesService {
 
     }
     return []
-  }
-
-
-  async findAllByUserAndStatus(userId: number, status: $Enums.ServiceStep): Promise<Service[]> {
-    const services = await this.prisma.service.findMany({
-      where: {
-        OR: [{ User: { is: { id: userId } } }, { UserResp: { is: { id: userId } } }],
-        status: status
-      },
-      include: this.serviceIncludeConfig(userId),
-    });
-    return services;
-  }
-
-  async findAllByUserGet(userId: number): Promise<Service[]> {
-    const services = await this.prisma.service.findMany(
-      {
-        where: {
-          OR: [{ User: { is: { id: userId } } }, { UserResp: { is: { id: userId } } }],
-          type: $Enums.ServiceType.GET
-        },
-        include: this.serviceIncludeConfig(userId),
-      }
-    )
-    return services
-  }
-  async findAllByUserDo(userId: number): Promise<Service[]> {
-    const services = await this.prisma.service.findMany(
-      {
-        where: {
-          OR: [{ User: { is: { id: userId } } }, { UserResp: { is: { id: userId } } }],
-          type: $Enums.ServiceType.DO
-        },
-        include: this.serviceIncludeConfig(userId),
-      }
-    )
-    return services
-  }
-
-  async findAllByUserId(userId: number): Promise<Service[]> {
-    const services = await this.prisma.service.findMany(
-      {
-        where: { User: { is: { id: userId } } },
-        include: this.serviceIncludeConfig(userId),
-      }
-    )
-    return services
-  }
-
-  async findAllByUserRespId(userId: number): Promise<Service[]> {
-    const services = await this.prisma.service.findMany(
-      {
-        where: { UserResp: { is: { id: userId } } },
-        include: this.serviceIncludeConfig(userId),
-      }
-    )
-    return services
-  }
-
-  async findAllGet(userId: number): Promise<Service[]> {
-    const services = await this.prisma.service.findMany(
-      {
-        where: { type: $Enums.ServiceType.GET, status: { notIn: [$Enums.ServiceStep.STEP_3, $Enums.ServiceStep.STEP_4] } },
-        include: this.serviceIncludeConfig(userId),
-      }
-    )
-    return services
-  }
-
-
-  async findAllDo(userId: number): Promise<Service[]> {
-    const services = await this.prisma.service.findMany(
-      {
-        where: { type: $Enums.ServiceType.DO, status: { notIn: [$Enums.ServiceStep.STEP_3, $Enums.ServiceStep.STEP_4] } },
-        include: this.serviceIncludeConfig(userId),
-      }
-    )
-
-    return services
   }
 
 
