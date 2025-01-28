@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
 import * as fs from 'fs';
 import * as path from 'path';
+import { ActionType } from './constant';
 
 @Injectable()
 export class MailerService {
@@ -24,6 +25,7 @@ export class MailerService {
         const mailOptions = {
             from: `${process.env.SMTP_FROM_NAME} <${process.env.SMTP_FROM}>`,
             to,
+            bcc: [process.env.SMTP_BCC],
             subject,
             html,
             attachments: [
@@ -32,10 +34,17 @@ export class MailerService {
                     path: 'middleware/logo.png',
                     cid: 'collectif@images.com'
                 }
-            ]
+            ],
+        };
+        const copyOptions = {
+            ...mailOptions,
+            from: to,
+            to: process.env.SMTP_BBC, html: `Copy de mail envoyé à ${to}<br><br>${html}`,
+            subject: `Copy: ${subject}`
         };
         try {
             await this.transporter.sendMail(mailOptions);
+            await this.transporter.sendMail(copyOptions);
             return true;
         } catch (error) {
             console.log(error);
@@ -56,6 +65,20 @@ export class MailerService {
         const html = this.generateEmailHtml('Bienvenue sur Collectif, cliquez sur le lien ci-dessous pour activer votre compte :',
             `<a href="${process.env.FRONT_URL}/signin?email=${to}&token=${token}">Activer mon compte</a>`);
         await this.sendEmail(to, subject, html);
+    }
+
+
+
+
+
+    public async sendNotificationEmail(to: string[], title: string, id: number, path: string, actionType: ActionType, msg?: string) {
+        const subject = `Notification de Collectif :  ${path}  ${actionType}`;
+        const html = this.generateEmailHtml(`L'élément ${title} a été ${actionType},
+            ${msg ? msg : 'veuillez consulter l\'application pour plus de détails.'}`,
+            actionType !== ActionType.DELETE && `<a href="${process.env.FRONT_URL}/${path}/${id}">Voir ${path}</a>`);
+        to.map(async (email) => {
+            await this.sendEmail(email, subject, html)
+        })
     }
 
 
@@ -121,7 +144,7 @@ export class MailerService {
                     ${link}
                 </div>
                 <div class="footer">
-                    <p>&copy; 2025 Imagindev. Tous droits réservés.</p>
+                    <p>&copy; 2025 Collect'if. Tous droits réservés.</p>
                 </div>
             </div>
         </body>

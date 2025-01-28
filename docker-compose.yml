@@ -80,6 +80,13 @@ services:
     volumes:
       - ./prisma:/app/prisma
 
+  rainloop:
+    image: rainloop/rainloop-community-edition
+    ports:
+      - "8087:80"
+    volumes:
+      - ./data:/var/lib/rainloop/data    
+
 networks:
   nest-network:
 

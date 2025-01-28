@@ -21,13 +21,14 @@ model GroupUser {
 }
 
 model User {
-  id             Int           @id @default(autoincrement())
-  email          String        @unique
+  id             Int               @id @default(autoincrement())
+  email          String            @unique
   password       String
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
-  lastConnection DateTime      @default(now())
-  status         UserStatus    @default(INACTIVE)
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  lastConnection DateTime          @default(now())
+  status         UserStatus        @default(INACTIVE)
+  mailSub        MailSubscriptions @default(SUB_1)
   Token          Token[]
   GroupUser      GroupUser[]
   Event          Event[]
@@ -37,15 +38,15 @@ model User {
   Vote           Vote[]
   Participant    Participant[]
   Survey         Survey[]
-  Service        Service[]     @relation("Service")
-  ServiceResp    Service[]     @relation("ServiceResp")
-  IssueModo      Issue[]       @relation("Modo")
-  IssueModoResp  Issue[]       @relation("ModoResp")
-  Issue          Issue[]       @relation("Issue")
-  Pool           Pool[]        @relation("Pool")
-  Benef          Pool[]        @relation("PoolBenef")
-  Profile        Profile?      @relation("Profile")
-  UserSp         Profile[]     @relation("Sponsor")
+  Service        Service[]         @relation("Service")
+  ServiceResp    Service[]         @relation("ServiceResp")
+  IssueModo      Issue[]           @relation("Modo")
+  IssueModoResp  Issue[]           @relation("ModoResp")
+  Issue          Issue[]           @relation("Issue")
+  Pool           Pool[]            @relation("Pool")
+  Benef          Pool[]            @relation("PoolBenef")
+  Profile        Profile?          @relation("Profile")
+  UserSp         Profile[]         @relation("Sponsor")
 }
 
 model Group {
@@ -385,4 +386,12 @@ enum HardLevel {
   LEVEL_2
   LEVEL_3
   LEVEL_4
+}
+
+enum MailSubscriptions {
+  SUB_1
+  SUB_2
+  SUB_3
+  SUB_4
+  SUB_5
 }

@@ -1,20 +1,22 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { $Enums, Profile, Service } from '@prisma/client';
+import { $Enums, MailSubscriptions, Profile, Service } from '@prisma/client';
 import { CreateServiceDto } from './dto/create-service.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
 import { GetPoints } from '../../middleware/GetPoints';
 import { ImageInterceptor } from 'middleware/ImageInterceptor';
+import { MailerService } from 'src/mailer/mailer.service';
+import { ActionType } from 'src/mailer/constant';
 
 //// SERVICE MAKE ACTION
 @Injectable()
 export class ServicesService {
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService, private mailer: MailerService) { }
 
   private serviceIncludeConfig(userId?: number) {
     return {
-      User: { select: { id: true, email: true, Profile: { include: { Address: true } } } },
-      UserResp: { select: { id: true, email: true, Profile: { include: { Address: true } } } },
+      User: { select: { id: true, email: true, mailSub: true, Profile: { include: { Address: true } } } },
+      UserResp: { select: { id: true, email: true, mailSub: true, Profile: { include: { Address: true } } } },
       Flags: { where: { target: $Enums.FlagTarget.SERVICE, userId } }
     }
   }
@@ -22,23 +24,24 @@ export class ServicesService {
   skip(page: number) { return (page - 1) * this.limit }
 
 
-  async findAll(userId: number, page?: number, type?: $Enums.ServiceType, step?: $Enums.ServiceStep, category?: $Enums.ServiceCategory,): Promise<Service[]> {
+  async findAll(userId: number, page?: number, type?: $Enums.ServiceType, step?: $Enums.ServiceStep, category?: $Enums.ServiceCategory,): Promise<{ services: Service[], count: number }> {
     const skip = page ? this.skip(page) : 0;
-    const take = page ? this.limit : await this.prisma.event.count();
     const status = step ? $Enums.ServiceStep[step] : { in: [$Enums.ServiceStep.STEP_0, $Enums.ServiceStep.STEP_1] }
     const where = { type, status, category }
-    return this.prisma.service.findMany({
+    const count = await this.prisma.service.count({ where });
+    const take = page ? this.limit : count
+    const services = await this.prisma.service.findMany({
       skip,
       take,
       where,
       include: this.serviceIncludeConfig(userId),
     });
+    return { services, count }
   }
 
 
-  async findAllByUser(userId: number, page?: number, type?: $Enums.ServiceType, step?: $Enums.ServiceStep, category?: $Enums.ServiceCategory): Promise<Service[]> {
+  async findAllByUser(userId: number, page?: number, type?: $Enums.ServiceType, step?: $Enums.ServiceStep, category?: $Enums.ServiceCategory): Promise<{ services: Service[], count: number }> {
     const skip = page ? this.skip(page) : 0;
-    const take = page ? this.limit : await this.prisma.event.count();
     const steps = step ? step.includes(',')
       ? { in: step.split(',').map(s => $Enums.ServiceStep[s]) }
       : $Enums.ServiceStep[step] : {};
@@ -54,15 +57,16 @@ export class ServicesService {
       status: steps,
       category
     }
-    if (step || category || type) {
-      return await this.prisma.service.findMany({
-        skip,
-        take,
-        where,
-        include: this.serviceIncludeConfig(userId),
-      });
-    }
-    return [];
+    const count = await this.prisma.service.count({ where });
+    const take = page ? this.limit : count
+    const services = await this.prisma.service.findMany({
+      skip,
+      take,
+      where,
+      include: this.serviceIncludeConfig(userId),
+    });
+    if (step || category || type) return { services, count }
+    return { services: [], count: 0 }
   }
 
 
@@ -76,7 +80,6 @@ export class ServicesService {
 
   async create(data: CreateServiceDto): Promise<Service> {
     const { userId, userIdResp, ...service } = data;
-
     return await this.prisma.service.create({ data: { ...service, User: { connect: { id: userId } } } })
   }
 
@@ -97,58 +100,92 @@ export class ServicesService {
 
   //// POST_RESP
   async updatePostResp(id: number, userId: number): Promise<Service> {
-    return await this.prisma.service.update({
+    const update = await this.prisma.service.update({
       where: { id },
+      include: this.serviceIncludeConfig(userId),
       data: { UserResp: { connect: { id: userId } }, status: $Enums.ServiceStep.STEP_1 }
     });
+    if (update) {
+      let MailList = [];
+      if (Number(MailSubscriptions[update.User.mailSub]) > 1) MailList.push(update.User.email)
+      if (Number(MailSubscriptions[update.UserResp.mailSub]) > 1) MailList.push(update.UserResp.email)
+      this.mailer.sendNotificationEmail(MailList, update.title, id, 'service', ActionType.UPDATE,
+        `Votre service a été pris en charge par ${update.UserResp.Profile.firstName} `
+      )
+    }
+    return update;
   }
 
   //// CANCEL_RESP
   async updateCancelResp(id: number, userId: number): Promise<Service> {
-    return await this.prisma.service.update({
+    const update = await this.prisma.service.update({
       where: { id },
+      include: this.serviceIncludeConfig(userId),
       data: { UserResp: { disconnect: true }, status: $Enums.ServiceStep.STEP_0 }
     });
-
+    if (update) {
+      let MailList = [];
+      if (Number(MailSubscriptions[update.User.mailSub]) > 1) MailList.push(update.User.email)
+      if (Number(MailSubscriptions[update.UserResp.mailSub]) > 1) MailList.push(update.UserResp.email)
+      this.mailer.sendNotificationEmail(MailList, update.title, id, 'service', ActionType.UPDATE,
+        `La réponse au service a été annulée par ${userId === update.User.id ? update.User.Profile.firstName : update.UserResp.Profile.firstName} `
+      )
+    }
+    return update;
   }
+
 
   //// VALID_RESP
   async updateValidResp(id: number, userId: number): Promise<Service> {
-    const service = await this.prisma.service.findUnique({ where: { id } });
-    if (service.userId !== userId) {
-      throw new HttpException(`You are not allowed to update this service`, HttpStatus.FORBIDDEN)
-    }
-    return await this.prisma.service.update({
+    const service = await this.prisma.service.findUnique({ where: { id }, include: this.serviceIncludeConfig(userId) });
+    const UserDo = service.type === $Enums.ServiceType.DO ? service.UserResp : service.User;
+    const UserGet = service.type === $Enums.ServiceType.GET ? service.UserResp : service.User;
+    const points = GetPoints(service, UserDo.Profile);
+    if (UserGet.id !== userId) throw new HttpException(`Vous n'avez pas le droit de valider ce service`, HttpStatus.FORBIDDEN)
+    if (UserGet.Profile.points < points) throw new HttpException(`Vous n'avez pas assez de points`, HttpStatus.FORBIDDEN)
+    const updateUserProfile: Profile = await this.prisma.profile.update({ where: { userId: UserGet.id }, data: { points: UserGet.Profile.points - points } });
+    const update = await this.prisma.service.update({
       where: { id },
-      data: { UserResp: { connect: { id: service.userIdResp } }, status: $Enums.ServiceStep.STEP_2 }
+      include: this.serviceIncludeConfig(userId),
+      data: { UserResp: { connect: { id: service.userIdResp } }, status: $Enums.ServiceStep.STEP_2, points }
     });
-
+    if (update) {
+      let MailList = [];
+      if (Number(MailSubscriptions[update.User.mailSub]) > 1) MailList.push(update.User.email)
+      if (Number(MailSubscriptions[update.UserResp.mailSub]) > 1) MailList.push(update.UserResp.email)
+      this.mailer.sendNotificationEmail(MailList, update.title, id, 'service', ActionType.UPDATE,
+        `La réponse au service a été validée, ${UserDo.Profile.firstName} recevra ${points} points, après l'accomplissement ${update.title} par ${UserGet.Profile.firstName} `
+      )
+    }
+    return update
   }
 
 
   //// FINISH
   async updateFinish(id: number, userId: number): Promise<Service> {
-    const service = await this.prisma.service.findUnique({ where: { id } });
-    const user = await this.prisma.user.findUnique({ where: { id: userId }, include: { Profile: { include: { Address: true } } } });
-    const userResp = await this.prisma.user.findUnique({ where: { id: service.userIdResp }, include: { Profile: { include: { Address: true } } } });
-    const points = GetPoints(service, userResp.Profile);
-    if (service.userId !== userId) {
-      throw new HttpException(`You are not allowed to update this service`, HttpStatus.FORBIDDEN)
+    const service = await this.prisma.service.findUnique({ where: { id }, include: this.serviceIncludeConfig(userId) });
+    const UserDo = service.type === $Enums.ServiceType.DO ? service.UserResp : service.User;
+    const UserGet = service.type === $Enums.ServiceType.GET ? service.UserResp : service.User;
+    const points = GetPoints(service, UserDo.Profile)
+    if (UserGet.id !== userId) throw new HttpException(`Vous n'avez pas le droit de cloturerce service`, HttpStatus.FORBIDDEN)
+    const updateUserProfile: Profile = await this.prisma.profile.update({ where: { userId: UserDo.id }, data: { points: UserDo.Profile.points + points } });
+    const update = await this.prisma.service.update({
+      where: { id },
+      include: this.serviceIncludeConfig(userId),
+      data: { status: $Enums.ServiceStep.STEP_3 }
+    });
+    if (update) {
+      let MailList = [];
+      if (Number(MailSubscriptions[update.User.mailSub]) > 1) MailList.push(update.User.email)
+      if (Number(MailSubscriptions[update.UserResp.mailSub]) > 1) MailList.push(update.UserResp.email)
+      this.mailer.sendNotificationEmail(MailList, update.title, id, 'service', ActionType.UPDATE,
+        `Le service a été clôturé par ${UserGet.Profile.firstName} ,
+          ${points} points ont été transférés à 
+          ${UserDo.Profile.firstName} `
+      )
     }
-    if (user.Profile.points < points) {
-      throw new HttpException(`You don't have enough points`, HttpStatus.FORBIDDEN)
-    }
-    const updateUserProfile: Profile = await this.prisma.profile.update({ where: { userId: user.id }, data: { points: user.Profile.points - points } });
-    let updateUserRespProfile: Profile;
-    if (updateUserProfile) {
-      updateUserRespProfile = await this.prisma.profile.update({ where: { userId: userResp.id }, data: { points: userResp.Profile.points + points } });
-    }
-    if (updateUserProfile && updateUserRespProfile) {
-      return await this.prisma.service.update({
-        where: { id },
-        data: { status: $Enums.ServiceStep.STEP_3 }
-      });
-    }
+    return update
+
   }
 
   async remove(id: number): Promise<Service> {

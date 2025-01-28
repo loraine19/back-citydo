@@ -58,7 +58,7 @@ export class EventsController {
     @User() userId: number,
     @Query('page', ParseIntPipe) page?: number,
     @Query('filter') filter?: string,
-    @Query('category') category?: string): Promise<Event[]> {
+    @Query('category') category?: string): Promise<{ events: Event[], count: number }> {
     switch (filter) {
       case EventFilter.MINE:
         return this.eventsService.findAllByUserId(userId, page, category);

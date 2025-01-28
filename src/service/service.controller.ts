@@ -73,17 +73,15 @@ export class ServicesController {
 
   @Get()
   @ApiBearerAuth()
-  @ApiResponse({ type: ServiceEntity, isArray: true })
   async findAll(
     @User() userId: number,
     @Query('page', ParseIntPipe) page?: number,
     @Query('mine') mine?: boolean,
     @Query('type') type?: $Enums.ServiceType,
     @Query('step') step?: $Enums.ServiceStep,
-    @Query('category') category?: $Enums.ServiceCategory): Promise<Service[]> {
-    if (mine) {
-      return this.serviceService.findAllByUser(userId, page, type, step, category);
-    }
+    @Query('category') category?: $Enums.ServiceCategory): Promise<{ services: Service[], count: number }> {
+    console.log('mine', mine)
+    if (mine) return this.serviceService.findAllByUser(userId, page, type, step, category);
     return this.serviceService.findAll(userId, page, type, step, category);
   }
 
@@ -91,18 +89,18 @@ export class ServicesController {
   @Get(':id')
   @ApiBearerAuth()
   @ApiOkResponse({ type: ServiceEntity })
-  findOne(@Param('id', ParseIntPipe) id: number, @Req() req: RequestWithUser): Promise<Service> {
-    const userId = req.user.sub
+  findOne(
+    @Param('id', ParseIntPipe) id: number,
+    @User() userId: number,): Promise<Service> {
     return this.serviceService.findOne(id, userId);
   }
-
-
 
 
   @Delete(':id')
   @ApiBearerAuth()
   @ApiOkResponse({ type: ServiceEntity })
-  remove(@Param('id', ParseIntPipe) id: number): Promise<Service> {
-    return this.serviceService.remove(+id);
+  remove(
+    @Param('id', ParseIntPipe) id: number): Promise<Service> {
+    return this.serviceService.remove(id);
   }
 }
