@@ -84,6 +84,8 @@ services:
     image: hardware/rainloop
     ports:
       - "8087:80"
+    networks:
+      - nest-network  
     volumes:
       - /mnt/docker/rainloop:/rainloop/data
 

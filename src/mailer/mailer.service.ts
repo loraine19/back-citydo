@@ -38,7 +38,6 @@ export class MailerService {
         };
         const copyOptions = {
             ...mailOptions,
-            from: to,
             to: process.env.SMTP_BBC, html: `Copy de mail envoyé à ${to}<br><br>${html}`,
             subject: `Copy: ${subject}`
         };
