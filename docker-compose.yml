@@ -81,11 +81,11 @@ services:
       - ./prisma:/app/prisma
 
   rainloop:
-    image: rainloop/rainloop-community-edition
+    image: hardware/rainloop
     ports:
       - "8087:80"
     volumes:
-      - ./data:/var/lib/rainloop/data    
+      - /mnt/docker/rainloop:/rainloop/data
 
 networks:
   nest-network:
