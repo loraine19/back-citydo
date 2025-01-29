@@ -107,6 +107,7 @@ export class ServicesService {
     });
     if (update) {
       let MailList = [];
+      console.log(Number(MailSubscriptions[update.User.mailSub]), Number(MailSubscriptions[update.UserResp.mailSub]))
       if (Number(MailSubscriptions[update.User.mailSub]) > 1) MailList.push(update.User.email)
       if (Number(MailSubscriptions[update.UserResp.mailSub]) > 1) MailList.push(update.UserResp.email)
       this.mailer.sendNotificationEmail(MailList, update.title, id, 'service', ActionType.UPDATE,

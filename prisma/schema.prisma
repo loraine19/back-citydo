@@ -393,5 +393,4 @@ enum MailSubscriptions {
   SUB_2
   SUB_3
   SUB_4
-  SUB_5
 }
