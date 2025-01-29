@@ -112,7 +112,7 @@ export class EventsService {
       }
     });
     if (eventUpdated) {
-      this.mailer.sendNotificationEmail(eventUpdated.Participants.map(p => (Number(MailSubscriptions[p.User.mailSub]) > 1) && p.User.email), event.title, updateId, 'evenement', ActionType.UPDATE)
+      this.mailer.sendNotificationEmail(eventUpdated.Participants.map(p => this.mailer.level(p.User.mailSub) > 1 && p.User.email), event.title, updateId, 'evenement', ActionType.UPDATE)
     }
     return eventUpdated
   }
@@ -124,7 +124,7 @@ export class EventsService {
     element.image && ImageInterceptor.deleteImage(element.image);
     const event = await this.prisma.event.delete({ where: { id }, include: { Participants: { select: { User: true } } } });
     if (event) {
-      this.mailer.sendNotificationEmail(event.Participants.map(p => (Number(MailSubscriptions[p.User.mailSub]) > 1 && p.User.email)), event.title, event.id, 'evenement', ActionType.DELETE)
+      this.mailer.sendNotificationEmail(event.Participants.map(p => this.mailer.level(p.User.mailSub) > 1 && p.User.email), event.title, event.id, 'evenement', ActionType.DELETE)
     }
     return event
   }

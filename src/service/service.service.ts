@@ -13,6 +13,7 @@ import { ActionType } from 'src/mailer/constant';
 export class ServicesService {
   constructor(private prisma: PrismaService, private mailer: MailerService) { }
 
+
   private serviceIncludeConfig(userId?: number) {
     return {
       User: { select: { id: true, email: true, mailSub: true, Profile: { include: { Address: true } } } },
@@ -107,9 +108,8 @@ export class ServicesService {
     });
     if (update) {
       let MailList = [];
-      console.log(Number(MailSubscriptions[update.User.mailSub]), Number(MailSubscriptions[update.UserResp.mailSub]))
-      if (Number(MailSubscriptions[update.User.mailSub]) > 1) MailList.push(update.User.email)
-      if (Number(MailSubscriptions[update.UserResp.mailSub]) > 1) MailList.push(update.UserResp.email)
+      if (this.mailer.level(update.User.mailSub) > 1) MailList.push(update.User.email)
+      if (this.mailer.level(update.UserResp.mailSub) > 1) MailList.push(update.UserResp.email)
       this.mailer.sendNotificationEmail(MailList, update.title, id, 'service', ActionType.UPDATE,
         `Votre service a été pris en charge par ${update.UserResp.Profile.firstName} `
       )
@@ -126,8 +126,8 @@ export class ServicesService {
     });
     if (update) {
       let MailList = [];
-      if (Number(MailSubscriptions[update.User.mailSub]) > 1) MailList.push(update.User.email)
-      if (Number(MailSubscriptions[update.UserResp.mailSub]) > 1) MailList.push(update.UserResp.email)
+      if (this.mailer.level(update.User.mailSub) > 1) MailList.push(update.User.email);
+      if (this.mailer.level(update.UserResp.mailSub) > 1) MailList.push(update.UserResp.email);
       this.mailer.sendNotificationEmail(MailList, update.title, id, 'service', ActionType.UPDATE,
         `La réponse au service a été annulée par ${userId === update.User.id ? update.User.Profile.firstName : update.UserResp.Profile.firstName} `
       )
@@ -152,8 +152,8 @@ export class ServicesService {
     });
     if (update) {
       let MailList = [];
-      if (Number(MailSubscriptions[update.User.mailSub]) > 1) MailList.push(update.User.email)
-      if (Number(MailSubscriptions[update.UserResp.mailSub]) > 1) MailList.push(update.UserResp.email)
+      if (this.mailer.level(update.User.mailSub) > 1) MailList.push(update.User.email)
+      if (this.mailer.level(update.UserResp.mailSub) > 1) MailList.push(update.UserResp.email)
       this.mailer.sendNotificationEmail(MailList, update.title, id, 'service', ActionType.UPDATE,
         `La réponse au service a été validée, ${UserDo.Profile.firstName} recevra ${points} points, après l'accomplissement ${update.title} par ${UserGet.Profile.firstName} `
       )
@@ -177,8 +177,8 @@ export class ServicesService {
     });
     if (update) {
       let MailList = [];
-      if (Number(MailSubscriptions[update.User.mailSub]) > 1) MailList.push(update.User.email)
-      if (Number(MailSubscriptions[update.UserResp.mailSub]) > 1) MailList.push(update.UserResp.email)
+      if (this.mailer.level(update.User.mailSub) > 1) MailList.push(update.User.email)
+      if (this.mailer.level(update.UserResp.mailSub) > 1) MailList.push(update.UserResp.email)
       this.mailer.sendNotificationEmail(MailList, update.title, id, 'service', ActionType.UPDATE,
         `Le service a été clôturé par ${UserGet.Profile.firstName} ,
           ${points} points ont été transférés à 

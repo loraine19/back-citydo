@@ -3,6 +3,7 @@ import * as nodemailer from 'nodemailer';
 import * as fs from 'fs';
 import * as path from 'path';
 import { ActionType } from './constant';
+import { MailSubscriptions } from '@prisma/client';
 
 @Injectable()
 export class MailerService {
@@ -65,10 +66,6 @@ export class MailerService {
             `<a href="${process.env.FRONT_URL}/signin?email=${to}&token=${token}">Activer mon compte</a>`);
         await this.sendEmail(to, subject, html);
     }
-
-
-
-
 
     public async sendNotificationEmail(to: string[], title: string, id: number, path: string, actionType: ActionType, msg?: string) {
         const subject = `Notification de Collectif :  ${path}  ${actionType}`;
@@ -147,7 +144,23 @@ export class MailerService {
                 </div>
             </div>
         </body>
-        </html>
-        `;
+        </html>`;
+    }
+
+
+    public level = (level: MailSubscriptions): number => {
+        switch (level) {
+            case MailSubscriptions.SUB_1:
+                return 1;
+            case MailSubscriptions.SUB_2:
+                return 2;
+            case MailSubscriptions.SUB_3:
+                return 3;
+            case MailSubscriptions.SUB_4:
+                return 4;
+            default:
+                return 1;
+        }
+
     }
 }
