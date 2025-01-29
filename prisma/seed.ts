@@ -16,7 +16,7 @@ import { CreateVoteDto } from 'src/votes/dto/create-vote.dto';
 import { Decimal, } from '@prisma/client/runtime/library';
 import { CreateFlagDto } from 'src/flags/dto/create-flag.dto';
 import { CreateIssueDto } from 'src/issues/dto/create-issue.dto';
-import { getEnumVal } from 'middleware/GetPoints';
+import { getEnumVal } from '../middleware/GetPoints';
 
 const prisma = new PrismaClient();
 
