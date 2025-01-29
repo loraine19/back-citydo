@@ -18,7 +18,7 @@ export class UsersService {
     if (userFind) throw new HttpException('User already exists', HttpStatus.CONFLICT);
     user.password = await argon2.hash(user.password);
     const createdUser = await this.prisma.user.create({ data: user });
-    return createdUser;
+    return { ...createdUser, password: undefined }
   }
 
   async findAll(): Promise<User[]> {
@@ -35,7 +35,8 @@ export class UsersService {
         }
       },
       select: {
-        id: true, email: true,
+        id: true,
+        email: true,
         GroupUser: true,
         Profile: { include: { Address: true } }
       },
@@ -49,8 +50,6 @@ export class UsersService {
       select: {
         id: true,
         email: true,
-        createdAt: true,
-        updatedAt: true,
         lastConnection: true,
         status: true,
         Profile: { include: { Address: true } }
@@ -66,13 +65,17 @@ export class UsersService {
     const existingUser = await this.prisma.user.findUniqueOrThrow({ where: { id } });
     if (!existingUser) { throw new NotFoundException(`User with id ${id} not found`) }
     if (user.password) { user.password = await argon2.hash(user.password); }
-    return await this.prisma.user.update({
+    const updatedUser = await this.prisma.user.update({
       where: { id },
       data: { ...user, password: user.password },
     });
+    return { ...updatedUser, password: undefined }
   }
 
-  async remove(id: number): Promise<User> {
-    return await this.prisma.user.delete({ where: { id } });
+  async remove(id: number, userId: number): Promise<{ message: string }> {
+    if (userId !== id) throw new HttpException('Vous n\'avez pas le droit de supprimer cet utilisateur', 403)
+    await this.prisma.user.delete({ where: { id } });
+    return { message: 'User deleted successfully' };
+
   }
 }

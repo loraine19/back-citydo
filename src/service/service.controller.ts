@@ -91,7 +91,7 @@ export class ServicesController {
   @ApiOkResponse({ type: ServiceEntity })
   findOne(
     @Param('id', ParseIntPipe) id: number,
-    @User() userId: number,): Promise<Service> {
+    @User() userId: number): Promise<Service> {
     return this.serviceService.findOne(id, userId);
   }
 

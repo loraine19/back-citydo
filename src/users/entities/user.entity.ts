@@ -39,8 +39,6 @@ export class UserEntity implements User {
     password: string;
 
 
-    @ApiProperty()
-    mailSub: $Enums.MailSubscriptions;
 
 
 

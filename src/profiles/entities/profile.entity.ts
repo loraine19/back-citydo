@@ -52,6 +52,11 @@ export class ProfileEntity implements Profile {
     @IsBoolean({ message: 'Address shared must be a boolean' })
     addressShared: boolean
 
+    @IsOptional()
+    @ApiProperty({ enum: $Enums.MailSubscriptions, default: $Enums.MailSubscriptions.SUB_1, required: false })
+    @IsEnum($Enums.MailSubscriptions, { message: 'must be part of ' + Object.values($Enums.MailSubscriptions).join(', ') })
+    mailSub: $Enums.MailSubscriptions
+
     @ApiProperty({ enum: $Enums.AssistanceLevel })
     @IsEnum($Enums.AssistanceLevel, { message: 'Assistance level must be part of ' + Object.values($Enums.AssistanceLevel).join(', ') })
     assistance: $Enums.AssistanceLevel;

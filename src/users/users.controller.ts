@@ -9,6 +9,7 @@ import { RequestWithUser } from 'src/auth/auth.entities/auth.entity';
 import { User } from '@prisma/client';
 import { EventsService } from '../events/events.service';
 import { ServicesService } from '../service/service.service';
+import { User as UserDec } from 'middleware/decorators';
 
 
 //// CONTROLLER DO ROUTE 
@@ -26,19 +27,10 @@ export class UsersController {
     return await this.usersService.create(data);
   }
 
-  @Get()
-  @ApiBearerAuth()
-  async findAll(): Promise<User[]> {
-    const users = await this.usersService.findAll()
-    //  if (!users.length) throw new HttpException(`No ${route} found.`, HttpStatus.NO_CONTENT);
-    return users
-  }
-
   @Get('modos')
   @ApiBearerAuth()
-  async findAllModo(@Req() req: RequestWithUser): Promise<Partial<User>[]> {
-    const id = req.user.sub
-    const users = await this.usersService.findAllModo(id)
+  async findAllModo(@UserDec() userId: number): Promise<Partial<User>[]> {
+    const users = await this.usersService.findAllModo(userId)
     // if (!users.length) throw new HttpException(`No ${route} found.`, HttpStatus.NO_CONTENT);
     return users
   }
@@ -47,27 +39,11 @@ export class UsersController {
   @Get('me')
   @ApiBearerAuth()
   @ApiOkResponse({ type: UserEntity })
-  async FindMe(@Req() req: RequestWithUser): Promise<Partial<User>> {
-    const id = req.user.sub
-    const user = await this.usersService.findOne(id)
+  async FindMe(@UserDec() userId: number): Promise<Partial<User>> {
+    const user = await this.usersService.findOne(userId)
+    console.log('user', user)
     return user
   }
-
-
-  @Get(':id')
-  @ApiBearerAuth()
-  @ApiOkResponse({ type: UserEntity })
-  async findOne(@Param('id', ParseIntPipe) id: number): Promise<Partial<User>> {
-    return this.usersService.findOne(id)
-  }
-
-  @Get('email/:email')
-  @ApiBearerAuth()
-  @ApiOkResponse({ type: UserEntity })
-  async findUnique(@Param('email', ParseIntPipe) email: string): Promise<User> {
-    return this.usersService.findUnique(email)
-  }
-
 
   @Patch(':id')
   @ApiBearerAuth()
@@ -77,8 +53,9 @@ export class UsersController {
 
   @Delete(':id')
   @ApiBearerAuth()
-  async remove(@Param('id', ParseIntPipe) id: number): Promise<User> {
-    const user = await this.usersService.remove(+id)
-    return user;
+  async remove(
+    @Param('id', ParseIntPipe) id: number,
+    @UserDec() userId: number): Promise<{ message: string }> {
+    return await this.usersService.remove(id, userId)
   }
 }

@@ -1,9 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
-import * as fs from 'fs';
-import * as path from 'path';
 import { ActionType } from './constant';
-import { MailSubscriptions } from '@prisma/client';
+import { MailSubscriptions, Profile } from '@prisma/client';
 
 @Injectable()
 export class MailerService {
@@ -148,7 +146,8 @@ export class MailerService {
     }
 
 
-    public level = (level: MailSubscriptions): number => {
+    public level = (profile: Profile): number => {
+        const level = profile.mailSub;
         switch (level) {
             case MailSubscriptions.SUB_1:
                 return 1;

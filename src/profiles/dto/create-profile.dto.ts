@@ -48,6 +48,11 @@ export class CreateProfileDto {
     @IsBoolean({ message: 'AddressShared must be a boolean' })
     addressShared: boolean;
 
+    @IsOptional()
+    @ApiProperty({ enum: $Enums.MailSubscriptions, default: $Enums.MailSubscriptions.SUB_1, required: false })
+    @IsEnum($Enums.MailSubscriptions, { message: 'must be part of ' + Object.values($Enums.MailSubscriptions).join(', ') })
+    mailSub: $Enums.MailSubscriptions
+
     @ApiProperty({ enum: $Enums.AssistanceLevel, required: false })
     @Transform(({ value }) => typeof (value) === 'string' && value.includes('LEVEL_') ? value : $Enums.AssistanceLevel[parseInt(value)])
     @IsEnum($Enums.AssistanceLevel, { message: 'AssistanceLevel must be part of ' + Object.values($Enums.AssistanceLevel).join(', ') })

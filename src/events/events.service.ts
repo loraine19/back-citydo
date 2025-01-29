@@ -13,8 +13,8 @@ export class EventsService {
 
   private eventIncludeConfig(userId?: number) {
     return {
-      User: { select: { email: true, mailSub: true, Profile: { include: { Address: true } } } },
-      Participants: { include: { User: { select: { email: true, mailSub: true, Profile: true, id: true } } } },
+      User: { select: { email: true, Profile: { include: { Address: true } } } },
+      Participants: { include: { User: { select: { email: true, Profile: true, id: true } } } },
       Address: true,
       Flags: { where: { target: $Enums.FlagTarget.EVENT, userId } }
     };
@@ -112,7 +112,7 @@ export class EventsService {
       }
     });
     if (eventUpdated) {
-      this.mailer.sendNotificationEmail(eventUpdated.Participants.map(p => this.mailer.level(p.User.mailSub) > 1 && p.User.email), event.title, updateId, 'evenement', ActionType.UPDATE)
+      this.mailer.sendNotificationEmail(eventUpdated.Participants.map(p => this.mailer.level(p.User.Profile) > 1 && p.User.email), event.title, updateId, 'evenement', ActionType.UPDATE)
     }
     return eventUpdated
   }
@@ -122,9 +122,9 @@ export class EventsService {
     const element = await this.prisma.event.findUniqueOrThrow({ where: { id } });
     if (userId !== element.userId) throw new HttpException('Vous n\'avez pas les droits de modifier cet évènement', 403)
     element.image && ImageInterceptor.deleteImage(element.image);
-    const event = await this.prisma.event.delete({ where: { id }, include: { Participants: { select: { User: true } } } });
+    const event = await this.prisma.event.delete({ where: { id }, include: { Participants: { select: { User: { include: { Profile: true } } } } } });
     if (event) {
-      this.mailer.sendNotificationEmail(event.Participants.map(p => this.mailer.level(p.User.mailSub) > 1 && p.User.email), event.title, event.id, 'evenement', ActionType.DELETE)
+      this.mailer.sendNotificationEmail(event.Participants.map(p => this.mailer.level(p.User.Profile) > 1 && p.User.email), event.title, event.id, 'evenement', ActionType.DELETE)
     }
     return event
   }

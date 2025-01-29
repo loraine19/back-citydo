@@ -21,14 +21,13 @@ model GroupUser {
 }
 
 model User {
-  id             Int               @id @default(autoincrement())
-  email          String            @unique
+  id             Int           @id @default(autoincrement())
+  email          String        @unique
   password       String
-  createdAt      DateTime          @default(now())
-  updatedAt      DateTime          @updatedAt
-  lastConnection DateTime          @default(now())
-  status         UserStatus        @default(INACTIVE)
-  mailSub        MailSubscriptions @default(SUB_1)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  lastConnection DateTime      @default(now())
+  status         UserStatus    @default(INACTIVE)
   Token          Token[]
   GroupUser      GroupUser[]
   Event          Event[]
@@ -38,15 +37,15 @@ model User {
   Vote           Vote[]
   Participant    Participant[]
   Survey         Survey[]
-  Service        Service[]         @relation("Service")
-  ServiceResp    Service[]         @relation("ServiceResp")
-  IssueModo      Issue[]           @relation("Modo")
-  IssueModoResp  Issue[]           @relation("ModoResp")
-  Issue          Issue[]           @relation("Issue")
-  Pool           Pool[]            @relation("Pool")
-  Benef          Pool[]            @relation("PoolBenef")
-  Profile        Profile?          @relation("Profile")
-  UserSp         Profile[]         @relation("Sponsor")
+  Service        Service[]     @relation("Service")
+  ServiceResp    Service[]     @relation("ServiceResp")
+  IssueModo      Issue[]       @relation("Modo")
+  IssueModoResp  Issue[]       @relation("ModoResp")
+  Issue          Issue[]       @relation("Issue")
+  Pool           Pool[]        @relation("Pool")
+  Benef          Pool[]        @relation("PoolBenef")
+  Profile        Profile?      @relation("Profile")
+  UserSp         Profile[]     @relation("Sponsor")
 }
 
 model Group {
@@ -76,22 +75,23 @@ model Address {
 }
 
 model Profile {
-  userId        Int             @id @unique
+  userId        Int               @id @unique
   userIdSp      Int?
   addressId     Int
   firstName     String
   lastName      String
   image         String?
   phone         String
-  addressShared Boolean         @default(false)
-  assistance    AssistanceLevel @default(LEVEL_0)
-  points        Int?            @default(10)
-  skills        String          @db.MediumText
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
-  Address       Address         @relation(fields: [addressId], references: [id], onUpdate: Cascade, onDelete: Cascade)
-  User          User            @relation(fields: [userId], references: [id], name: "Profile", onUpdate: Cascade, onDelete: Cascade)
-  UserSp        User?           @relation(fields: [userIdSp], references: [id], name: "Sponsor", onUpdate: Cascade, onDelete: Cascade)
+  mailSub       MailSubscriptions @default(SUB_1)
+  addressShared Boolean           @default(false)
+  assistance    AssistanceLevel   @default(LEVEL_0)
+  points        Int?              @default(10)
+  skills        String            @db.MediumText
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  Address       Address           @relation(fields: [addressId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  User          User              @relation(fields: [userId], references: [id], name: "Profile", onUpdate: Cascade, onDelete: Cascade)
+  UserSp        User?             @relation(fields: [userIdSp], references: [id], name: "Sponsor", onUpdate: Cascade, onDelete: Cascade)
 }
 
 model Token {

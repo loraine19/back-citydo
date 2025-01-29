@@ -71,7 +71,6 @@ const CreateRandomUser = async (): Promise<CreateUserDto> => {
     email: newFaker.internet.email(),
     password,
     status: $Enums.UserStatus.INACTIVE,
-    mailSub: $Enums.MailSubscriptions.SUB_1
   }
 }
 
@@ -93,6 +92,7 @@ const CreateRandomProfile = async (): Promise<CreateProfileDto> => {
     phone: newFaker.phone.number(),
     image: newFaker.image.urlPicsumPhotos({ width: 200, height: 200, blur: 0 }),
     addressShared: newFaker.datatype.boolean(),
+    mailSub: $Enums.MailSubscriptions.SUB_1,
     assistance: newFaker.helpers.arrayElement(Object.values($Enums.AssistanceLevel)),
     points: newFaker.number.int({ min: 0, max: 30 }),
     skills: newFaker.lorem.words({ min: 0, max: 3 }),
@@ -276,7 +276,6 @@ const seed = async () => {
     while (await prisma.address.count() < max) {
       await prisma.address.create({ data: CreateRandomAddress() });
     }
-    const address = await prisma.address.findMany();
   }
   await address();
 
@@ -287,7 +286,6 @@ const seed = async () => {
       const cond = await prisma.address.findUnique({ where: { id: addressId } });
       if (cond) await prisma.group.create({ data: { ...group, Address: { connect: { id: addressId } } } })
     }
-    const group = await prisma.group.findMany();
   }
   await group();
 
@@ -296,7 +294,6 @@ const seed = async () => {
     await prisma.user.deleteMany({ where: { email: 'test@mail.com' } });
     await prisma.user.create({ data: { email: 'test@mail.com', password: await argon2.hash('passwordtest'), status: $Enums.UserStatus.ACTIVE } })
     while (await prisma.user.count() < max / 3) { await prisma.user.create({ data: await CreateRandomUser() }) }
-    const user = await prisma.user.findMany();
   }
   await User();
 
