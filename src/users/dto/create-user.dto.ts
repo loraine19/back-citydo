@@ -16,6 +16,11 @@ export class CreateUserDto {
 
     @IsOptional()
     @ApiProperty({ enum: $Enums.UserStatus, default: $Enums.UserStatus.INACTIVE, required: false })
-    @IsEnum($Enums.UserStatus, { message: 'must be part of ' + Object.values($Enums.UserStatus) })
+    @IsEnum($Enums.UserStatus, { message: 'must be part of ' + Object.values($Enums.UserStatus).join(', ') })
     status: $Enums.UserStatus
+
+    @IsOptional()
+    @ApiProperty({ enum: $Enums.MailSubscriptions, default: $Enums.MailSubscriptions.SUB_1, required: false })
+    @IsEnum($Enums.MailSubscriptions, { message: 'must be part of ' + Object.values($Enums.MailSubscriptions).join(', ') })
+    mailSub: $Enums.MailSubscriptions
 }  

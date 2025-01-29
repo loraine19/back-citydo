@@ -71,6 +71,7 @@ const CreateRandomUser = async (): Promise<CreateUserDto> => {
     email: newFaker.internet.email(),
     password,
     status: $Enums.UserStatus.INACTIVE,
+    mailSub: $Enums.MailSubscriptions.SUB_1
   }
 }
 
