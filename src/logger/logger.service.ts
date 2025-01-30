@@ -94,10 +94,18 @@ export class LoggerService extends ConsoleLogger {
       Message: ${message} 
       ${trace ? `\nTrace: ${trace}` : ''}
     `;
+        this.fileStream.write(logMessage + '\n');  // Vérifier la taille du fichier avant d'écrire
+        const messageSize = Buffer.byteLength(logMessage, 'utf8');
+        if (this.currentFileSize + messageSize > this.maxFileSize) {
+            this.rotateLogs(); // Rotation si la taille maximale est dépassée
+        }
+
         this.fileStream.write(logMessage + '\n');
+        this.currentFileSize += messageSize;
     }
 
-    /// peu etre plu tard 
+
+    /// peu etre plu tard si on prefere json pour une analyse externe 
     private writeLogToFileJson(level: string, message: any, context?: string, trace?: string) {
         const logMessage = JSON.stringify({
             timestamp: new Date().toISOString(),
@@ -107,12 +115,10 @@ export class LoggerService extends ConsoleLogger {
             trace: trace
         });
         this.fileStream.write(logMessage + '\n');
-        // Vérifier la taille du fichier avant d'écrire
         const messageSize = Buffer.byteLength(logMessage, 'utf8');
         if (this.currentFileSize + messageSize > this.maxFileSize) {
-            this.rotateLogs(); // Rotation si la taille maximale est dépassée
+            this.rotateLogs();
         }
-
         this.fileStream.write(logMessage + '\n');
         this.currentFileSize += messageSize;
     }
