@@ -5,10 +5,12 @@ import * as fs from 'fs';
 export class LoggerService extends ConsoleLogger {
     private fileStream: fs.WriteStream;
     private readonly logDir = 'logs';
-    private readonly maxFileSize = 1024 * 1024 * 10;
     private currentFileSize = 0;
     private currentDate: string;
-
+    // 7 jours de logs
+    private readonly maxLogFiles: number = 7 * 24 * 60 * 60 * 1000
+    // 10 Mo par fichier / jour 
+    private readonly maxFileSize = 1024 * 1024 * 10;
 
     constructor(readonly context?: string) {
         super(context);
@@ -66,7 +68,7 @@ export class LoggerService extends ConsoleLogger {
             this.currentDate = newDate;
             this.fileStream.close();
             this.fileStream = this.createWriteStream();
-            this.deleteOldLogFiles(); // Supprimer les anciens fichiers après la rotation
+            this.deleteOldLogFiles();
         }
     }
 
@@ -78,9 +80,7 @@ export class LoggerService extends ConsoleLogger {
             const filePath = `${this.logDir}/${file}`;
             const fileStats = fs.statSync(filePath);
             const fileAge = now.getTime() - fileStats.mtime.getTime();
-
-            // Supprimer les fichiers de plus de 7 jours
-            if (fileAge > 7 * 24 * 60 * 60 * 1000) {
+            if (fileAge > this.maxLogFiles) {
                 fs.unlinkSync(filePath);
             }
         });
