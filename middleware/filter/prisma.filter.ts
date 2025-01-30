@@ -12,7 +12,7 @@ export class PrismaFilter extends BaseExceptionFilter {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest();
-    const message = exception.meta?.cause || exception.message.split('return')[1].replace(/"/g, '').trim();
+    const message = exception.meta?.cause || exception.message.split('return')[1]
     let status: HttpStatus;
 
     switch (exception.code) {

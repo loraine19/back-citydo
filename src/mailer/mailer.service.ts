@@ -147,7 +147,8 @@ export class MailerService {
 
 
     public level = (profile: Profile): number => {
-        const level = profile.mailSub;
+        const level = profile && profile.mailSub || 0;
+        console.log(profile)
         switch (level) {
             case MailSubscriptions.SUB_1:
                 return 1;

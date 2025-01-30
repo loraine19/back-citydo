@@ -119,17 +119,19 @@ export class ServicesService {
 
   //// CANCEL_RESP
   async updateCancelResp(id: number, userId: number): Promise<Service> {
+    const origin = await this.prisma.service.findUnique({ where: { id }, include: { UserResp: { select: { email: true, Profile: true } } } });
     const update = await this.prisma.service.update({
       where: { id },
       include: this.serviceIncludeConfig(userId),
       data: { UserResp: { disconnect: true }, status: $Enums.ServiceStep.STEP_0 }
-    });
+    })
+
     if (update) {
       let MailList = [];
       if (this.mailer.level(update.User.Profile) > 1) MailList.push(update.User.email);
-      if (this.mailer.level(update.UserResp.Profile) > 1) MailList.push(update.UserResp.email);
+      if (this.mailer.level(origin.UserResp.Profile) > 1) MailList.push(origin.UserResp.email);
       this.mailer.sendNotificationEmail(MailList, update.title, id, 'service', ActionType.UPDATE,
-        `La réponse au service a été annulée par ${userId === update.User.id ? update.User.Profile.firstName : update.UserResp.Profile.firstName} `
+        `La réponse au service a été annulée par ${userId === update.User.id ? update.User.Profile.firstName : origin.UserResp.Profile.firstName} `
       )
     }
     return update;

@@ -12,6 +12,7 @@ export class ParticipantsService {
   async create(data: CreateParticipantDto): Promise<any> {
     const { userId, eventId } = data;
     const user = await this.prisma.user.findUnique({ where: { id: userId }, select: { id: true, email: true, Profile: true } });
+
     const participation = await this.prisma.participant.create({
       data: {
         User: { connect: { id: userId } },
