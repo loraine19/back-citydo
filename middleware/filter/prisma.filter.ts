@@ -1,15 +1,18 @@
-import { ArgumentsHost, Catch, HttpStatus } from '@nestjs/common';
+import { ArgumentsHost, Catch, HttpStatus, Logger } from '@nestjs/common';
 import { BaseExceptionFilter } from '@nestjs/core';
 import { Prisma } from '@prisma/client';
 import { Response } from 'express';
+import { LoggerService } from 'src/logger/logger.service';
 
 @Catch(Prisma.PrismaClientKnownRequestError)
 export class PrismaFilter extends BaseExceptionFilter {
+  private readonly logger = new LoggerService(PrismaFilter.name);
+
   catch(exception: Prisma.PrismaClientKnownRequestError, host: ArgumentsHost) {
-    console.log(exception)
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
-    const message = exception.meta?.cause || exception.message.split('return')[1]
+    const request = ctx.getRequest();
+    const message = exception.meta?.cause || exception.message.split('return')[1].replace(/"/g, '').trim();
     let status: HttpStatus;
 
     switch (exception.code) {
@@ -39,10 +42,21 @@ export class PrismaFilter extends BaseExceptionFilter {
         break;
     }
 
+    this.logger.error(`
+      Time: ${new Date().toLocaleDateString('fr-FR')} ${new Date().toLocaleTimeString('fr-FR')}
+      Status: ${status} 
+      Error: ${exception.code}: ${message}
+      Path: ${request.url}
+      Method: ${request.method}
+    `);
+
+
     response.status(status).json({
       statusCode: status,
+      timestamp: ` ${new Date().toLocaleDateString('fr-FR')} ${new Date().toLocaleTimeString('fr-FR')}`,
+      path: request.url,
+      method: request.method,
       message: `${exception.code}: ${message}`,
     });
-    console.log('catch error', exception)
   }
 }

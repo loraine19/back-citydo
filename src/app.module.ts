@@ -22,6 +22,7 @@ import { NotifsModule } from './notifs/notifs.module';
 import { ResetPasswordModule } from './reset-password/reset-password.module';
 import { PoolsSurveysModule } from './pools-surveys/pools-surveys.module';
 import { MailerModule } from './mailer/mailer.module';
+import { LoggerModule } from './logger/logger.module';
 
 
 @Module({
@@ -52,6 +53,7 @@ import { MailerModule } from './mailer/mailer.module';
     ResetPasswordModule,
     PoolsSurveysModule,
     MailerModule,
+    LoggerModule,
   ],
 })
 export class AppModule { }

@@ -30,9 +30,7 @@ export class UsersController {
   @Get('modos')
   @ApiBearerAuth()
   async findAllModo(@UserDec() userId: number): Promise<Partial<User>[]> {
-    const users = await this.usersService.findAllModo(userId)
-    // if (!users.length) throw new HttpException(`No ${route} found.`, HttpStatus.NO_CONTENT);
-    return users
+    return await this.usersService.findAllModo(userId) || []
   }
 
 
@@ -40,9 +38,7 @@ export class UsersController {
   @ApiBearerAuth()
   @ApiOkResponse({ type: UserEntity })
   async FindMe(@UserDec() userId: number): Promise<Partial<User>> {
-    const user = await this.usersService.findOne(userId)
-    console.log('user', user)
-    return user
+    return this.usersService.findOne(userId)
   }
 
   @Patch(':id')

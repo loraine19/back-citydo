@@ -7,7 +7,7 @@ export class AuthGuard implements CanActivate {
     constructor(private jwtService: JwtService) { }
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const request = await context.switchToHttp().getRequest();
-        const token = this.extractTokenFromHeader(request).trim();
+        const token = this.extractTokenFromHeader(request);
         if (!token) throw new HttpException('Le token est manquant', 400);
         try {
             const payload = await this.jwtService.verifyAsync(token, { secret: process.env.JWT_SECRET });

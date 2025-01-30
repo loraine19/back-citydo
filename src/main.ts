@@ -8,9 +8,12 @@ import { ErrorFilter } from '../middleware/filter/error.filter';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { NestExpressApplication } from '@nestjs/platform-express';
+import { LoggerService } from './logger/logger.service';
 
 async function bootstrap() {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+    logger: new LoggerService(),
+  });
   const config = new DocumentBuilder()
     .setTitle('Collectif API ')
     .setDescription('Please first login to use the API {"email":"test@mail.com","password":"passwordtest"} to get the token and use the token in Authorize button')
