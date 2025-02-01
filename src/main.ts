@@ -9,6 +9,7 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { LoggerService } from './logger/logger.service';
+import * as cookieParser from 'cookie-parser'
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
@@ -24,6 +25,7 @@ async function bootstrap() {
   SwaggerModule.setup('api', app, document);
 
   app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
+  app.use(cookieParser());
   const { httpAdapter } = app.get(HttpAdapterHost);
   app.useGlobalFilters(
     new ErrorFilter(),
@@ -36,19 +38,27 @@ async function bootstrap() {
     prefix: '/public',
   });
   app.setBaseViewsDir(join('../public'));
-  app.enableCors(
-    {
-      origin:
-        ['http://localhost:5173',
-          'http://localhost:3000',
-          'http://51.210.106.127:8080',
-          'https://imagindev-app.fr',
-          'http://5.51.122.204',
-          'https://5.51.122.204'
-        ]
-    }
-  );
+  const allowedOrigins = [
+    'http://localhost:5173',
+    'http://localhost:3000',
+    'http://51.210.106.127:8080',
+    'https://imagindev-app.fr',
+    'http://5.51.122.204',
+    'https://5.51.122.204'
+  ];
 
+  app.enableCors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin) || process.env.NODE_ENV !== 'production') {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    allowedHeaders: 'Authorization,Content-Type, Accept',
+    credentials: true,
+  })
 
   await app.listen(3000);
 }

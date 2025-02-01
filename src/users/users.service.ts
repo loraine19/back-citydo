@@ -68,6 +68,7 @@ export class UsersService {
     const updatedUser = await this.prisma.user.update({
       where: { id },
       data: { ...user, password: user.password },
+      include: { Profile: true }
     });
     return { ...updatedUser, password: undefined }
   }

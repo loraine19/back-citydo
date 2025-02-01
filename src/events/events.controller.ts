@@ -11,6 +11,7 @@ import { Event } from '@prisma/client';
 import { User } from '../../middleware/decorators';
 import { EventFilter } from './constant';
 
+
 const route = 'events'
 @Controller(route)
 @ApiTags(route)
@@ -32,6 +33,7 @@ export class EventsController {
     data = await parseData(data, image)
     return this.eventsService.create(data)
   }
+
 
   @Patch(':id')
   @ApiBearerAuth()

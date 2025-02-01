@@ -26,7 +26,6 @@ export class ProfilesService {
     const { userId, addressId, userIdSp, ...profile } = data;
     const updateData: any = { ...profile, User: { connect: { id: userId } }, Address: { connect: { id: addressId } } };
 
-
     if (userId) {
       updateData.User = { connect: { id: userId } };
     }
@@ -40,6 +39,7 @@ export class ProfilesService {
     return await this.prisma.profile.update({
       where: { userId },
       data: updateData,
+      include: { Address: true }
     });
   }
 
@@ -49,12 +49,13 @@ export class ProfilesService {
   }
 
   async findOneByUserId(userId: number): Promise<Profile> {
-    return this.prisma.profile.findFirstOrThrow({ where: { userId } })
+    return this.prisma.profile.findFirstOrThrow({ where: { userId }, include: { Address: true } })
   }
 
   async findOne(id: number): Promise<Profile> {
     return await this.prisma.profile.findUniqueOrThrow({
       where: { userId: id },
+      include: { Address: true }
     });
 
   }

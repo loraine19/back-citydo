@@ -7,18 +7,35 @@ export class AuthGuard implements CanActivate {
     constructor(private jwtService: JwtService) { }
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const request = await context.switchToHttp().getRequest();
+        const token = request.cookies['access'];
+        if (!token) throw new HttpException('Unauthorized access', 401);
+        try {
+            const payload = await this.jwtService.verifyAsync(token, { secret: process.env.JWT_SECRET });
+            request['user'] = payload;
+            return true;
+        }
+        catch (error) {
+            throw new HttpException('Unauthorized access', 401)
+        }
+    }
+}
+
+@Injectable()
+export class AuthGuardRefresh implements CanActivate {
+    constructor(private jwtService: JwtService) { }
+    async canActivate(context: ExecutionContext): Promise<boolean> {
+        const request = await context.switchToHttp().getRequest();
         const token = this.extractTokenFromHeader(request);
-        if (!token) throw new HttpException('Le token est manquant', 400);
+        if (!token) throw new HttpException('Refresh token not found', 403);
         try {
             const payload = await this.jwtService.verifyAsync(token, { secret: process.env.JWT_SECRET });
             request['user'] = payload
+            return true;
         }
         catch (error) {
             throw new HttpException('Guard :' + error, 401)
         }
-        return true;
     }
-
     private extractTokenFromHeader(request: Request): string | undefined {
         const [type, token] = request.headers.authorization?.split(' ') ?? [];
         return type === 'Bearer' ? token : undefined;

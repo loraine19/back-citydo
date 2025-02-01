@@ -1,5 +1,6 @@
 //src/auth/auth.service.ts
-import { HttpException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { HttpException, Injectable, Res, UnauthorizedException } from '@nestjs/common';
+import { Response } from 'express';
 import { PrismaService } from '../prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import { AuthEntity, RefreshEntity } from './auth.entities/auth.entity';
@@ -20,6 +21,23 @@ export class AuthService {
 
     async generateVerifyToken(sub: number) { return this.jwtService.sign({ sub }, { secret: process.env.JWT_SECRET, expiresIn: process.env.JWT_EXPIRES_VERIFY }) }
 
+    async setAuthCookies(res: Response, accessToken: string) {
+        //ne pas stocker la resp ( browser / proxy / server)
+        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+        //ne pas stocker la resp old browser
+        res.setHeader('Pragma', 'no-cache');
+        // deja expere ne pas mettre en cache 
+        res.setHeader('Expires', '0');
+        res.cookie('access', accessToken, {
+            httpOnly: true,
+            domain: process.env.DOMAIN,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: 1 * 60 * 1000, // 5 minutes
+            path: '/',
+        });
+    }
+
     async signUp(data: SignInDto): Promise<AuthEntity | { message: string }> {
         let { email, password } = data
         const user = await this.prisma.user.findUnique({ where: { email: email } });
@@ -33,7 +51,7 @@ export class AuthService {
     }
 
     //// SIGN IN
-    async signIn(data: SignInDto): Promise<AuthEntity | { message: string }> {
+    async signIn(data: SignInDto, res: Response): Promise<AuthEntity | { message: string }> {
         let { email, password } = data
         const user = await this.prisma.user.findUniqueOrThrow({ where: { email: email } });
         if (!user) { throw new HttpException('User not found', 404) }
@@ -44,17 +62,20 @@ export class AuthService {
             return { message: 'Votre compte est inactif, veuillez verifier votre email' }
         }
         const refreshToken = await this.generateRefreshToken(user.id);
+        const accessToken = await this.generateAccessToken(user.id);
         await this.prisma.token.deleteMany({ where: { userId: user.id } })
         await this.prisma.token.create({ data: { userId: user.id, token: await argon2.hash(refreshToken), type: $Enums.TokenType.REFRESH } })
+        this.setAuthCookies(res, accessToken);
+        console.log('res', res, accessToken)
         return {
-            accessToken: await this.generateAccessToken(user.id),
+            accessToken,
             refreshToken
 
         }
     }
 
     //// SIGN IN VERIFY
-    async signInVerify(data: SignInDto & { verifyToken: string }): Promise<AuthEntity> {
+    async signInVerify(data: SignInDto & { verifyToken: string }, res: Response): Promise<AuthEntity> {
         let { email, password, verifyToken } = data
         const user = await this.prisma.user.findUniqueOrThrow({ where: { email: email } });
         !user && new HttpException('Utilisateur introuvable', 404)
@@ -64,34 +85,36 @@ export class AuthService {
         if (!refreshTokenValid) throw new HttpException('Probleme de verification' + userToken.createdAt, 401)
         const isPasswordValid = await argon2.verify(user.password, password)
         if (!isPasswordValid) throw new HttpException('Invalid password', 401)
+        const accessToken = await this.generateAccessToken(user.id);
         const refreshToken = await this.generateRefreshToken(user.id);
         await this.prisma.user.update({ where: { id: user.id }, data: { status: $Enums.UserStatus.ACTIVE } })
         await this.prisma.token.deleteMany({ where: { userId: user.id, type: $Enums.TokenType.REFRESH } })
         await this.prisma.token.create({ data: { userId: user.id, token: await argon2.hash(refreshToken), type: $Enums.TokenType.REFRESH } })
+        this.setAuthCookies(res, accessToken);
         return {
-            accessToken: await this.generateAccessToken(user.id),
+            accessToken,
             refreshToken
         }
     }
 
 
     /// RERESH TOKEN
-    async refresh(refreshToken: string, userId: number): Promise<AuthEntity | { message: string }> {
+    async refresh(refreshToken: string, userId: number, res: Response): Promise<AuthEntity | { message: string }> {
         // Use PrismaClientTransaction to avoid errror in case of multi entrance in the same time
         return await this.prisma.$transaction(async (prisma) => {
             try {
                 const userToken = await prisma.token.findFirst({ where: { userId: userId, type: $Enums.TokenType.REFRESH } });
-                if (!userToken) throw new HttpException('Impossible de renouveller la connexion , identifiez vous ', 400);
+                if (!userToken) throw new HttpException('Impossible de renouveller la connexion , identifiez vous ', 403);
 
                 const refreshTokenValid = await argon2.verify(userToken.token, refreshToken.trim());
                 if (!refreshTokenValid) {
                     console.log('refreshTokenValid', refreshTokenValid, refreshToken, userToken.token)
-                    throw new HttpException('connexion interrompue, re-identifiez vous ', 400);
+                    throw new HttpException('connexion interrompue, re-identifiez vous ', 403);
                 }
                 await prisma.token.deleteMany({
                     where: { userId, type: $Enums.TokenType.REFRESH }
                 });
-
+                const accessToken = await this.generateAccessToken(userId);
                 const newRefreshToken = await this.generateRefreshToken(userId);
                 const newRefreshTokenHash = await argon2.hash(newRefreshToken);
                 const createdToken = await prisma.token.create({
@@ -101,8 +124,9 @@ export class AuthService {
                         type: $Enums.TokenType.REFRESH
                     }
                 });
+                await this.setAuthCookies(res, accessToken)
                 return {
-                    accessToken: await this.generateAccessToken(userId),
+                    accessToken: accessToken,
                     refreshToken: newRefreshToken
                 };
             } catch (error) {
