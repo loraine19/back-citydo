@@ -1,7 +1,9 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { $Enums } from "@prisma/client";
+import { $Enums, Address } from "@prisma/client";
 import { Transform, Type } from "class-transformer";
 import { IsString, IsNotEmpty, IsBoolean, IsEnum, IsNumber, IsArray, IsOptional } from "class-validator";
+import { CreateAddressDto } from "src/addresses/dto/create-address.dto";
+
 
 export class CreateProfileDto {
     @ApiProperty()
@@ -24,7 +26,7 @@ export class CreateProfileDto {
     @IsOptional()
     @Type(() => Number)
     @IsNumber({}, { message: 'User id must be a number' })
-    userId: number;
+    userId?: number;
 
     @ApiProperty()
     @IsNotEmpty({ message: 'Address id is required' })
@@ -68,4 +70,7 @@ export class CreateProfileDto {
     @IsOptional()
     @IsString({ message: 'Skills must be a string' })
     skills: string;
+
+    @ApiProperty({ type: CreateAddressDto })
+    Address: CreateAddressDto
 }

@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsArray, IsBoolean, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
-import { $Enums, Profile } from '@prisma/client';
+import { $Enums, Profile, Address } from '@prisma/client';
 import { Transform, Type } from 'class-transformer';
 
 export class ProfileEntity implements Profile {
@@ -70,4 +70,9 @@ export class ProfileEntity implements Profile {
     @ApiProperty({ type: 'string', required: false })
     @IsArray({ message: 'Skills must be an array' })
     skills: string;
+
+
+    @IsOptional()
+    Address: Address
+
 }

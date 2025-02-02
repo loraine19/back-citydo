@@ -24,6 +24,19 @@ export class AddressService {
     });
   }
 
+  async findUnique(address: string, zipcode: string): Promise<Address> {
+    return await this.prisma.address.findUnique({ where: { address_zipcode: { address, zipcode } } });
+  }
+
+  async verifyAddress(data: CreateAddressDto): Promise<number> {
+    console.log('data', data)
+    const { address, zipcode } = data;
+    const exist = await this.prisma.address.findUnique({ where: { address_zipcode: { address, zipcode } } })
+    console.log('exist', exist)
+    if (exist) return exist.id;
+    const newAddress = await this.prisma.address.create({ data })
+    return newAddress.id;
+  }
 
   async remove(id: number): Promise<Address> {
     return await this.prisma.address.delete({ where: { id } });

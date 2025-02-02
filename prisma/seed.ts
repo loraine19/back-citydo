@@ -83,9 +83,11 @@ const CreateRandomGroupUser = (): CreateGroupUserDto => {
 }
 
 const CreateRandomProfile = async (): Promise<CreateProfileDto> => {
+  const Address = await prisma.address.create({ data: CreateRandomAddress() });
   return {
     userId: newFaker.number.int({ min: 1, max: max / 3 }),
-    addressId: newFaker.number.int({ min: 1, max: 10 }),
+    Address: Address,
+    addressId: Address.id,
     userIdSp: newFaker.number.int({ min: 1, max: max / 3 }),
     firstName: newFaker.person.firstName(),
     lastName: newFaker.person.lastName(),
@@ -102,9 +104,11 @@ const CreateRandomProfile = async (): Promise<CreateProfileDto> => {
 const CreateRandomEvent = async (): Promise<CreateEventDto> => {
   const start = newFaker.date.future();
   const end = new Date(start.getTime() + newFaker.number.int({ min: 1, max: 4 }) * 24 * 60 * 60 * 1000);
+  const address = await prisma.address.create({ data: CreateRandomAddress() });
   return {
     userId: newFaker.number.int({ min: 1, max: max / 3 }),
-    addressId: newFaker.number.int({ min: 1, max }),
+    Address: address,
+    addressId: address.id,
     title: 'Evenement ' + newFaker.lorem.words({ min: 3, max: 8 }),
     description: newFaker.lorem.lines({ min: 1, max: 2 }),
     start,

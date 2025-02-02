@@ -20,14 +20,14 @@ export class AuthController {
   @ApiOkResponse({ type: AuthEntity })
   async signinVerify(
     @Body() data: SignInVerifyDto,
-    @Res({ passthrough: true }) res: Response): Promise<AuthEntity> {
+    @Res({ passthrough: true }) res: Response): Promise<{ refreshToken: string } | { message: string }> {
     return this.authService.signInVerify(data, res);
   }
   @Post('signin')
   @ApiOkResponse({ type: AuthEntity })
   async signin(
     @Body() data: SignInDto,
-    @Res({ passthrough: true }) res: Response): Promise<AuthEntity | { message: string }> {
+    @Res({ passthrough: true }) res: Response): Promise<{ refreshToken: string } | { message: string }> {
     return this.authService.signIn(data, res);
   }
 
@@ -46,13 +46,12 @@ export class AuthController {
   @ApiOkResponse({ type: RefreshEntity })
   async refresh(
     @GetRefreshToken() data: any,
-    @Res({ passthrough: true }) res: Response): Promise<AuthEntity | { message: string }> {
+    @Res({ passthrough: true }) res: Response): Promise<{ refreshToken: string } | { message: string }> {
     try {
       const { refreshToken, userId } = data
       return this.authService.refresh(refreshToken, userId, res);
     }
     catch (error) {
-      console.log('catch error', error)
       throw new HttpException(error.message, 401);
     }
   }

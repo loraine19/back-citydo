@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { $Enums, Event } from '@prisma/client';
+import { $Enums, Address, Event } from '@prisma/client';
 ;
 import { IsDate, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 
@@ -62,4 +62,7 @@ export class EventEntity implements Event {
     @IsNumber()
     @IsNotEmpty({ message: 'Participants min is required' })
     participantsMin: number
+
+    @ApiProperty()
+    Address: Address
 }

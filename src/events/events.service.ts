@@ -1,15 +1,16 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { PrismaService } from '../../src/prisma/prisma.service';
-import { $Enums, Event, MailSubscriptions } from '@prisma/client';
+import { $Enums, Event, MailSubscriptions, Profile } from '@prisma/client';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { ImageInterceptor } from 'middleware/ImageInterceptor';
 import { MailerService } from 'src/mailer/mailer.service';
 import { ActionType } from 'src/mailer/constant';
+import { AddressService } from 'src/addresses/address.service';
 
 @Injectable()
 export class EventsService {
-  constructor(private prisma: PrismaService, private mailer: MailerService) { }
+  constructor(private prisma: PrismaService, private mailer: MailerService, private addressService: AddressService) { }
 
   private eventIncludeConfig(userId?: number) {
     return {
@@ -95,24 +96,29 @@ export class EventsService {
 
   //// ACTIONS
   async create(data: CreateEventDto): Promise<Event> {
-    const { userId, addressId, ...event } = data
+    const { userId, addressId, Address, ...event } = data
+    const addressIdVerified = await this.addressService.verifyAddress(Address);
     return await this.prisma.event.create({
-      data: { ...event, Address: { connect: { id: addressId } }, User: { connect: { id: userId } } }
+      data: { ...event, Address: { connect: { id: addressIdVerified } }, User: { connect: { id: userId } } }
     });
   }
 
   async update(updateId: number, data: UpdateEventDto, userIdC: number): Promise<Event> {
-    const { userId, addressId, ...event } = data;
+    const { userId, addressId, Address, ...event } = data;
     if (userIdC !== userId) throw new HttpException('Vous n\'avez pas les droits de modifier cet évènement', 403)
+    const addressIdVerified = await this.addressService.verifyAddress(Address);
+    console.log('addressIdVerified', addressIdVerified)
     const eventUpdated = await this.prisma.event.update({
       where: { id: updateId },
       include: this.eventIncludeConfig(userId),
       data: {
-        ...event, Address: { connect: { id: addressId } }, User: { connect: { id: userId } },
+        ...event, Address: { connect: { id: addressIdVerified } }, User: { connect: { id: userId } },
       }
     });
     if (eventUpdated) {
-      this.mailer.sendNotificationEmail(eventUpdated.Participants.map(p => this.mailer.level(p.User.Profile) > 1 && p.User.email), event.title, updateId, 'evenement', ActionType.UPDATE)
+      const MailList = eventUpdated.Participants.map(p => this.mailer.level(p.User.Profile) > 1 ? p.User.email : null).filter(email => email)
+      console.log(MailList)
+      MailList.length > 0 && this.mailer.sendNotificationEmail(MailList, event.title, updateId, 'evenement', ActionType.UPDATE)
     }
     return eventUpdated
   }

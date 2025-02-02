@@ -10,6 +10,8 @@ import { parseData } from '../../middleware/BodyParser';
 import { ImageInterceptor } from '../../middleware/ImageInterceptor';
 import { Profile } from '@prisma/client';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { User } from 'middleware/decorators';
+import { CreateAddressDto } from 'src/addresses/dto/create-address.dto';
 
 
 const route = 'profiles'
@@ -37,24 +39,25 @@ export class ProfilesController {
     }
   }
 
-
   @Patch()
   @ApiBearerAuth()
   @ApiOkResponse({ type: ProfileEntity })
   @ApiBody({ type: UpdateProfileDto })
   @UseInterceptors(ImageInterceptor.create('profiles'))
   @ApiConsumes('multipart/form-data')
-  async update(@Body() data: UpdateProfileDto, @UploadedFile() image: Express.Multer.File, @Req() req: RequestWithUser): Promise<Profile> {
-    const profile = await this.profilesService.findOneByUserId(req.user.sub)
-    console.log(data)
-    if (profile.image && image) {
-      ImageInterceptor.deleteImage(profile.image)
+  async update(
+    @Body() data: UpdateProfileDto,
+    @UploadedFile() image: Express.Multer.File,
+    @User() userId: number): Promise<Profile> {
+    const profileVerify = await this.profilesService.findOneByUserId(userId)
+    if (profileVerify.image && image) {
+      ImageInterceptor.deleteImage(profileVerify.image)
     }
-    data.userId = req.user.sub
+    data.userId = userId
     data = await parseData(data, image)
-    console.log(data)
     return this.profilesService.update(data);
   }
+
 
   @Get()
   @ApiBearerAuth()

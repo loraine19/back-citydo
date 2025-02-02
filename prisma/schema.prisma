@@ -72,6 +72,8 @@ model Address {
   Groups    Group[]
   Profiles  Profile[]
   Events    Event[]
+
+  @@unique([address, zipcode])
 }
 
 model Profile {

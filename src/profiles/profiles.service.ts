@@ -4,38 +4,36 @@ import { Profile } from '@prisma/client';
 import { CreateProfileDto } from './dto/create-profile.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { ImageInterceptor } from 'middleware/ImageInterceptor';
+import { AddressService } from 'src/addresses/address.service';
+import { CreateAddressDto } from 'src/addresses/dto/create-address.dto';
 //// SERVICE MAKE ACTION
 @Injectable()
 export class ProfilesService {
-  constructor(private prisma: PrismaService,) { }
+  constructor(private prisma: PrismaService, private addressService: AddressService) { }
   async create(data: CreateProfileDto): Promise<Profile> {
-    const { userId, addressId, userIdSp, ...profile } = data
+    const { userId, addressId, userIdSp, Address, ...profile } = data
+    const addressIdVerified = await this.addressService.verifyAddress(Address);
     const cond = await this.prisma.profile.findFirst({ where: { userId: userId } });
     if (cond) { throw new HttpException(`Profile already exists for user ${userId}`, HttpStatus.CONFLICT) }
-    const createData: any = { ...profile, User: { connect: { id: userId } }, Address: { connect: { id: addressId } } };
-
+    const createData: any = { ...profile, User: { connect: { id: userId } }, Address: { connect: { id: addressIdVerified } } };
     if (userIdSp) {
       createData.UserSp = { connect: { id: userIdSp } };
     }
-
     return await this.prisma.profile.create({
       data: createData
     });
   }
-  async update(data: UpdateProfileDto): Promise<Profile> {
-    const { userId, addressId, userIdSp, ...profile } = data;
-    const updateData: any = { ...profile, User: { connect: { id: userId } }, Address: { connect: { id: addressId } } };
 
+  async update(data: UpdateProfileDto): Promise<Profile> {
+    const { addressId, userIdSp, userId, Address, ...profile } = data;
+    const addressIdVerified = await this.addressService.verifyAddress(Address);
+    const updateData: any = { ...profile, User: { connect: { id: userId } }, Address: { connect: { id: addressIdVerified } } };
     if (userId) {
       updateData.User = { connect: { id: userId } };
-    }
-    if (addressId) {
-      updateData.Address = { connect: { id: addressId } };
     }
     if (userIdSp) {
       updateData.UserSp = { connect: { id: userIdSp } };
     }
-
     return await this.prisma.profile.update({
       where: { userId },
       data: updateData,

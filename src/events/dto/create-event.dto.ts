@@ -1,7 +1,7 @@
 import { ApiBody, ApiConsumes, ApiProperty, PartialType } from "@nestjs/swagger";
 import { EventEntity } from "../entities/event.entity";
 import { IsNotEmpty, IsString, IsDate, IsNumber, IsOptional, IsEnum } from "class-validator";
-import { $Enums } from "@prisma/client";
+import { $Enums, Address } from "@prisma/client";
 import { Optional, ParseFilePipe, ParseIntPipe, UsePipes } from "@nestjs/common";
 import { Transform } from "class-transformer";
 
@@ -58,5 +58,9 @@ export class CreateEventDto {
     @ApiProperty({ type: 'string', format: 'binary', required: false, })
     @IsOptional()
     image: any;
+
+    @ApiProperty({ required: false })
+    @IsOptional()
+    Address: Address
 
 }

@@ -38,7 +38,7 @@ export class AuthService {
         });
     }
 
-    async signUp(data: SignInDto): Promise<AuthEntity | { message: string }> {
+    async signUp(data: SignInDto): Promise<{ message: string }> {
         let { email, password } = data
         const user = await this.prisma.user.findUnique({ where: { email: email } });
         if (user) return { message: 'Vous avez déjà un compte' };
@@ -51,7 +51,7 @@ export class AuthService {
     }
 
     //// SIGN IN
-    async signIn(data: SignInDto, res: Response): Promise<AuthEntity | { message: string }> {
+    async signIn(data: SignInDto, res: Response): Promise<{ refreshToken: string } | { message: string }> {
         let { email, password } = data
         const user = await this.prisma.user.findUniqueOrThrow({ where: { email: email } });
         if (!user) { throw new HttpException('User not found', 404) }
@@ -66,16 +66,11 @@ export class AuthService {
         await this.prisma.token.deleteMany({ where: { userId: user.id } })
         await this.prisma.token.create({ data: { userId: user.id, token: await argon2.hash(refreshToken), type: $Enums.TokenType.REFRESH } })
         this.setAuthCookies(res, accessToken);
-        console.log('res', res, accessToken)
-        return {
-            accessToken,
-            refreshToken
-
-        }
+        return { refreshToken }
     }
 
     //// SIGN IN VERIFY
-    async signInVerify(data: SignInDto & { verifyToken: string }, res: Response): Promise<AuthEntity> {
+    async signInVerify(data: SignInDto & { verifyToken: string }, res: Response): Promise<{ refreshToken: string }> {
         let { email, password, verifyToken } = data
         const user = await this.prisma.user.findUniqueOrThrow({ where: { email: email } });
         !user && new HttpException('Utilisateur introuvable', 404)
@@ -91,44 +86,28 @@ export class AuthService {
         await this.prisma.token.deleteMany({ where: { userId: user.id, type: $Enums.TokenType.REFRESH } })
         await this.prisma.token.create({ data: { userId: user.id, token: await argon2.hash(refreshToken), type: $Enums.TokenType.REFRESH } })
         this.setAuthCookies(res, accessToken);
-        return {
-            accessToken,
-            refreshToken
-        }
+        return { refreshToken }
     }
 
 
     /// RERESH TOKEN
-    async refresh(refreshToken: string, userId: number, res: Response): Promise<AuthEntity | { message: string }> {
+    async refresh(refreshToken: string, userId: number, res: Response): Promise<{ refreshToken: string } | { message: string }> {
         // Use PrismaClientTransaction to avoid errror in case of multi entrance in the same time
         return await this.prisma.$transaction(async (prisma) => {
             try {
                 const userToken = await prisma.token.findFirst({ where: { userId: userId, type: $Enums.TokenType.REFRESH } });
                 if (!userToken) throw new HttpException('Impossible de renouveller la connexion , identifiez vous ', 403);
-
                 const refreshTokenValid = await argon2.verify(userToken.token, refreshToken.trim());
-                if (!refreshTokenValid) {
-                    console.log('refreshTokenValid', refreshTokenValid, refreshToken, userToken.token)
-                    throw new HttpException('connexion interrompue, re-identifiez vous ', 403);
-                }
-                await prisma.token.deleteMany({
-                    where: { userId, type: $Enums.TokenType.REFRESH }
-                });
+                if (!refreshTokenValid) throw new HttpException('connexion interrompue, re-identifiez vous ', 403);
+                await prisma.token.deleteMany({ where: { userId, type: $Enums.TokenType.REFRESH } });
                 const accessToken = await this.generateAccessToken(userId);
                 const newRefreshToken = await this.generateRefreshToken(userId);
                 const newRefreshTokenHash = await argon2.hash(newRefreshToken);
-                const createdToken = await prisma.token.create({
-                    data: {
-                        userId,
-                        token: newRefreshTokenHash,
-                        type: $Enums.TokenType.REFRESH
-                    }
+                await prisma.token.create({
+                    data: { userId, token: newRefreshTokenHash, type: $Enums.TokenType.REFRESH }
                 });
                 await this.setAuthCookies(res, accessToken)
-                return {
-                    accessToken: accessToken,
-                    refreshToken: newRefreshToken
-                };
+                return { refreshToken: newRefreshToken };
             } catch (error) {
                 console.error('Erreur lors du refresh du token :', error);
                 throw new HttpException(error.message, 401);

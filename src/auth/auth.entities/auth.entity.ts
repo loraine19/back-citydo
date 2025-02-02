@@ -3,8 +3,6 @@ import { Request } from 'express';
 
 export class AuthEntity {
     @ApiProperty()
-    accessToken: string;
-    @ApiProperty()
     refreshToken: string;
 }
 

@@ -17,7 +17,7 @@ const route = "participants"
 @Controller(route)
 @ApiTags(route)
 export class ParticipantsController {
-  constructor(private readonly participantsService: ParticipantsService, private usersService: UsersService, private eventsService: EventsService) { }
+  constructor(private readonly participantsService: ParticipantsService) { }
 
   @Post()
   @ApiBearerAuth()

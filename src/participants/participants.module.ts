@@ -9,6 +9,6 @@ import { MailerService } from 'src/mailer/mailer.service';
 @Module({
   imports: [PrismaModule],
   controllers: [ParticipantsController],
-  providers: [ParticipantsService, EventsService, UsersService, ImageInterceptor, MailerService],
+  providers: [ParticipantsService, UsersService, ImageInterceptor, MailerService],
 })
 export class ParticipantsModule { }
