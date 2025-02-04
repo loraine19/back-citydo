@@ -67,10 +67,12 @@ export class CreateProfileDto {
     points: number;
 
     @ApiProperty({ type: 'string', required: false })
+    @Transform(({ value }) => typeof value === 'string' ? value : String(value))
     @IsOptional()
     @IsString({ message: 'Skills must be a string' })
     skills: string;
 
-    @ApiProperty({ type: CreateAddressDto })
+    @ApiProperty({ type: CreateAddressDto, required: false })
+    @IsOptional()
     Address: CreateAddressDto
 }

@@ -7,9 +7,7 @@ import { MailSubscriptions, Profile } from '@prisma/client';
 export class MailerService {
     private transporter: nodemailer.Transporter;
 
-    constructor() {
-        this.transporter = this.createTransporter();
-    }
+    constructor() { this.transporter = this.createTransporter() }
 
     private createTransporter() {
         return nodemailer.createTransport({
@@ -65,6 +63,14 @@ export class MailerService {
         await this.sendEmail(to, subject, html);
     }
 
+    public async sendDeleteAccountEmail(to: string, token: string) {
+        const subject = 'Suppression de votre compte Collectif';
+        const html = this.generateEmailHtml('Bonjour, vous avez demande de supprimer votre compte. cliquez sur le lien ci-dessous pour supprimer votre compte, vous ne pouvez plus revenir en arriere :',
+            `<a href="${process.env.FRONT_URL}/delete_account?email=${to}&token=${token}">Supprimer mon compte</a>`);
+        await this.sendEmail(to, subject, html);
+    }
+
+
     public async sendNotificationEmail(to: string[], title: string, id: number, path: string, actionType: ActionType, msg?: string) {
         const subject = `Notification de Collectif :  ${path}  ${actionType}`;
         const html = this.generateEmailHtml(`L'élément ${title} a été ${actionType},
@@ -112,7 +118,7 @@ export class MailerService {
                 .content {
                     margin-bottom: 20px;
                 }
-                a {
+                .content a {
                     display: inline-block;
                     padding: 5px 10px;
                     color: #fff !important;
@@ -125,6 +131,9 @@ export class MailerService {
                     font-size: 12px;
                     color: #777;
                 }
+                    .footer a {
+                    color: #9A3412;
+                    }
             </style>
         </head>
         <body>
@@ -139,6 +148,7 @@ export class MailerService {
                 </div>
                 <div class="footer">
                     <p>&copy; 2025 Collect'if. Tous droits réservés.</p>
+                    <a href="${process.env.FRONT_URL}/myprofile">Changer mes préférences de notification</a>
                 </div>
             </div>
         </body>

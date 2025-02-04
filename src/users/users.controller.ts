@@ -33,6 +33,11 @@ export class UsersController {
     return await this.usersService.findAllModo(userId) || []
   }
 
+  @Get('count')
+  @ApiBearerAuth()
+  async count(@UserDec() userId: number): Promise<number> {
+    return await this.usersService.count(userId)
+  }
 
   @Get('me')
   @ApiBearerAuth()

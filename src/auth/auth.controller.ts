@@ -16,11 +16,12 @@ export class AuthController {
   constructor(private readonly authService: AuthService, readonly usersService: UsersService) { }
 
 
-  @Post('signin/verify')
+  @Post('signinVerify')
   @ApiOkResponse({ type: AuthEntity })
   async signinVerify(
     @Body() data: SignInVerifyDto,
     @Res({ passthrough: true }) res: Response): Promise<{ refreshToken: string } | { message: string }> {
+    console.log(data)
     return this.authService.signInVerify(data, res);
   }
   @Post('signin')
@@ -55,6 +56,30 @@ export class AuthController {
       throw new HttpException(error.message, 401);
     }
   }
+
+
+
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  @Post('deleteAccount')
+  @ApiOkResponse()
+  async deleteAccount(
+    @User() userId: number): Promise<{ message: string }> {
+    console.log(userId)
+    return this.authService.deletAccount(userId);
+  }
+
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  @Post('deleteAccountConfirm')
+  @ApiOkResponse()
+  async deleteAccountConfirm(
+    @Body() { email, token }: { email: string, token: string },
+    @User() userId: number): Promise<{ message: string }> {
+    return this.authService.deletAccountConfirm(userId, email, token);
+  }
+
+
 
 
 }

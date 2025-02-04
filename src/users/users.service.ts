@@ -61,6 +61,11 @@ export class UsersService {
     return await this.prisma.user.findUniqueOrThrow({ where: { email } });
   }
 
+
+  async count(userId: number): Promise<number> {
+    return await this.prisma.user.count()
+  }
+
   async update(id: number, user: UpdateUserDto): Promise<User> {
     const existingUser = await this.prisma.user.findUniqueOrThrow({ where: { id } });
     if (!existingUser) { throw new NotFoundException(`User with id ${id} not found`) }

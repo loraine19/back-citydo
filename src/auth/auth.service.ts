@@ -8,7 +8,6 @@ import * as argon2 from 'argon2';
 import { SignInDto } from './dto/signIn.dto';
 import { $Enums } from '@prisma/client';
 import { MailerService } from 'src/mailer/mailer.service';
-import PrismaClientTransaction from '@prisma/client';
 
 
 @Injectable()
@@ -90,8 +89,8 @@ export class AuthService {
     }
 
 
-    /// RERESH TOKEN
     async refresh(refreshToken: string, userId: number, res: Response): Promise<{ refreshToken: string } | { message: string }> {
+        console.log('refreshToken', refreshToken)
         // Use PrismaClientTransaction to avoid errror in case of multi entrance in the same time
         return await this.prisma.$transaction(async (prisma) => {
             try {
@@ -114,4 +113,28 @@ export class AuthService {
             }
         });
     }
+
+    async deletAccount(userId: number): Promise<{ message: string }> {
+        const user = await this.prisma.user.findUniqueOrThrow({ where: { id: userId } });
+        const deleteToken = await this.generateVerifyToken(user.id);
+        const deleteTokenHash = await argon2.hash(deleteToken);
+        const userToken = await this.prisma.token.findFirst({ where: { userId: userId, type: $Enums.TokenType.DELETE } });
+        console.log(userToken)
+        userToken && await this.prisma.token.delete({ where: { userId_type: { userId: userId, type: $Enums.TokenType.DELETE } } });
+        await this.prisma.token.create({ data: { userId: user.id, token: deleteTokenHash, type: $Enums.TokenType.DELETE } })
+        this.mailerService.sendDeleteAccountEmail(user.email, deleteToken);
+        return { message: 'Un email avec le lien de suppression vous a été envoyé' }
+    }
+
+    async deletAccountConfirm(userId: number, email: string, deleteToken: string): Promise<{ message: string }> {
+        const user = await this.prisma.user.findUniqueOrThrow({ where: { id: userId } });
+        if (user.email !== email) throw new HttpException('Vous n\'avez pas le droit de supprimer ce compte', 403);
+        const userToken = await this.prisma.token.findFirst({ where: { userId: userId, type: $Enums.TokenType.DELETE } });
+        const deleteTokenValid = await argon2.verify(userToken.token, deleteToken.trim());
+        if (!deleteTokenValid) throw new HttpException('Vous n\'avez pas le droit de supprimer ce compte', 403);
+        await this.prisma.user.delete({ where: { id: userId } });
+        return { message: 'Votre compte a bien été supprimé' }
+    }
+
+
 }

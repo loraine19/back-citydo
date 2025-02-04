@@ -14,18 +14,20 @@ export class ProfilesService {
     const { userId, addressId, userIdSp, Address, ...profile } = data
     const addressIdVerified = await this.addressService.verifyAddress(Address);
     const cond = await this.prisma.profile.findFirst({ where: { userId: userId } });
-    if (cond) { throw new HttpException(`Profile already exists for user ${userId}`, HttpStatus.CONFLICT) }
+    if (cond) { throw new HttpException(`l'utilisateur ${cond.firstName} à déja un profile`, HttpStatus.CONFLICT) }
     const createData: any = { ...profile, User: { connect: { id: userId } }, Address: { connect: { id: addressIdVerified } } };
     if (userIdSp) {
       createData.UserSp = { connect: { id: userIdSp } };
     }
     return await this.prisma.profile.create({
-      data: createData
+      data: createData,
+      include: { Address: true }
     });
   }
 
-  async update(data: UpdateProfileDto): Promise<Profile> {
-    const { addressId, userIdSp, userId, Address, ...profile } = data;
+  async update(data: UpdateProfileDto, userId: number): Promise<Profile> {
+    if (userId !== data.userId) throw new HttpException(`ce n'est pas votre profile`, HttpStatus.CONFLICT)
+    const { addressId, userIdSp, Address, ...profile } = data;
     const addressIdVerified = await this.addressService.verifyAddress(Address);
     const updateData: any = { ...profile, User: { connect: { id: userId } }, Address: { connect: { id: addressIdVerified } } };
     if (userId) {

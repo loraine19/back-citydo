@@ -19,7 +19,7 @@ export function parseData(dto: any, image?: Express.Multer.File) {
             dto[key] = false;
         }
         if (key === 'Address' && typeof dto[key] === 'string') {
-            dto[key] = JSON.parse(dto[key]);
+            dto['Address'] = JSON.parse(dto[key]);
         }
 
     }
