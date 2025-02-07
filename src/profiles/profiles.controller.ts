@@ -52,7 +52,9 @@ export class ProfilesController {
     if (profileVerify.image && image) {
       ImageInterceptor.deleteImage(profileVerify.image)
     }
+    // data.userId = userId
     data = await parseData(data, image)
+    console.log(data, userId)
     return this.profilesService.update(data, userId);
   }
 

@@ -26,8 +26,8 @@ export class ProfilesService {
   }
 
   async update(data: UpdateProfileDto, userId: number): Promise<Profile> {
-    if (userId !== data.userId) throw new HttpException(`ce n'est pas votre profile`, HttpStatus.CONFLICT)
-    const { addressId, userIdSp, Address, ...profile } = data;
+    const { addressId, userIdSp, Address, userId: userIdC, ...profile } = data;
+    if (userIdC !== userId) throw new HttpException('Vous n\'avez pas les droits de modifier cet utilisateur', 403)
     const addressIdVerified = await this.addressService.verifyAddress(Address);
     const updateData: any = { ...profile, User: { connect: { id: userId } }, Address: { connect: { id: addressIdVerified } } };
     if (userId) {
@@ -43,7 +43,6 @@ export class ProfilesService {
     });
   }
 
-
   async findAll(): Promise<Profile[]> {
     return await this.prisma.profile.findMany();
   }
@@ -57,7 +56,6 @@ export class ProfilesService {
       where: { userId: id },
       include: { Address: true }
     });
-
   }
 
   async remove(id: number): Promise<Profile> {
