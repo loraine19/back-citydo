@@ -26,10 +26,12 @@ export class ServicesController {
   @ApiBody({ type: CreateServiceDto })
   @UseInterceptors(ImageInterceptor.create('service'))
   @ApiConsumes('multipart/form-data')
-  async create(@Body() data: CreateServiceDto, @UploadedFile() image: Express.Multer.File, @Req() req: RequestWithUser): Promise<Service> {
-    const id = req.user.sub
-    data.userId = id
-    data = await parseData(data, image);
+  async create(
+    @Body() data: CreateServiceDto,
+    @UploadedFile() image: Express.Multer.File,
+    @User() userId: number): Promise<Service> {
+    data.userId = userId,
+      data = await parseData(data, image);
     return this.serviceService.create(data)
   }
 
@@ -80,7 +82,6 @@ export class ServicesController {
     @Query('type') type?: $Enums.ServiceType,
     @Query('step') step?: $Enums.ServiceStep,
     @Query('category') category?: $Enums.ServiceCategory): Promise<{ services: Service[], count: number }> {
-    console.log('mine', mine)
     if (mine) return this.serviceService.findAllByUser(userId, page, type, step, category);
     return this.serviceService.findAll(userId, page, type, step, category);
   }

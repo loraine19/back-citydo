@@ -41,6 +41,18 @@ export class AuthController {
     return this.authService.signUp(data);
   }
 
+
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  @Post('logout')
+  async logout(
+    @User() userId: number,
+    @Res({ passthrough: true }) res: Response
+  ): Promise<{ message: string }> {
+    return this.authService.logOut(userId, res);
+  }
+
+
   @UseGuards(AuthGuardRefresh)
   @ApiBearerAuth()
   @Post('refresh')

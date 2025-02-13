@@ -32,7 +32,7 @@ export class AuthService {
             domain: process.env.DOMAIN,
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'strict',
-            maxAge: 1 * 60 * 1000, // 5 minutes
+            maxAge: parseInt(process.env.COOKIE_EXPIRES_ACCESS),
             path: '/',
         });
     }
@@ -112,6 +112,12 @@ export class AuthService {
                 throw new HttpException(error.message, 401);
             }
         });
+    }
+
+    async logOut(userId: number, res: Response): Promise<{ message: string }> {
+        await this.prisma.token.deleteMany({ where: { userId, type: $Enums.TokenType.REFRESH } });
+        res.clearCookie('access');
+        return { message: 'Vous etes deconnecté' }
     }
 
     async deletAccount(userId: number): Promise<{ message: string }> {

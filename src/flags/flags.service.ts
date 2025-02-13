@@ -22,50 +22,38 @@ export class FlagsService {
     });
   }
 
+
   async findAll(userId: number): Promise<Flag[]> {
     const flags = await this.prisma.flag.findMany({
       where: { userId },
       include: {
-        User: { select: { id: true, email: true, Profile: true } },
-        Event: true,
-        Post: true,
-        Service: true,
-        Survey: true,
-      }
-    });
-    return flags.map(flag => ({
-      ...flag,
-      Events: flag.target === $Enums.FlagTarget.EVENT ? flag.Event : undefined,
-      Posts: flag.target === $Enums.FlagTarget.POST ? flag.Post : undefined,
-      Services: flag.target === $Enums.FlagTarget.SERVICE ? flag.Service : undefined,
-      Surveys: flag.target === $Enums.FlagTarget.SURVEY ? flag.Survey : undefined,
-    }));
-  }
-
-  async findAllByUserId(userId: number): Promise<Flag[]> {
-    const flags = await this.prisma.flag.findMany({
-      where: { userId },
-      include: {
-        User: { select: { id: true, email: true, Profile: true } },
         Event: { include: { User: { select: { id: true, email: true, Profile: true } } } },
         Post: { include: { User: { select: { id: true, email: true, Profile: true } } } },
         Service: { include: { User: { select: { id: true, email: true, Profile: true } } } },
         Survey: { include: { User: { select: { id: true, email: true, Profile: true } } } },
       }
     });
-    if (flags.length === 0) throw new HttpException(`no flags found`, HttpStatus.NO_CONTENT);
-    return flags.map(flag => ({
-      ...flag,
-      Events: flag.target === $Enums.FlagTarget.EVENT ? flag.Event : undefined,
-      Posts: flag.target === $Enums.FlagTarget.POST ? flag.Post : undefined,
-      Services: flag.target === $Enums.FlagTarget.SERVICE ? flag.Service : undefined,
-      Surveys: flag.target === $Enums.FlagTarget.SURVEY ? flag.Survey : undefined,
-    }));
+    const flags2 = flags.map(flag => {
+      switch (flag.target) {
+        case $Enums.FlagTarget.EVENT:
+          return { ...flag, element: flag.Event, title: flag.Event.title };
+        case $Enums.FlagTarget.POST:
+          return { ...flag, element: flag.Post, title: flag.Post.title };
+        case $Enums.FlagTarget.SERVICE:
+          return { ...flag, element: flag.Service, title: flag.Service.title };
+        case $Enums.FlagTarget.SURVEY:
+          return { ...flag, element: flag.Survey, title: flag.Survey.title }
+
+      }
+    }) || [];
+    console.log(flags2)
+    return flags2;
   }
 
-  async findAllEvent(): Promise<Flag[]> {
+
+  async findAllByTarget(userId: number, target: $Enums.FlagTarget): Promise<Flag[]> {
     const flags = await this.prisma.flag.findMany({
-      where: { target: $Enums.FlagTarget.EVENT },
+      where: { target, userId },
       include: {
         User: { select: { id: true, email: true, Profile: true } },
         Event: true,
@@ -74,7 +62,8 @@ export class FlagsService {
     return flags || [];
   }
 
-  async findAllEventByUserId(userId: number): Promise<Flag[]> {
+
+  async findAllEvent(userId: number): Promise<Flag[]> {
     const flags = await this.prisma.flag.findMany({
       where: { target: $Enums.FlagTarget.EVENT, userId },
       include: {
@@ -85,18 +74,7 @@ export class FlagsService {
     return flags || [];
   }
 
-  async findAllSurvey(): Promise<Flag[]> {
-    const flags = await this.prisma.flag.findMany({
-      where: { target: $Enums.FlagTarget.SURVEY },
-      include: {
-        User: { select: { id: true, email: true, Profile: true } },
-        Survey: true,
-      }
-    })
-    return flags || [];
-  }
-
-  async findAllSurveyByUserId(userId: number): Promise<Flag[]> {
+  async findAllSurvey(userId: number): Promise<Flag[]> {
     const flags = await this.prisma.flag.findMany({
       where: { target: $Enums.FlagTarget.SURVEY, userId },
       include: {
@@ -106,6 +84,7 @@ export class FlagsService {
     })
     return flags || [];
   }
+
 
   async findAllPost(userId: number): Promise<Flag[]> {
     const flags = await this.prisma.flag.findMany({
@@ -118,19 +97,8 @@ export class FlagsService {
     return flags || [];
   }
 
-  async findAllPostByUserId(userId: number): Promise<Flag[]> {
-    const flags = await this.prisma.flag.findMany({
-      where: { target: $Enums.FlagTarget.POST, userId },
-      include: {
-        User: { select: { id: true, email: true, Profile: true } },
-        Post: true,
-      }
-    });
-    return flags || [];
-  }
 
-
-  async findAllServiceByUserId(userId: number): Promise<Flag[]> {
+  async findAllService(userId: number): Promise<Flag[]> {
     const flags = await this.prisma.flag.findMany({
       where: { target: $Enums.FlagTarget.SERVICE, userId },
       include: {
@@ -142,11 +110,10 @@ export class FlagsService {
   }
 
 
-  async findOne(userId: number, targetId: number, target: $Enums.FlagTarget): Promise<Flag> {
+  async findOne(userId: number, targetId: number, target: $Enums.FlagTarget): Promise<Flag & { element: any, title: string }> {
     const flag = await this.prisma.flag.findUnique({
       where: { userId_target_targetId: { userId, targetId, target } },
       include: {
-        User: { select: { id: true, email: true, Profile: true } },
         Event: { include: { User: { select: { id: true, email: true, Profile: true } } } },
         Survey: { include: { User: { select: { id: true, email: true, Profile: true } } } },
         Post: { include: { User: { select: { id: true, email: true, Profile: true } } } },
@@ -154,11 +121,17 @@ export class FlagsService {
       }
     });
     if (!flag) throw new HttpException(`no flag found`, HttpStatus.NO_CONTENT);
-    flag.Event = flag.target === $Enums.FlagTarget.EVENT ? flag.Event : undefined;
-    flag.Survey = flag.target === $Enums.FlagTarget.SURVEY ? flag.Survey : undefined;
-    flag.Post = flag.target === $Enums.FlagTarget.POST ? flag.Post : undefined;
-    flag.Service = flag.target === $Enums.FlagTarget.SERVICE ? flag.Service : undefined;
-    return flag
+    switch (flag.target) {
+      case $Enums.FlagTarget.EVENT:
+        return { ...flag, element: flag.Event, title: flag.Event.title };
+      case $Enums.FlagTarget.POST:
+        return { ...flag, element: flag.Post, title: flag.Post.title };
+      case $Enums.FlagTarget.SERVICE:
+        return { ...flag, element: flag.Service, title: flag.Service.title };
+      case $Enums.FlagTarget.SURVEY:
+        return { ...flag, element: flag.Survey, title: flag.Survey.title }
+
+    }
   }
 
 

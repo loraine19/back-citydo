@@ -22,4 +22,5 @@ RUN npx run migrate
 EXPOSE 3333
 EXPOSE 3000
 # Command to run the app
+#a revoir 
 CMD [  "npm", "start","dev", "start:migrate:prod", "npm","run","migrate"] 
