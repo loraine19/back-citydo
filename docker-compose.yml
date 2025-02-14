@@ -76,6 +76,7 @@ services:
 
 networks:
   nest-network:
+  external: true 
 
 
 volumes:
