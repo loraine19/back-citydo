@@ -22,6 +22,7 @@ services:
   phpmyadmin:
     depends_on:
       - mysql
+      - nest
     image: phpmyadmin
     container_name: phpmyadmin
     restart: always
@@ -44,7 +45,6 @@ services:
       context: .
     ports:
       - 3001:3000
-      - "5557:5557"
     networks:
       - nest-network
     depends_on:
@@ -74,11 +74,9 @@ services:
     volumes:
       - ./prisma:/app/prisma
 
-
-
-
 networks:
   nest-network:
+
 
 volumes:
   db_data:
