@@ -30,7 +30,6 @@ services:
       - .env
     environment:
       PMA_HOST: ${MYSQL_HOST}
-      
       MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD}
     networks:
       - nest-network
@@ -53,7 +52,6 @@ services:
     env_file:
       - .env
     volumes:
-
       - .:/usr/src/app
       - /usr/src/app/node_modules
     restart: unless-stopped

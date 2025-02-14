@@ -39,12 +39,7 @@ async function bootstrap() {
   });
   app.setBaseViewsDir(join('../public'));
   const allowedOrigins = [
-    'http://localhost:5173',
-    'http://localhost:3000',
-    'http://51.210.106.127:8080',
-    'https://imagindev-app.fr',
-    'http://5.51.122.204',
-    'https://5.51.122.204'
+    process.env.FRONT_URL,
   ];
 
   app.enableCors({
