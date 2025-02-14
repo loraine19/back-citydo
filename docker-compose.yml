@@ -51,6 +51,9 @@ services:
       - mysql
     env_file:
       - .env
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
     restart: unless-stopped
 
   #Prisma studio
@@ -73,6 +76,9 @@ services:
       - nest-network
     volumes:
       - ./prisma:/app/prisma
+
+
+
 
 networks:
   nest-network:
