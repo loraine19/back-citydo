@@ -16,7 +16,7 @@ export class AuthService {
 
     async generateAccessToken(sub: number) { return this.jwtService.sign({ sub }, { secret: process.env.JWT_SECRET, expiresIn: process.env.JWT_EXPIRES_ACCESS }) }
 
-    async generateRefreshToken(sub: number) { return this.jwtService.sign({ sub }, { secret: process.env.JWT_SECRET, expiresIn: process.env.JWT_EXPIRES_REFRESH }) }
+    async generateRefreshToken(sub: number) { return this.jwtService.sign({ sub }, { secret: process.env.JWT_SECRET_REFRESH, expiresIn: process.env.JWT_EXPIRES_REFRESH }) }
 
     async generateVerifyToken(sub: number) { return this.jwtService.sign({ sub }, { secret: process.env.JWT_SECRET, expiresIn: process.env.JWT_EXPIRES_VERIFY }) }
 
@@ -90,7 +90,6 @@ export class AuthService {
 
 
     async refresh(refreshToken: string, userId: number, res: Response): Promise<{ refreshToken: string } | { message: string }> {
-        console.log('refreshToken', refreshToken)
         // Use PrismaClientTransaction to avoid errror in case of multi entrance in the same time
         return await this.prisma.$transaction(async (prisma) => {
             try {

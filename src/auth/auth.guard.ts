@@ -29,7 +29,7 @@ export class AuthGuardRefresh implements CanActivate {
         const token = this.extractTokenFromHeader(request);
         if (!token) throw new HttpException('Refresh token not found', 403);
         try {
-            const payload = await this.jwtService.verifyAsync(token, { secret: process.env.JWT_SECRET });
+            const payload = await this.jwtService.verifyAsync(token, { secret: process.env.JWT_SECRET_REFRESH });
             request['user'] = payload
             return true;
         }
