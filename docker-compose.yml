@@ -78,6 +78,7 @@ services:
     volumes:
       - ./prisma:/app/prisma
 
+
   rainloop:
     image: hardware/rainloop
     ports:
@@ -85,7 +86,7 @@ services:
     networks:
       - nest-network  
     volumes:
-      - /mnt/docker/rainloop:/rainloop/data
+      - /mnt/docker/rainloop:app/rainloop/data
 
 networks:
   nest-network:
