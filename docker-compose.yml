@@ -7,8 +7,6 @@ services:
       - db_data:/var/lib/mysql
     container_name: mysql
     restart: always
-    ports:
-      - "3308:3306"
     env_file:
       - .env
     environment:
@@ -26,8 +24,6 @@ services:
     image: phpmyadmin
     container_name: phpmyadmin
     restart: always
-    ports:
-      - "8099:80"
     env_file:
       - .env
     environment:
@@ -43,8 +39,6 @@ services:
     build:
       dockerfile: Dockerfile.nest
       context: .
-    ports:
-      - 3001:3000
     networks:
       - nest-network
     depends_on:
@@ -61,8 +55,6 @@ services:
       - nest
     image: prisma-studio
     container_name: prisma-studio
-    ports:
-      - '5558:5558'
     build:
       context: .
       dockerfile: Dockerfile.studio
