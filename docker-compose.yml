@@ -2,9 +2,10 @@ services:
   # Database
   mysql:
     platform: linux/x86_64
-    image: mysql:5.7
+    image: mysql:9.2
     volumes:
       - db_data:/var/lib/mysql
+    container_name: mysql
     restart: always
     ports:
       - "3308:3306"
@@ -46,7 +47,6 @@ services:
       - "5557:5557"
     networks:
       - nest-network
-
     depends_on:
       - mysql
     env_file:
@@ -72,21 +72,10 @@ services:
     env_file:
       - .env
     restart: unless-stopped
-
     networks:
       - nest-network
     volumes:
       - ./prisma:/app/prisma
-
-
-  rainloop:
-    image: hardware/rainloop
-    ports:
-      - "8087:80"
-    networks:
-      - nest-network  
-    volumes:
-      - /mnt/docker/rainloop:/rainloop/data
 
 networks:
   nest-network:
