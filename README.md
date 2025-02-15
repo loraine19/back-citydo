@@ -5,19 +5,19 @@ Collectif is a NestJS API for managing a collaborative project.
 ## Installation dev mode
 
 1. Clone the repository:
-   git clone https://github.com/loraine19/collectif.git
+   git clone https://github.com/loraine19/back-collectif.git
    cd collectif
 
 2. Install dependencies:
    npm install
 
-3. Set up the database:
+3. Set up the database, after running your mysql database ( set .env before if needed ):
 
 - Open phpMyAdmin and create a new MySQL database.
 - Create a new user and grant them access to the database:
   1. Go to the "User accounts" tab.
   2. Click "Add user account".
-  3. Fill in the "User name" and "Password" fields.
+  3. Fill in the "User name" and "Passwordback-" fields.
   4. Under "Database for user", select "Create database with same name and grant all privileges".
   5. Click "Go".
 
