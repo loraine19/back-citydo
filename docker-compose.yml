@@ -18,6 +18,20 @@ services:
       - nest-network
     command: --default-authentication-plugin=mysql_native_password # Important for compatibility  
 
+  grant-permissions:  
+    image: mysql:8.0
+    depends_on:
+      - mysql 
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    command: [
+      "mysql",
+      "-u", "root",
+      "-p$MYSQL_ROOT_PASSWORD",
+      "-h", "mysql", 
+      "-e", "GRANT SELECT, INSERT, UPDATE, DELETE ON collectif._prisma_migrations TO 'collectif_user'@'%'; GRANT CREATE, ALTER, DROP, INDEX ON collectif.* TO 'collectif_user'@'%'; FLUSH PRIVILEGES;"
+    ]  
+
   # phpmyadmin
   phpmyadmin:
     depends_on:
@@ -46,6 +60,7 @@ services:
       - nest-network
     depends_on:
       - mysql
+      - grant-permissions
     env_file:
       - .env
     restart: unless-stopped
