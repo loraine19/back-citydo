@@ -254,7 +254,6 @@ model Flag {
   userId    Int
   target    FlagTarget
   reason    FlagReason
-  title     String?
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
   User      User       @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Cascade)

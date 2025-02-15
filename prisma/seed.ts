@@ -1,4 +1,4 @@
-import { $Enums, AssistanceLevel, PrismaClient } from '@prisma/client';
+import { $Enums, AssistanceLevel, PrismaClient, Address } from '@prisma/client';
 import { CreateServiceDto } from 'src/service/dto/create-service.dto';
 import { fr, base, Faker, } from '@faker-js/faker';
 import type { LocaleDefinition } from '@faker-js/faker';
@@ -89,8 +89,10 @@ const CreateRandomGroupUser = (): CreateGroupUserDto => {
 
 const CreateRandomProfile = async (): Promise<CreateProfileDto> => {
   const addressData = CreateRandomAddress();
-  let Address = await prisma.address.findUnique({ where: { address_zipcode: { address: addressData.address, zipcode: addressData.zipcode } } })
-  if (!Address) Address = await prisma.address.create({ data: CreateRandomAddress() });
+  let Address: Address;
+  const exist = await prisma.address.findUnique({ where: { address_zipcode: { address: addressData.address, zipcode: addressData.zipcode } } })
+  if (!exist) { Address = await prisma.address.create({ data: addressData }) }
+  else { Address = exist }
   return {
     userId: newFaker.number.int({ min: 1, max: max / 3 }),
     Address: Address,
@@ -112,8 +114,10 @@ const CreateRandomEvent = async (): Promise<CreateEventDto> => {
   const start = newFaker.date.future();
   const end = new Date(start.getTime() + newFaker.number.int({ min: 1, max: 4 }) * 24 * 60 * 60 * 1000);
   const addressData = CreateRandomAddress();
-  let Address = await prisma.address.findUnique({ where: { address_zipcode: { address: addressData.address, zipcode: addressData.zipcode } } })
-  if (!Address) Address = await prisma.address.create({ data: CreateRandomAddress() });
+  let Address: Address;
+  const exist = await prisma.address.findUnique({ where: { address_zipcode: { address: addressData.address, zipcode: addressData.zipcode } } })
+  if (!exist) { Address = await prisma.address.create({ data: addressData }) }
+  else { Address = exist }
   return {
     userId: newFaker.number.int({ min: 1, max: max / 3 }),
     Address,
@@ -185,7 +189,6 @@ const CreateRandomIssue = async (): Promise<CreateIssueDto> => {
     status: newFaker.helpers.arrayElement(Object.values($Enums.IssueStep)),
     image: newFaker.image.urlPicsumPhotos({ width: 600, height: 400, blur: 0, grayscale: false }),
   }
-
 }
 
 const CreateRandomPost = async (): Promise<CreatePostDto> => {
@@ -279,199 +282,198 @@ async function reset() {
   await prisma.$executeRawUnsafe("ALTER TABLE `Group` AUTO_INCREMENT = 1")
   await prisma.$executeRawUnsafe("DELETE FROM `Address`")
   await prisma.$executeRawUnsafe("ALTER TABLE `Address` AUTO_INCREMENT = 1")
-  console.log('Reset done')
 }
 
 const seed = async () => {
   await reset()
+  // USER no fk 
+  const User = async () => {
+    await prisma.user.deleteMany({ where: { email: 'test@mail.com' } });
+    await prisma.user.create({ data: { email: 'test@mail.com', password: await argon2.hash('passwordtest'), status: $Enums.UserStatus.ACTIVE } })
+    while (await prisma.user.count() < max / 3) { await prisma.user.create({ data: await CreateRandomUser() }) }
+  }
+  await User();
 
   // ADDRESS no fk 
   const address = async () => {
     while (await prisma.address.count() < max) {
       const newAddress = CreateRandomAddress();
-      const exist = prisma.address.findUnique({ where: { address_zipcode: { address: newAddress.address, zipcode: newAddress.zipcode } } })
-      console.log(exist)
+      const exist = await prisma.address.findUnique({ where: { address_zipcode: { address: newAddress.address, zipcode: newAddress.zipcode } } })
       if (!exist) {
         await prisma.address.create({ data: newAddress })
       }
     }
-    await address();
+  }
+  await address();
 
-    // GROUP fk address
-    const group = async () => {
-      while (await prisma.group.count() < 1) {
-        const { addressId, ...group } = CreateRandomGroup();
-        const cond = await prisma.address.findUnique({ where: { id: addressId } });
-        if (cond) await prisma.group.create({ data: { ...group, Address: { connect: { id: addressId } } } })
+  // GROUP fk address
+  const group = async () => {
+    while (await prisma.group.count() < 1) {
+      const { addressId, ...group } = CreateRandomGroup();
+      const cond = await prisma.address.findUnique({ where: { id: addressId } });
+      if (cond) await prisma.group.create({ data: { ...group, Address: { connect: { id: addressId } } } })
+    }
+  }
+  await group();
+
+  // GROUPUSER fk user fk group
+  const groupUser = async () => {
+    while (await prisma.groupUser.count() < max / 3) {
+      const { userId, groupId, ...groupUser } = CreateRandomGroupUser();
+      const cond = await prisma.groupUser.findUnique({ where: { userId_groupId: { userId, groupId } } });
+      const cond2 = await prisma.user.findUnique({ where: { id: userId } });
+      if (!cond && cond2) await prisma.groupUser.create({ data: { ...groupUser, User: { connect: { id: userId } }, Group: { connect: { id: groupId } } } })
+
+    }
+  }
+  await groupUser();
+
+  // PROFILE fk user fk address fk userSP
+  const profile = async () => {
+    while (await prisma.profile.count() < max / 3) {
+      {
+        const { userId, addressId, userIdSp, ...profile } = await CreateRandomProfile();
+        const cond = await prisma.profile.findFirst({ where: { userId: userId } });
+        const cond2 = await prisma.user.findUnique({ where: { id: userId } })
+        const cond3 = await prisma.user.findUnique({ where: { id: userIdSp } });
+        if (!cond && cond2 && cond3) await prisma.profile.create({ data: { ...profile, User: { connect: { id: userId } }, Address: { connect: { id: addressId } }, UserSp: { connect: { id: userIdSp } } } })
       }
     }
-    await group();
+  }
+  await profile();
 
-    // USER no fk 
-    const User = async () => {
-      await prisma.user.deleteMany({ where: { email: 'test@mail.com' } });
-      await prisma.user.create({ data: { email: 'test@mail.com', password: await argon2.hash('passwordtest'), status: $Enums.UserStatus.ACTIVE } })
-      while (await prisma.user.count() < max / 3) { await prisma.user.create({ data: await CreateRandomUser() }) }
+
+  // EVENT fk address fk user 
+  const event = async () => {
+    while (await prisma.event.count() < max) {
+      const { userId, addressId, ...event } = await CreateRandomEvent()
+      await prisma.event.create(
+        { data: { ...event, Address: { connect: { id: addressId } }, User: { connect: { id: userId } } } })
     }
-    await User();
+  }
+  await event();
 
-    // GROUPUSER fk user fk group
-    const groupUser = async () => {
-      while (await prisma.groupUser.count() < max / 3) {
-        const { userId, groupId, ...groupUser } = CreateRandomGroupUser();
-        const cond = await prisma.groupUser.findUnique({ where: { userId_groupId: { userId, groupId } } });
-        const cond2 = await prisma.user.findUnique({ where: { id: userId } });
-        if (!cond && cond2) await prisma.groupUser.create({ data: { ...groupUser, User: { connect: { id: userId } }, Group: { connect: { id: groupId } } } })
-
+  //  PARTICIPANT fk user fk event
+  const participant = async () => {
+    while (await prisma.participant.count() < max * 3) {
+      {
+        const { userId, eventId, ...participant } = CreateRandomParticipant();
+        const cond = await prisma.participant.findUnique({ where: { userId_eventId: { userId, eventId } } });
+        if (!cond) await prisma.participant.create({ data: { ...participant, User: { connect: { id: userId } }, Event: { connect: { id: eventId } } } })
       }
     }
-    await groupUser();
+  }
+  await participant();
 
-    // PROFILE fk user fk address fk userSP
-    const profile = async () => {
 
-      while (await prisma.profile.count() < max / 3) {
-        {
-          const { userId, addressId, userIdSp, ...profile } = await CreateRandomProfile();
-          const cond = await prisma.profile.findFirst({ where: { userId: userId } });
-          const cond2 = await prisma.user.findUnique({ where: { id: userId } })
-          const cond3 = await prisma.user.findUnique({ where: { id: userIdSp } });
-          if (!cond && cond2 && cond3) await prisma.profile.create({ data: { ...profile, User: { connect: { id: userId } }, Address: { connect: { id: addressId } }, UserSp: { connect: { id: userIdSp } } } })
-        }
-      }
+  // SERVICE fk user fk userResp
+  const service = async () => {
+    while (await prisma.service.count() < max) {
+      const { userId, userIdResp, ...service } = await CreateRandomService();
+      if (userId !== userIdResp)
+        await prisma.service.create({
+          data: {
+            ...service,
+            User: { connect: { id: userId } },
+            ...(userIdResp ? { UserResp: { connect: { id: userIdResp } } } : {}),
+          }
+        })
     }
-    await profile();
+  }
+  await service();
 
-
-    // EVENT fk address fk user 
-    const event = async () => {
-      while (await prisma.event.count() < max) {
-        const { userId, addressId, ...event } = await CreateRandomEvent()
-        await prisma.event.create(
-          { data: { ...event, Address: { connect: { id: addressId } }, User: { connect: { id: userId } } } })
-      }
-    }
-    await event();
-
-    //  PARTICIPANT fk user fk event
-    const participant = async () => {
-      while (await prisma.participant.count() < max * 3) {
-        {
-          const { userId, eventId, ...participant } = CreateRandomParticipant();
-          const cond = await prisma.participant.findUnique({ where: { userId_eventId: { userId, eventId } } });
-          if (!cond) await prisma.participant.create({ data: { ...participant, User: { connect: { id: userId } }, Event: { connect: { id: eventId } } } })
-        }
-      }
-    }
-    await participant();
-
-
-    // SERVICE fk user fk userResp
-    const service = async () => {
-      while (await prisma.service.count() < max) {
-        const { userId, userIdResp, ...service } = await CreateRandomService();
-        if (userId !== userIdResp)
-          await prisma.service.create({
-            data: {
-              ...service,
-              User: { connect: { id: userId } },
-              ...(userIdResp ? { UserResp: { connect: { id: userIdResp } } } : {}),
-            }
-          })
-      }
-    }
-    await service();
-
-    // ISSUE fk user fk userModo fk userModoResp fk service
-    const issue = async () => {
-      const serviceIssue = await prisma.service.findMany({ where: { status: { equals: $Enums.ServiceStep.STEP_4 } } });
-      while (await prisma.issue.count() < serviceIssue.length) {
-        const { userId, userIdModo, userIdModoResp, serviceId, ...issue } = await CreateRandomIssue();
-        const cond = await prisma.issue.findUnique({ where: { serviceId: serviceId } });
+  // ISSUE fk user fk userModo fk userModoResp fk service
+  const issue = async () => {
+    const serviceIssue = await prisma.service.findMany({ where: { status: { equals: $Enums.ServiceStep.STEP_4 } } });
+    while (await prisma.issue.count() < serviceIssue.length) {
+      const { userId, userIdModo, userIdModoResp, serviceId, ...issue } = await CreateRandomIssue();
+      if (userId) {
+        const cond = await prisma.issue.findUnique({ where: { serviceId } });
         const cond2 = await prisma.service.findUnique({ where: { id: serviceId } });
         if (!cond && cond2) {
           await prisma.issue.create({ data: { ...issue, User: { connect: { id: userId } }, UserModo: { connect: { id: userIdModo } }, ...(userIdModoResp && { UserModoResp: { connect: { id: userIdModoResp } } }), Service: { connect: { id: serviceId } } } })
         }
       }
     }
-    await issue();
-
-    // POST fk user 
-    const post = async () => {
-      while (await prisma.post.count() < max) {
-        const { userId, ...post } = await CreateRandomPost();
-        await prisma.post.create({ data: { ...post, User: { connect: { id: userId } } } })
-      }
-    }
-    await post();
-
-    // LIKE fk user fk post 
-    const like = async () => {
-      while (await prisma.like.count() < max * 2) {
-        const { userId, postId, ...like } = CreateRandomLike();
-        const cond = await prisma.like.findUnique({ where: { userId_postId: { userId, postId } } });
-        if (!cond) await prisma.like.create({ data: { ...like, User: { connect: { id: userId } }, Post: { connect: { id: postId } } } })
-      }
-    }
-    await like();
-
-    // POOL fk user fk userBenef 
-    const pool = async () => {
-      while (await prisma.pool.count() < max) {
-        const { userId, userIdBenef, ...pool } = CreateRandomPool();
-        const cond = await prisma.pool.findFirst({ where: { userId: userId, userIdBenef: userIdBenef } })
-        if (!cond && (userId !== userIdBenef)) await prisma.pool.create({ data: { ...pool, User: { connect: { id: userId } }, UserBenef: { connect: { id: userIdBenef } } } })
-      }
-    }
-    await pool();
-
-    // SURVEY fk user 
-    const survey = async () => {
-      while (await prisma.survey.count() < max) {
-        const { userId, ...survey } = await CreateRandomSurvey();
-        await prisma.survey.create({ data: { ...survey, User: { connect: { id: userId } } } })
-      }
-    }
-    await survey();
-
-
-    // VOTE fk user 
-    const vote = async () => {
-      while (await prisma.vote.count() < max * 5) {
-        const { userId, targetId, target, ...vote } = CreateRandomVote();
-        const cond = await prisma.vote.findUnique({ where: { userId_target_targetId: { userId, target, targetId } } });
-        if (!cond && targetId) {
-          if (target === $Enums.VoteTarget.POOL) {
-            await prisma.vote.create({ data: { ...vote, target, User: { connect: { id: userId } }, Pools: { connect: { id: targetId } } } });
-          } else if (target === $Enums.VoteTarget.SURVEY) {
-            await prisma.vote.create({ data: { ...vote, target, User: { connect: { id: userId } }, Surveys: { connect: { id: targetId } } } });
-          }
-        }
-      }
-    }
-    await vote();
-
-    // FLAG fk user
-    const flag = async () => {
-      while (await prisma.flag.count() < max * 4) {
-        const { userId, targetId, target, ...flag } = CreateRandomFlag();
-        const cond = await prisma.flag.findUnique({ where: { userId_target_targetId: { userId, target, targetId } } });
-        if (!cond) {
-          if (target === $Enums.FlagTarget.EVENT) {
-            await prisma.flag.create({ data: { ...flag, target, User: { connect: { id: userId } }, Event: { connect: { id: targetId } } } });
-          } else if (target === $Enums.FlagTarget.POST) {
-            await prisma.flag.create({ data: { ...flag, target, User: { connect: { id: userId } }, Post: { connect: { id: targetId } } } });
-          } else if (target === $Enums.FlagTarget.SERVICE) {
-            await prisma.flag.create({ data: { ...flag, target, User: { connect: { id: userId } }, Service: { connect: { id: targetId } } } });
-          } else if (target === $Enums.FlagTarget.SURVEY) {
-            await prisma.flag.create({ data: { ...flag, target, User: { connect: { id: userId } }, Survey: { connect: { id: targetId } } } });
-          }
-        }
-      }
-    }
-    await flag();
   }
+  await issue();
+
+  // POST fk user 
+  const post = async () => {
+    while (await prisma.post.count() < max) {
+      const { userId, ...post } = await CreateRandomPost();
+      await prisma.post.create({ data: { ...post, User: { connect: { id: userId } } } })
+    }
+  }
+  await post();
+
+  // LIKE fk user fk post 
+  const like = async () => {
+    while (await prisma.like.count() < max * 2) {
+      const { userId, postId, ...like } = CreateRandomLike();
+      const cond = await prisma.like.findUnique({ where: { userId_postId: { userId, postId } } });
+      if (!cond) await prisma.like.create({ data: { ...like, User: { connect: { id: userId } }, Post: { connect: { id: postId } } } })
+    }
+  }
+  await like();
+
+  // POOL fk user fk userBenef 
+  const pool = async () => {
+    while (await prisma.pool.count() < max) {
+      const { userId, userIdBenef, ...pool } = CreateRandomPool();
+      const cond = await prisma.pool.findFirst({ where: { userId: userId, userIdBenef: userIdBenef } })
+      if (!cond && (userId !== userIdBenef)) await prisma.pool.create({ data: { ...pool, User: { connect: { id: userId } }, UserBenef: { connect: { id: userIdBenef } } } })
+    }
+  }
+  await pool();
+
+  // SURVEY fk user 
+  const survey = async () => {
+    while (await prisma.survey.count() < max) {
+      const { userId, ...survey } = await CreateRandomSurvey();
+      await prisma.survey.create({ data: { ...survey, User: { connect: { id: userId } } } })
+    }
+  }
+  await survey();
+
+
+  // VOTE fk user 
+  const vote = async () => {
+    while (await prisma.vote.count() < max * 5) {
+      const { userId, targetId, target, ...vote } = CreateRandomVote();
+      const cond = await prisma.vote.findUnique({ where: { userId_target_targetId: { userId, target, targetId } } });
+      if (!cond && targetId) {
+        if (target === $Enums.VoteTarget.POOL) {
+          await prisma.vote.create({ data: { ...vote, target, User: { connect: { id: userId } }, Pools: { connect: { id: targetId } } } });
+        } else if (target === $Enums.VoteTarget.SURVEY) {
+          await prisma.vote.create({ data: { ...vote, target, User: { connect: { id: userId } }, Surveys: { connect: { id: targetId } } } });
+        }
+      }
+    }
+  }
+  await vote();
+
+  // FLAG fk user
+  const flag = async () => {
+    while (await prisma.flag.count() < max * 4) {
+      const { userId, targetId, target, ...flag } = CreateRandomFlag();
+      const cond = await prisma.flag.findUnique({ where: { userId_target_targetId: { userId, target, targetId } } });
+      if (!cond) {
+        if (target === $Enums.FlagTarget.EVENT) {
+          await prisma.flag.create({ data: { ...flag, target, User: { connect: { id: userId } }, Event: { connect: { id: targetId } } } });
+        } else if (target === $Enums.FlagTarget.POST) {
+          await prisma.flag.create({ data: { ...flag, target, User: { connect: { id: userId } }, Post: { connect: { id: targetId } } } });
+        } else if (target === $Enums.FlagTarget.SERVICE) {
+          await prisma.flag.create({ data: { ...flag, target, User: { connect: { id: userId } }, Service: { connect: { id: targetId } } } });
+        } else if (target === $Enums.FlagTarget.SURVEY) {
+          await prisma.flag.create({ data: { ...flag, target, User: { connect: { id: userId } }, Survey: { connect: { id: targetId } } } });
+        }
+      }
+    }
+  }
+  await flag();
 }
+
 
 
 seed().then(async () => { await prisma.$disconnect() }).catch(async (e) => {
@@ -479,3 +481,4 @@ seed().then(async () => { await prisma.$disconnect() }).catch(async (e) => {
   await prisma.$disconnect()
   process.exit(1)
 })
+
