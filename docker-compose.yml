@@ -32,7 +32,7 @@ services:
       "-e", "GRANT SELECT, INSERT, UPDATE, DELETE ON collectif._prisma_migrations TO 'collectif_user'@'%'; GRANT CREATE, ALTER, DROP, INDEX ON collectif.* TO 'collectif_user'@'%'; FLUSH PRIVILEGES;"
     ]
     networks:
-      - my-network  
+      - nest-network
 
   # phpmyadmin
   phpmyadmin:
