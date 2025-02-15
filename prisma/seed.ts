@@ -277,8 +277,14 @@ const seed = async () => {
 
   // ADDRESS no fk 
   const address = async () => {
+    const existingAddresses = new Set();
     while (await prisma.address.count() < max) {
-      await prisma.address.create({ data: CreateRandomAddress() });
+      const newAddress = CreateRandomAddress();
+      const uniqueKey = `${newAddress.address}-${newAddress.zipcode}`;
+      if (!existingAddresses.has(uniqueKey)) {
+        await prisma.address.create({ data: newAddress });
+        existingAddresses.add(uniqueKey);
+      }
     }
   }
   await address();
