@@ -12,7 +12,7 @@ COPY . .
 
 # prisma generate and populate the database
 RUN npx prisma generate
-RUN npx run migrate
+RUN npm run migrate
 
 EXPOSE 3000
 

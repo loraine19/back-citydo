@@ -16,27 +16,8 @@ services:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
     networks:
       - nest-network
-    command: --default-authentication-plugin=mysql_native_password # Important for compatibility  
+    command: --default-authentication-plugin=mysql_native_password 
 
-  grant-permissions:  
-    image: mysql:8.0
-    depends_on:
-      - mysql 
-    environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-    command:
-    - bash
-    - "-c"
-    - |
-      until mysql -u root -p"$MYSQL_ROOT_PASSWORD" -h mysql -e "SELECT 1"; do
-        >&2 echo "MySQL is unavailable - sleeping"
-        sleep 1
-      done
-      mysql -u root -p"$MYSQL_ROOT_PASSWORD" -h mysql -e "GRANT CREATE,ALTER,DROP,INDEX ON collectif.* TO 'collectif_user'@'%'; FLUSH PRIVILEGES;" &&
-      mysql -u root -p"$MYSQL_ROOT_PASSWORD" -h mysql -e "SELECT 1 FROM collectif._prisma_migrations" 2>/dev/null &&
-      mysql -u root -p"$MYSQL_ROOT_PASSWORD" -h mysql -e "GRANT SELECT,INSERT,UPDATE,DELETE ON collectif._prisma_migrations TO 'collectif_user'@'%'; FLUSH PRIVILEGES;" || true
-    networks:
-      - nest-network
 
   # phpmyadmin
   phpmyadmin:
@@ -66,7 +47,6 @@ services:
       - nest-network
     depends_on:
       - mysql
-      - grant-permissions
     env_file:
       - .env
     restart: unless-stopped
