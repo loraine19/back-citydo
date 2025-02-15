@@ -16,17 +16,18 @@ services:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
     networks:
       - nest-network
-    command: --default-authentication-plugin=mysql_native_password
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+    command: --default-authentication-plugin=mysql_native_password 
+    healthcheck: # Add healthcheck
+      test: ["CMD", "mysqladmin", "ping", "-h", "mysql", "-u", "${MYSQL_USER}", "-p", "${MYSQL_PASSWORD}"]
       interval: 10s
-
+      timeout: 5s
+      retries: 5
+      start_period: 20s # Give MySQL ample time to start initially 
 
   # phpmyadmin
   phpmyadmin:
     depends_on:
       - mysql
-      - nest
     image: phpmyadmin:latest
     container_name: phpmyadmin
     restart: always
@@ -50,7 +51,7 @@ services:
       - nest-network
     depends_on:
       mysql:
-        condition: service_healthy
+        condition: service_healthy # But now also waits for health
     env_file:
       - .env
     restart: unless-stopped
