@@ -15,7 +15,7 @@ services:
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
     networks:
-      - nest-network
+      - back
     command: ["--default-authentication-plugin=caching_sha2_password"]
 
   # phpmyadmin
@@ -32,7 +32,7 @@ services:
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     networks:
-      - nest-network
+      - back
 
   #Nest 
   nest:
@@ -42,7 +42,7 @@ services:
       dockerfile: Dockerfile.nest
       context: .
     networks:
-      - nest-network
+      - back
     depends_on:
       - mysql
     env_file:
@@ -64,12 +64,12 @@ services:
       - .env
     restart: unless-stopped
     networks:
-      - nest-network
+      - back
     volumes:
       - ./prisma:/app/prisma
 
 networks:
-  nest-network:
+  back:
     external: true 
 
 volumes:
