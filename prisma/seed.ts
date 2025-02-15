@@ -52,15 +52,13 @@ const CreateRandomAddress = (): CreateAddressDto => {
   const address = newFaker.location.streetAddress();
   const lat = new Decimal(newFaker.location.latitude({ min: 42.8384, max: 48.8399 }));
   const lng = new Decimal(newFaker.location.longitude({ min: 5.2219, max: 5.3621 }));
-  const exist = prisma.address.findUnique({ where: { address_zipcode: { address, zipcode } } })
-  if (!exist) return {
+  return {
     zipcode,
     city,
     address,
     lat,
     lng
   }
-  else return CreateRandomAddress();
 }
 
 const CreateRandomGroup = (): CreateGroupDto => {
@@ -286,7 +284,8 @@ const seed = async () => {
   const address = async () => {
     while (await prisma.address.count() < max) {
       const newAddress = CreateRandomAddress();
-      await prisma.address.create({ data: newAddress });
+      const exist = prisma.address.findUnique({ where: { address_zipcode: { address: newAddress.address, zipcode: newAddress.zipcode } } })
+      if (!exist) { await prisma.address.create({ data: newAddress }) }
     }
   }
 
