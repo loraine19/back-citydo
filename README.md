@@ -56,12 +56,13 @@ cd collectif
 4. Start the application using Docker Compose:
 
 ```sh
+docker network create back
 docker-compose up -d
 ```
 
 5. Open phpMyAdmin and grant access to the database as in development mode:
 
-- Open phpMyAdmin at `http://serverIp:8080`.
+- Open phpMyAdmin at `http://dockercontainername or serverIp:docker port ( you must give port first in docker compose )`.
 - Create a new MySQL database.
 - Create a new user and grant them access to the database:
   1. Go to the "User accounts" tab.
@@ -82,7 +83,7 @@ docker-compose exec app npx prisma migrate dev
 docker-compose exec app npm run prisma-seed
 ```
 
-8. Access the API at `http://serverIp:3000`.
+8. Access the API at `http://dockercontainername/api or serverIp:dockerport/api ( you must give port first in docker compose )`.
 
 ## License
 
