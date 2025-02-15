@@ -28,9 +28,11 @@ services:
       "mysql",
       "-u", "root",
       "-p$MYSQL_ROOT_PASSWORD",
-      "-h", "mysql", 
+      "-h", "mysql",  
       "-e", "GRANT SELECT, INSERT, UPDATE, DELETE ON collectif._prisma_migrations TO 'collectif_user'@'%'; GRANT CREATE, ALTER, DROP, INDEX ON collectif.* TO 'collectif_user'@'%'; FLUSH PRIVILEGES;"
-    ]  
+    ]
+    networks:
+      - my-network  
 
   # phpmyadmin
   phpmyadmin:
