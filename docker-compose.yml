@@ -24,11 +24,13 @@ services:
       - mysql 
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-    command: [
-      "bash",
-      "-c",
-      "mysql -u root -p$MYSQL_ROOT_PASSWORD -h mysql -e 'GRANT CREATE, ALTER, DROP, INDEX ON collectif.* TO \\'collectif_user\\'@\\'%\\'; FLUSH PRIVILEGES;' && mysql -u root -p$MYSQL_ROOT_PASSWORD -h mysql -e 'SELECT 1 FROM collectif._prisma_migrations' 2>/dev/null && mysql -u root -p$MYSQL_ROOT_PASSWORD -h mysql -e 'GRANT SELECT, INSERT, UPDATE, DELETE ON collectif._prisma_migrations TO \\'collectif_user\\'@\\'%\\'; FLUSH PRIVILEGES;' || true"
-    ]
+    command:
+    - bash
+    - "-c"
+    - |
+      mysql -u root -p"$MYSQL_ROOT_PASSWORD" -h mysql -e "GRANT CREATE,ALTER,DROP,INDEX ON collectif.* TO 'collectif_user'@'%'; FLUSH PRIVILEGES;" &&
+      mysql -u root -p"$MYSQL_ROOT_PASSWORD" -h mysql -e "SELECT 1 FROM collectif._prisma_migrations" 2>/dev/null &&
+      mysql -u root -p"$MYSQL_ROOT_PASSWORD" -h mysql -e "GRANT SELECT,INSERT,UPDATE,DELETE ON collectif._prisma_migrations TO 'collectif_user'@'%'; FLUSH PRIVILEGES;" || true
     networks:
       - nest-network
 
