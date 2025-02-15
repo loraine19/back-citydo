@@ -47,12 +47,18 @@ export const newFaker = new Faker({
 const max = 60;
 
 const CreateRandomAddress = (): CreateAddressDto => {
-  return {
-    zipcode: newFaker.location.zipCode(),
-    city: newFaker.location.city(),
-    address: newFaker.location.streetAddress(),
-    lat: new Decimal(newFaker.location.latitude({ min: 42.8384, max: 48.8399 })),
-    lng: new Decimal(newFaker.location.longitude({ min: 5.2219, max: 5.3621 })),
+  const zipcode = newFaker.location.zipCode();
+  const city = newFaker.location.city();
+  const address = newFaker.location.streetAddress();
+  const lat = new Decimal(newFaker.location.latitude({ min: 42.8384, max: 48.8399 }));
+  const lng = new Decimal(newFaker.location.longitude({ min: 5.2219, max: 5.3621 }));
+  const exist = prisma.address.findUnique({ where: { address_zipcode: { address, zipcode } } })
+  if (!exist) return {
+    zipcode,
+    city,
+    address,
+    lat,
+    lng
   }
 }
 
@@ -277,16 +283,12 @@ const seed = async () => {
 
   // ADDRESS no fk 
   const address = async () => {
-    const existingAddresses = new Set();
     while (await prisma.address.count() < max) {
       const newAddress = CreateRandomAddress();
-      const uniqueKey = `${newAddress.address}-${newAddress.zipcode}`;
-      if (!existingAddresses.has(uniqueKey)) {
-        await prisma.address.create({ data: newAddress });
-        existingAddresses.add(uniqueKey);
-      }
+      await prisma.address.create({ data: newAddress });
     }
   }
+
   await address();
 
   // GROUP fk address
