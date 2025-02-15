@@ -9,10 +9,13 @@ RUN npm cache clean --force
 RUN npm install --legacy-peer-deps
 
 COPY . .
+# COPY entrypoint.sh /app/
+
+# CMD ["./entrypoint.sh"] # Use the entrypoint script
 
 # prisma generate and populate the database
 RUN npx prisma generate
-RUN npm run migrate
+
 
 EXPOSE 3000
 
