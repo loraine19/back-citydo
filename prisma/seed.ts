@@ -60,6 +60,7 @@ const CreateRandomAddress = (): CreateAddressDto => {
     lat,
     lng
   }
+  else return CreateRandomAddress();
 }
 
 const CreateRandomGroup = (): CreateGroupDto => {
