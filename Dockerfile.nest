@@ -10,7 +10,9 @@ RUN npm install --legacy-peer-deps
 
 COPY . .
 
+# prisma generate and populate the database
 RUN npx prisma generate
+RUN npx run migrate
 
 EXPOSE 3000
 

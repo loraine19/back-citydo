@@ -22,7 +22,7 @@ services:
     depends_on:
       - mysql
       - nest
-    image: phpmyadmin
+    image: phpmyadmin:5-fpm-alpine
     container_name: phpmyadmin
     restart: always
     env_file:
