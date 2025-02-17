@@ -19,7 +19,6 @@
 
 # CMD [  "npm", "start","dev", "start:migrate:prod", "npm","run","migrate"] 
 
-
 FROM node:18-alpine as build
 
 WORKDIR /app
@@ -28,8 +27,7 @@ COPY package*.json ./
 COPY prisma ./prisma ./  
 # If using Prisma
 
-RUN npm install --legacy-peer-deps 
-# or npm ci for production
+RUN npm install --legacy-peer-deps # Install ALL dependencies
 
 COPY . .
 
@@ -37,33 +35,27 @@ RUN npx prisma generate # If using Prisma
 
 RUN npm run build
 
-# *** NEW AND CRUCIAL STEP: Create a new, empty node_modules folder ***
-RUN rm -rf node_modules && mkdir node_modules
-
-# *** NEW AND CRUCIAL STEP: Install ONLY production dependencies ***
-RUN npm install --legacy-peer-deps --omit=dev 
-# or npm ci --omit=dev for production
-
 # Smaller final image
 FROM node:18-alpine
 
 WORKDIR /app
 
 COPY package*.json ./
-COPY prisma ./prisma ./
+COPY prisma ./prisma ./  
 # If using Prisma
 
-# *** COPY ONLY THE PRODUCTION node_modules ***
+# Copy ALL node_modules from the build stage
 COPY --from=build /app/node_modules ./node_modules
 
 COPY --from=build /app/dist ./dist
-COPY --from=build /app/.env ./.env 
+COPY --from=build /app/.env ./.env
 # If using environment variables
 COPY --from=build /app/prisma ./prisma 
 # If using Prisma
 
+# Optimize: Remove dev dependencies in the final image (optional but recommended)
+RUN npm prune --omit=dev  # or yarn autoclean --omit=dev
 
 EXPOSE 3000
 
-CMD ["node", "dist/main.js"] 
-# Adjust entrypoint if necessary
+CMD ["node", "dist/main.js"] # Adjust entrypoint if necessary
