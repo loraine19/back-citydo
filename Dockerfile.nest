@@ -54,8 +54,10 @@ COPY --from=build /app/prisma ./prisma
 # If using Prisma
 
 # Optimize: Remove dev dependencies in the final image (optional but recommended)
-RUN npm prune --omit=dev  # or yarn autoclean --omit=dev
+RUN npm prune --omit=dev  
+# or yarn autoclean --omit=dev
 
 EXPOSE 3000
 
-CMD ["node", "dist/main.js"] # Adjust entrypoint if necessary
+CMD ["node", "dist/src/main.js"] 
+# Adjust entrypoint if necessary
