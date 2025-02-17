@@ -26,7 +26,6 @@ export class AuthGuardRefresh implements CanActivate {
     constructor(private jwtService: JwtService) { }
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const request = await context.switchToHttp().getRequest();
-        console.log(request)
         const token = this.extractTokenFromHeader(request);
         if (!token) throw new HttpException('Refresh token not found', 403);
         try {
@@ -38,8 +37,10 @@ export class AuthGuardRefresh implements CanActivate {
             throw new HttpException('Guard :' + error, 401)
         }
     }
+
     private extractTokenFromHeader(request: Request): string | undefined {
         const [type, token] = request.headers.authorization?.split(' ') ?? [];
         return type === 'Bearer' ? token : undefined;
     }
+
 }

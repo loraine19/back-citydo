@@ -124,7 +124,6 @@ export class AuthService {
         const deleteToken = await this.generateVerifyToken(user.id);
         const deleteTokenHash = await argon2.hash(deleteToken);
         const userToken = await this.prisma.token.findFirst({ where: { userId: userId, type: $Enums.TokenType.DELETE } });
-        console.log(userToken)
         userToken && await this.prisma.token.delete({ where: { userId_type: { userId: userId, type: $Enums.TokenType.DELETE } } });
         await this.prisma.token.create({ data: { userId: user.id, token: deleteTokenHash, type: $Enums.TokenType.DELETE } })
         this.mailerService.sendDeleteAccountEmail(user.email, deleteToken);

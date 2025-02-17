@@ -24,6 +24,8 @@ export class AuthController {
     console.log(data)
     return this.authService.signInVerify(data, res);
   }
+
+
   @Post('signin')
   @ApiOkResponse({ type: AuthEntity })
   async signin(
@@ -31,8 +33,6 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response): Promise<{ refreshToken: string } | { message: string }> {
     return this.authService.signIn(data, res);
   }
-
-
 
   @Post('signup')
   @ApiOkResponse({ type: AuthEntity })
@@ -47,8 +47,7 @@ export class AuthController {
   @Post('logout')
   async logout(
     @User() userId: number,
-    @Res({ passthrough: true }) res: Response
-  ): Promise<{ message: string }> {
+    @Res({ passthrough: true }) res: Response): Promise<{ message: string }> {
     return this.authService.logOut(userId, res);
   }
 
@@ -70,16 +69,15 @@ export class AuthController {
   }
 
 
-
   @UseGuards(AuthGuard)
   @ApiBearerAuth()
   @Post('deleteAccount')
   @ApiOkResponse()
   async deleteAccount(
     @User() userId: number): Promise<{ message: string }> {
-    console.log(userId)
     return this.authService.deletAccount(userId);
   }
+
 
   @UseGuards(AuthGuard)
   @ApiBearerAuth()
@@ -90,8 +88,6 @@ export class AuthController {
     @User() userId: number): Promise<{ message: string }> {
     return this.authService.deletAccountConfirm(userId, email, token);
   }
-
-
 
 
 }

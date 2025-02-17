@@ -2,24 +2,43 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreateFlagDto } from './dto/create-flag.dto';
 import { UpdateFlagDto } from './dto/update-flag.dto';
 import { PrismaService } from '../prisma/prisma.service';
-import { $Enums, Flag } from '@prisma/client';
+import { $Enums, Flag, User } from '@prisma/client';
+import { MailerService } from 'src/mailer/mailer.service';
+import { ActionType } from 'src/mailer/constant';
 
 @Injectable()
 export class FlagsService {
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService, private mailer: MailerService) { }
 
   async create(data: CreateFlagDto): Promise<Flag> {
     const { userId, targetId, ...flag } = data;
-    return await this.prisma.flag.create({
+    const flagCreated = await this.prisma.flag.create({
       data: {
         ...flag,
         User: { connect: { id: userId } },
-        Survey: flag.target === $Enums.FlagTarget.SURVEY ? { connect: { id: targetId } } : undefined,
-        Event: flag.target === $Enums.FlagTarget.EVENT ? { connect: { id: targetId } } : undefined,
-        Post: flag.target === $Enums.FlagTarget.POST ? { connect: { id: targetId } } : undefined,
-        Service: flag.target === $Enums.FlagTarget.SERVICE ? { connect: { id: targetId } } : undefined,
+        [flag.target.toLowerCase()]: { connect: { id: targetId } },
       },
+      include: {
+        Event: { include: { User: true } },
+        Post: { include: { User: true } },
+        Service: { include: { User: true } },
+        Survey: { include: { User: true } }
+      }
     });
+    const flagCount = await this.prisma.flag.count({ where: { targetId, target: flag.target, reason: flag.reason } });
+    if (flagCount >= 3) {
+      const user = flagCreated[flag.target].User;
+      await this.prisma[flag.target.toLowerCase()].delete({ where: { id: targetId } });
+      await this.mailer.sendNotificationEmail(
+        [user.email],
+        `Votre ${flag.target.toLowerCase()} a été supprimé`,
+        targetId,
+        flag.target.toLowerCase(),
+        ActionType.DELETE,
+        `Votre ${flagCreated[flag.target].title} a été supprimé pour cause de ${flag.reason}`
+      );
+    }
+    return flagCreated;
   }
 
 
@@ -33,7 +52,7 @@ export class FlagsService {
         Survey: { include: { User: { select: { id: true, email: true, Profile: true } } } },
       }
     });
-    const flags2 = flags.map(flag => {
+    return flags.map(flag => {
       switch (flag.target) {
         case $Enums.FlagTarget.EVENT:
           return { ...flag, element: flag.Event, title: flag.Event.title };
@@ -46,8 +65,6 @@ export class FlagsService {
 
       }
     }) || [];
-    console.log(flags2)
-    return flags2;
   }
 
 
