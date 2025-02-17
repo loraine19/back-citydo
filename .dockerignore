@@ -1,2 +1,12 @@
 node_modules
 npm-debug.log
+.env
+.env.prod 
+.git
+.vscode
+node_modules
+test/*
+*.test.js
+Dockerfile
+docker-compose.yml
+README.md

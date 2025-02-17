@@ -48,7 +48,7 @@ COPY prisma ./prisma ./
 COPY --from=build /app/node_modules ./node_modules
 
 COPY --from=build /app/dist ./dist
-COPY --from=build /app/.env ./.env
+#COPY --from=build /app/.env ./.env
 # If using environment variables
 COPY --from=build /app/prisma ./prisma 
 # If using Prisma
