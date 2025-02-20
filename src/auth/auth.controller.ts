@@ -9,6 +9,7 @@ import { SignUpDto } from './dto/signUp.dto';
 import { RefreshDto } from './dto/refresh.dto';
 import { AuthGuard, AuthGuardRefresh } from '../auth/auth.guard';
 import { GetRefreshToken, User } from 'middleware/decorators';
+import { DeleteAccountDto } from './dto/deleteAccount.dto';
 
 @Controller('auth')
 @ApiTags('auth')
@@ -84,9 +85,11 @@ export class AuthController {
   @Post('deleteAccountConfirm')
   @ApiOkResponse()
   async deleteAccountConfirm(
-    @Body() { email, token }: { email: string, token: string },
+    @Body() data: DeleteAccountDto,
     @User() userId: number): Promise<{ message: string }> {
-    return this.authService.deletAccountConfirm(userId, email, token);
+    const { email, deleteToken } = data;
+    console.log(email, deleteToken)
+    return this.authService.deletAccountConfirm(userId, email, deleteToken);
   }
 
 
