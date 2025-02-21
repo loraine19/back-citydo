@@ -36,8 +36,8 @@ services:
 
   #Nest 
   nest:
-    container_name: nest
-    image: nest
+    container_name: collectif-back
+    image: collectif-back
     build:
       dockerfile: Dockerfile.nest
       context: .
