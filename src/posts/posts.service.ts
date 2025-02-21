@@ -9,84 +9,90 @@ import { ImageInterceptor } from 'middleware/ImageInterceptor';
 export class PostsService {
   constructor(private prisma: PrismaService) { }
 
+
+  private postIncludeConfig(userId?: number) {
+    return {
+      User: { select: { email: true, Profile: { include: { Address: true } } } },
+      Flags: { where: { target: $Enums.FlagTarget.EVENT, userId } },
+      Likes: true,
+    };
+  }
+
+  limit = parseInt(process.env.LIMIT)
+  skip(page: number) { return (page - 1) * this.limit }
+
   async create(data: CreatePostDto): Promise<Post> {
     const { userId, ...post } = data
     return await this.prisma.post.create({ data: { ...post, User: { connect: { id: userId } } } })
   }
 
-  async findAll(userId: number): Promise<Post[]> {
+  async findAll(userId: number, page?: number, category?: string): Promise<{ posts: Post[], count: number }> {
+    const skip = page ? this.skip(page) : 0;
+    const where = category ? { category: $Enums.PostCategory[category] } : {}
+    const count = await this.prisma.post.count({ where });
+    const take = page ? this.limit : count;
     const posts = await this.prisma.post.findMany({
-      include: {
-        User: { select: { email: true, Profile: { include: { Address: true } } } },
-        Likes: { include: { User: { select: { email: true, Profile: true, id: true } } } },
-        Flags: { where: { target: $Enums.FlagTarget.POST, userId } }
-      },
+      skip,
+      take,
+      where,
+      include: this.postIncludeConfig(userId),
       orderBy: { Likes: { _count: 'desc' } }
-    });
-    return posts
+    }) || [];
+    return { posts, count };
+  }
+
+  async findAllByUserId(userId: number, page?: number, category?: string,): Promise<{ posts: Post[], count: number }> {
+    const skip = page ? this.skip(page) : 0;
+    const where = category ? { userId, category: $Enums.PostCategory[category] } : { userId }
+    const count = await this.prisma.post.count({ where });
+    const take = page ? this.limit : count;
+    const posts = await this.prisma.post.findMany({
+      skip,
+      take,
+      where,
+      include: this.postIncludeConfig(userId),
+      orderBy: { Likes: { _count: 'desc' } }
+    }) || [];
+    return { posts, count };
+  }
+
+
+  async findAllILike(userId: number, page?: number, category?: string,): Promise<{ posts: Post[], count: number }> {
+    const skip = page ? this.skip(page) : 0;
+    const where = category ? { Likes: { some: { userId } }, category: $Enums.PostCategory[category] } : { Likes: { some: { userId } } }
+    const count = await this.prisma.post.count({ where });
+    const take = page ? this.limit : count;
+    const posts = await this.prisma.post.findMany({
+      skip,
+      take,
+      where,
+      include: this.postIncludeConfig(userId),
+      orderBy: { Likes: { _count: 'desc' } }
+    }) || [];
+    return { posts, count };
   }
 
 
   async findOne(id: number, userId: number): Promise<Post> {
     return await this.prisma.post.findUniqueOrThrow({
       where: { id },
-      include: {
-        User: { select: { email: true, Profile: { include: { Address: true } }, id: true } },
-        Likes: { include: { User: { select: { email: true, Profile: true, id: true } } } },
-        Flags: { where: { target: $Enums.FlagTarget.POST, userId } }
-      }
-
+      include: this.postIncludeConfig(userId)
     });
-  }
-
-  async findAllByUserId(userId: number): Promise<Post[]> {
-    const posts = await this.prisma.post.findMany({
-      where: { userId },
-      include: { User: { select: { email: true, Profile: true, id: true } }, Likes: { include: { User: { select: { email: true, Profile: true, id: true } } } } },
-      orderBy: { Likes: { _count: 'desc' } }
-    });
-    return posts
-  }
-
-
-
-  async findAllByLikeId(userId: number): Promise<Post[]> {
-    const posts = await this.prisma.post.findMany({
-      where: { Likes: { some: { userId } } },
-      include: {
-        User: { select: { id: true, email: true, Profile: true } },
-        Likes: { include: { User: { select: { email: true, Profile: true, id: true } } } },
-      },
-      orderBy: { Likes: { _count: 'desc' } }
-    });
-    return posts
-  }
-
-
-  async findAllILike(userId: number): Promise<Post[]> {
-    const posts = await this.prisma.post.findMany({
-      where: { Likes: { some: { userId } } },
-      include: {
-        User: { select: { id: true, email: true, Profile: true } },
-        Likes: { include: { User: { select: { email: true, Profile: true, id: true } } } },
-        Flags: { where: { target: $Enums.FlagTarget.POST, userId } }
-      },
-      orderBy: { Likes: { _count: 'desc' } }
-    });
-    return posts
   }
 
 
   async update(id: number, data: any): Promise<Post> {
     const { userId, ...post } = data
     return await this.prisma.post.update({
+      include: this.postIncludeConfig(userId),
       where: { id },
       data: { ...post, User: { connect: { id: userId } } }
     });
   }
 
-  async remove(id: number): Promise<Post> {
+  async remove(id: number, userId: number): Promise<Post> {
     const element = await this.prisma.post.findUniqueOrThrow({ where: { id } });
+    if (element.userId !== userId) throw new HttpException('Vous n\'êtes pas autorisé à supprimer cette annonce', 403)
     element.image && ImageInterceptor.deleteImage(element.image);
     return await this.prisma.post.delete({ where: { id } });
   }

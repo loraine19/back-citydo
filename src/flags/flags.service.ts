@@ -5,6 +5,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { $Enums, Flag, User } from '@prisma/client';
 import { MailerService } from 'src/mailer/mailer.service';
 import { ActionType } from 'src/mailer/constant';
+import { FlagTarget } from './entities/constant';
 
 @Injectable()
 export class FlagsService {
@@ -16,7 +17,7 @@ export class FlagsService {
       data: {
         ...flag,
         User: { connect: { id: userId } },
-        [flag.target.toLowerCase()]: { connect: { id: targetId } },
+        [FlagTarget[flag.target]]: { connect: { id: targetId } },
       },
       include: {
         Event: { include: { User: true } },
@@ -28,7 +29,7 @@ export class FlagsService {
     const flagCount = await this.prisma.flag.count({ where: { targetId, target: flag.target, reason: flag.reason } });
     if (flagCount >= 3) {
       const user = flagCreated[flag.target].User;
-      await this.prisma[flag.target.toLowerCase()].delete({ where: { id: targetId } });
+      await this.prisma[FlagTarget[flag.target]].delete({ where: { id: targetId } });
       await this.mailer.sendNotificationEmail(
         [user.email],
         `Votre ${flag.target.toLowerCase()} a été supprimé`,

@@ -27,9 +27,9 @@ export class EventsService {
 
   async findAll(userId: number, page?: number, category?: string): Promise<{ events: Event[], count: number }> {
     const skip = page ? this.skip(page) : 0;
-    const count = await this.prisma.event.count();
-    const take = page ? this.limit : count;
     const where: { category?: $Enums.EventCategory } = category ? { category: $Enums.EventCategory[category] } : {}
+    const count = await this.prisma.event.count({ where });
+    const take = page ? this.limit : count;
     const events = await this.prisma.event.findMany({
       skip,
       take,
@@ -42,9 +42,9 @@ export class EventsService {
 
   async findAllByUserId(userId: number, page?: number, category?: string): Promise<{ events: Event[], count: number }> {
     const skip = page ? this.skip(page) : 0;
-    const count = await this.prisma.event.count({ where: { userId } });
-    const take = page ? this.limit : await this.prisma.event.count({ where: { userId } });
     const where = category ? { userId, category: $Enums.EventCategory[category] } : { userId }
+    const count = await this.prisma.event.count({ where });
+    const take = page ? this.limit : count;
     const events = await this.prisma.event.findMany({
       skip,
       take,
@@ -56,9 +56,10 @@ export class EventsService {
 
   async findAllByParticipantId(userId: number, page?: number, category?: string): Promise<{ events: Event[], count: number }> {
     const skip = page ? this.skip(page) : 0;
-    const count = await this.prisma.event.count({ where: { Participants: { some: { userId } } } });
+    const where = category ?
+      { category: $Enums.EventCategory[category], Participants: { some: { userId } } } : { Participants: { some: { userId } } }
+    const count = await this.prisma.event.count({ where });
     const take = page ? this.limit : count;
-    const where = category ? { category: $Enums.EventCategory[category], Participants: { some: { userId } } } : { Participants: { some: { userId } } }
     const events = await this.prisma.event.findMany({
       skip,
       take,
