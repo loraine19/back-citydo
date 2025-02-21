@@ -37,7 +37,7 @@ services:
   #Nest 
   nest:
     container_name: collectif-back
-    image: collectif-back
+    image: lorainep/collectif-back:latest
     build:
       dockerfile: Dockerfile.nest
       context: .
