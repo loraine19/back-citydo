@@ -52,8 +52,8 @@ export class AuthService {
     //// SIGN IN
     async signIn(data: SignInDto, res: Response): Promise<{ refreshToken: string } | { message: string }> {
         let { email, password } = data
-        const user = await this.prisma.user.findUniqueOrThrow({ where: { email: email } });
-        if (!user) { throw new HttpException('User not found', 404) }
+        const user = await this.prisma.user.findUnique({ where: { email: email } });
+        if (!user) { return { message: 'Utilisateur introuvable' } }
         const isPasswordValid = await argon2.verify(user.password, password)
         if (!isPasswordValid) return { message: 'mot de passe incorrect' }
         if (user.status === $Enums.UserStatus.INACTIVE) {

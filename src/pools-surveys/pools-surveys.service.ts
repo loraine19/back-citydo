@@ -1,85 +1,63 @@
 import { Injectable } from '@nestjs/common';
-import { CreatePoolsSurveyDto } from './dto/create-pools-survey.dto';
-import { UpdatePoolsSurveyDto } from './dto/update-pools-survey.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { $Enums, Pool, Survey } from '@prisma/client';
 import { getDate } from 'middleware/BodyParser';
+import { PoolSurveyFilter, PoolSurveyStep } from './entities/constant';
 
 @Injectable()
 export class PoolsSurveysService {
   constructor(private prisma: PrismaService) { }
-  create(createPoolsSurveyDto: CreatePoolsSurveyDto) { }
 
+  private poolIncludeConfig(userId?: number) {
+    return {
+      User: { select: { email: true, Profile: { include: { Address: true } } } },
+      Votes: { where: { target: $Enums.VoteTarget.POOL } },
+      UserBenef: { select: { id: true, email: true, Profile: true } }
+    }
+  }
+  private surveyIncludeConfig(userId?: number) {
+    return {
+      User: { select: { email: true, Profile: { include: { Address: true } } } },
+      Votes: { where: { target: $Enums.VoteTarget.SURVEY } },
+      Flags: { where: { target: $Enums.FlagTarget.SURVEY, userId } }
+    }
+  }
 
-  async findAll(userId: number): Promise<(Pool | Survey)[]> {
-    const pools = await this.prisma.pool.findMany(
+  limit = parseInt(process.env.LIMIT)
+  skip(page: number) { return (page - 1) * this.limit }
+
+  async findAll(userId: number, page?: number, filter?: string, step?: string): Promise<{ poolsSurveys: (Pool | Survey)[], count: number }> {
+    if (!step) return { poolsSurveys: [], count: 0 }
+    const skip = page ? this.skip(page) : 0;
+    let where: any = filter === PoolSurveyFilter.MINE ? { userId } : {}
+    let OR = []
+    if (step.includes(PoolSurveyStep.NEW)) OR.push({ createdAt: { lt: getDate(0) } })
+    if (step.includes(PoolSurveyStep.PENDING)) OR.push({ createdAt: { lt: getDate(7) } })
+    if (step.includes(PoolSurveyStep.FINISHED)) {
+      const userCount = await this.prisma.user.count()
+      OR.push({ createdAt: { lt: getDate(15) } })
+    }
+    where = { ...where, OR }
+    const count = await this.prisma.pool.count({ where }) + await this.prisma.survey.count({ where });
+    const take = page ? this.limit : count;
+    const pools = filter === PoolSurveyFilter.SURVEY ? [] : await this.prisma.pool.findMany(
       {
-        include: {
-          Votes: { where: { target: $Enums.VoteTarget.POOL } },
-          User: { select: { id: true, email: true, Profile: true } },
-          UserBenef: { select: { id: true, email: true, Profile: true } },
-        }
-
+        include: this.poolIncludeConfig(userId),
+        skip,
+        take,
+        where
       }
     )
-    const surveys = await this.prisma.survey.findMany({
-      include: {
-        Votes: { where: { target: $Enums.VoteTarget.SURVEY } },
-        User: { select: { id: true, email: true, Profile: true } },
-        Flags: { where: { target: $Enums.FlagTarget.SURVEY, userId } }
-      }
-
+    const surveys = filter === PoolSurveyFilter.POOL ? [] : await this.prisma.survey.findMany({
+      include: this.surveyIncludeConfig(userId),
+      skip,
+      take,
+      where
     })
-    const poolsSurveys = [...pools, ...surveys]
-    return poolsSurveys.sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())
+    const poolsSurveys: (Pool | Survey)[] = [...pools, ...surveys]
+    poolsSurveys.sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())
+    return { poolsSurveys, count }
   }
 
-  async findAllByUserId(userId: number): Promise<(Pool | Survey)[]> {
-    const pools = await this.prisma.pool.findMany({
-      where: { userId },
-      include: {
-        Votes: true,
-        User: { select: { id: true, email: true, Profile: true } },
-        UserBenef: { select: { id: true, email: true, Profile: true } }
-      }, orderBy: { updatedAt: 'desc' }
-
-    })
-    const surveys = await this.prisma.survey.findMany({
-      where: { userId },
-      include: {
-        Votes: true,
-        User: { select: { id: true, email: true, Profile: true } },
-        Flags: { where: { target: $Enums.FlagTarget.SURVEY, userId } }
-      }, orderBy: { updatedAt: 'desc' }
-
-    })
-    const poolsSurveys = [...pools.map(p => ({ ...p, type: $Enums.VoteTarget.POOL })), ...surveys.map(s => ({ ...s, type: $Enums.VoteTarget.SURVEY }))]
-    return poolsSurveys.sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())
-  }
-
-  async findAllNew(userId: number): Promise<(Pool | Survey)[]> {
-    const pools = await this.prisma.pool.findMany({
-      where: { createdAt: { gt: getDate(7) } },
-      include: {
-        Votes: true,
-        User: { select: { id: true, email: true, Profile: true } },
-        UserBenef: { select: { id: true, email: true, Profile: true } }
-      }, orderBy: { updatedAt: 'desc' }
-
-    })
-    const surveys = await this.prisma.survey.findMany({
-      where: { createdAt: { gt: getDate(7) } },
-      include: {
-        Votes: true,
-        User: { select: { id: true, email: true, Profile: true } },
-        Flags: {
-          where: { target: $Enums.FlagTarget.SURVEY, userId }
-        }
-      }, orderBy: { updatedAt: 'desc' }
-
-    })
-    const poolsSurveys = [...pools.map(p => ({ ...p, type: $Enums.VoteTarget.POOL })), ...surveys.map(s => ({ ...s, type: $Enums.VoteTarget.SURVEY }))]
-    return poolsSurveys.sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())
-  }
 
 }

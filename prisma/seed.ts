@@ -18,7 +18,6 @@ import { CreateFlagDto } from 'src/flags/dto/create-flag.dto';
 import { CreateIssueDto } from 'src/issues/dto/create-issue.dto';
 import { getEnumVal } from 'middleware/GetPoints';
 
-
 const prisma = new PrismaClient();
 
 /// GENERE IMAGE FROM SEED 
@@ -141,12 +140,12 @@ const CreateRandomParticipant = (): CreateParticipantDto => {
 }
 
 const CreateRandomService = async (): Promise<CreateServiceDto> => {
-  const userIdResp = newFaker.number.int({ min: 0, max: max / 3 })
+  const status = newFaker.helpers.arrayElement(Object.values($Enums.ServiceStep))
+  const userIdResp = status === $Enums.ServiceStep.STEP_0 ? 0 : newFaker.number.int({ min: 1, max: max / 3 })
   const UserResp = userIdResp > 0 && await prisma.profile.findUnique({ where: { userId: userIdResp } })
   const skill = newFaker.helpers.arrayElement(Object.values($Enums.SkillLevel))
   const hard = newFaker.helpers.arrayElement(Object.values($Enums.HardLevel))
   const userRespPoints = UserResp ? getEnumVal(UserResp.assistance, AssistanceLevel) : 0
-  const status = !userIdResp && $Enums.ServiceStep.STEP_0 || newFaker.helpers.arrayElement(Object.values($Enums.ServiceStep))
   const base = Number(((getEnumVal(hard, $Enums.HardLevel) / 2 + getEnumVal(skill, $Enums.SkillLevel) / 2) + 1).toFixed(1))
   const points = base + userRespPoints / 2
   return {
