@@ -60,13 +60,14 @@ export class PoolsSurveysController {
   @ApiResponse({ type: PoolEntity })
   updatePool(
     @Param('id', ParseIntPipe) id: number,
-    @Body() data: UpdatePoolDto,
+    @Body() data: any,
     @User() userId: number): Promise<Pool> {
     data.userId = userId
+    data = parseData(data)
     return this.poolsSurveysService.updatePool(id, data);
   }
 
-  @Delete(':id')
+  @Delete('pool/:id')
   @ApiBearerAuth()
   @ApiResponse({ type: PoolEntity })
   removePool(

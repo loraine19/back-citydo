@@ -11,7 +11,6 @@ import * as argon2 from 'argon2';
 export class UsersService {
   constructor(private prisma: PrismaService) { }
 
-  //Prisma.UserCreateInput
   async create(data: CreateUserDto): Promise<User> {
     let user = { ...data };
     const userFind = await this.prisma.user.findUnique({ where: { email: user.email } });
@@ -21,8 +20,13 @@ export class UsersService {
     return { ...createdUser, password: undefined }
   }
 
-  async findAll(): Promise<User[]> {
-    return await this.prisma.user.findMany();
+  async findAll(): Promise<Partial<User>[]> {
+    return await this.prisma.user.findMany({
+      select: {
+        id: true,
+        Profile: { include: { Address: true } }
+      }
+    });
   }
 
   async findAllModo(id: number): Promise<Partial<User>[]> {

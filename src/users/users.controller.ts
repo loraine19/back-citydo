@@ -27,6 +27,13 @@ export class UsersController {
     return await this.usersService.create(data);
   }
 
+  @Get()
+  @ApiBearerAuth()
+  async findAll(@UserDec() userId: number): Promise<Partial<User>[]> {
+    return await this.usersService.findAll() || []
+  }
+
+
   @Get('modos')
   @ApiBearerAuth()
   async findAllModo(@UserDec() userId: number): Promise<Partial<User>[]> {
