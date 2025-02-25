@@ -10,8 +10,6 @@ import { ProfilesModule } from './profiles/profiles.module';
 import { GroupUsersModule } from './group-users/group-users.module';
 import { PostsModule } from './posts/posts.module';
 import { LikesModule } from './likes/likes.module';
-import { PoolsModule } from './pools/pools.module';
-import { SurveysModule } from './surveys/surveys.module';
 import { VotesModule } from './votes/votes.module';
 import { MulterModule } from '@nestjs/platform-express';
 import { ServeStaticModule } from '@nestjs/serve-static';
@@ -44,8 +42,6 @@ import { LoggerModule } from './logger/logger.module';
     ServiceModule,
     PostsModule,
     LikesModule,
-    PoolsModule,
-    SurveysModule,
     VotesModule,
     FlagsModule,
     IssuesModule,

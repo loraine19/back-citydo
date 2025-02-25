@@ -1,8 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { $Enums, Pool, Survey } from '@prisma/client';
 import { getDate } from 'middleware/BodyParser';
 import { PoolSurveyFilter, PoolSurveyStep } from './entities/constant';
+import { ImageInterceptor } from 'middleware/ImageInterceptor';
+import { CreatePoolDto } from './dto/create-pool.dto';
+import { UpdatePoolDto } from './dto/update-pool.dto';
+import { CreateSurveyDto } from './dto/create-survey.dto';
 
 @Injectable()
 export class PoolsSurveysService {
@@ -59,5 +63,87 @@ export class PoolsSurveysService {
     return { poolsSurveys, count }
   }
 
+  ////POOLS 
+  async createPool(data: CreatePoolDto): Promise<Pool> {
+    const { userId, userIdBenef, ...pool } = data;
+    return await this.prisma.pool.create({
+      data: {
+        User: { connect: { id: userId } },
+        UserBenef: { connect: { id: userIdBenef } },
+        ...pool,
+      },
+      include: this.poolIncludeConfig(userId)
+    });
+  }
+
+
+
+  async findOnePool(id: number, userId: number): Promise<Pool> {
+    return await this.prisma.pool.findUniqueOrThrow({
+      where: { id },
+      include: this.poolIncludeConfig(userId)
+    });
+  }
+
+  async updatePool(id: number, data: UpdatePoolDto): Promise<Pool> {
+    const { userId, userIdBenef, ...pool } = data;
+    return await this.prisma.pool.update({
+      where: { id },
+      include: this.poolIncludeConfig(userId),
+      data: {
+        User: { connect: { id: userId } },
+        UserBenef: { connect: { id: userIdBenef } },
+        ...pool,
+      },
+    });
+  }
+
+  async removePool(id: number, userId: number): Promise<Pool> {
+    const pool = await this.prisma.pool.delete({
+      where: { id }
+    });
+    if (pool.userId !== userId) throw new HttpException('Vous n\'êtes pas autorisé à supprimer cette cagnotte', 403)
+    return pool
+  }
+
+
+
+  ////SURVEYS
+  async createSurvey(data: CreateSurveyDto): Promise<Survey> {
+    const { userId, ...survey } = data
+    return await this.prisma.survey.create(
+      {
+        include: this.surveyIncludeConfig(userId),
+        data: { ...survey, User: { connect: { id: userId } } }
+      })
+  }
+
+
+  async findOneSurvey(id: number, userId: number): Promise<Survey> {
+    const survey = await this.prisma.survey.findUniqueOrThrow({
+      where: { id },
+      include: this.surveyIncludeConfig(userId)
+    })
+    return survey
+  }
+
+  async updateSurvey(id: number, data: any): Promise<Survey> {
+    const { userId, userIdResp, ...service } = data
+    return await this.prisma.survey.update({
+      where: { id },
+      include: this.surveyIncludeConfig(userId),
+      data: {
+        ...service, User: { connect: { id: userId } },
+        UserResp: { connect: { id: userIdResp } }
+      }
+    });
+  }
+
+  async removeSurvey(id: number, userId: number): Promise<Survey> {
+    const survey = await this.prisma.survey.findUniqueOrThrow({ where: { id } })
+    if (survey.userId !== userId) throw new HttpException('Vous n\'êtes pas autorisé à supprimer cette enquête', 403)
+    survey.image && ImageInterceptor.deleteImage(survey.image)
+    return await this.prisma.survey.delete({ where: { id } });
+  }
 
 }
