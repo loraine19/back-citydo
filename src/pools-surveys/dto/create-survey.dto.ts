@@ -6,11 +6,11 @@ import { IsNotEmpty, IsNumber, IsString, IsEnum, IsOptional } from "class-valida
 export class CreateSurveyDto {
     //FOR DTO
     @ApiProperty({ type: 'string' })
-    @IsNotEmpty({ message: 'User id is required' })
+    @IsOptional({ message: 'User id is required' })
     @Transform(({ value }) => parseInt(value))
     @IsNumber({ allowNaN: true }, { message: 'User id must be a number' })
-
     userId: number;
+
     @ApiProperty({ type: 'string' })
     @IsNotEmpty({ message: 'Title is required' })
     @IsString({ message: 'Title must be a string' })

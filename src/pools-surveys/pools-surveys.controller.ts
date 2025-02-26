@@ -38,9 +38,11 @@ export class PoolsSurveysController {
   @ApiBearerAuth()
   @ApiResponse({ type: PoolEntity })
   createPool(
-    @Body() data: CreatePoolDto,
+    @Body() data: any,
     @User() userId: number): Promise<Pool> {
     data.userId = userId
+    data = parseData(data)
+    console.log(data)
     return this.poolsSurveysService.createPool(data);
   }
 

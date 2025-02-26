@@ -1,15 +1,18 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsNumber, IsString } from "class-validator";
+import { Transform } from "class-transformer";
+import { IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
 
 export class CreatePoolDto {
     //FOR DTO
     @ApiProperty()
-    @IsNotEmpty()
+    @IsOptional()
+    @Transform(({ value }) => parseInt(value))
     @IsNumber()
     userId: number;
 
     @ApiProperty()
     @IsNotEmpty()
+    @Transform(({ value }) => parseInt(value))
     @IsNumber()
     userIdBenef: number;
 

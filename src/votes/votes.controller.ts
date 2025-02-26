@@ -22,8 +22,8 @@ export class VotesController {
   async create(
     @Body() data: CreateVoteDto,
     @User() userId: number): Promise<Vote> {
-    console.log(data)
     data.userId = userId
+    console.log(data)
     return this.votesService.create(data)
   }
 

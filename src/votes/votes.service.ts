@@ -9,13 +9,17 @@ export class VotesService {
   constructor(private prisma: PrismaService) { }
   async create(data: CreateVoteDto): Promise<Vote> {
     const { targetId, target, userId, opinion } = data
+    const find = target === $Enums.VoteTarget.POOL ? await this.prisma.pool.findUnique({ where: { id: targetId } }) : await this.prisma.survey.findUnique({ where: { id: targetId } });
+    if (!find) throw new HttpException(`${target} n'existe pas`, HttpStatus.NOT_FOUND);
+    const vote = await this.prisma.vote.findUnique({ where: { userId_target_targetId: { userId, targetId, target } } });
+    if (vote) throw new HttpException('Vous avez déjà voté', 403)
     if (target === $Enums.VoteTarget.POOL) {
       return await this.prisma.vote.create({
         data: { opinion, target, Pool: { connect: { id: targetId } }, User: { connect: { id: userId } } }
 
       })
     }
-    if (target === $Enums.VoteTarget.SURVEY) {
+    else if (target === $Enums.VoteTarget.SURVEY) {
       return await this.prisma.vote.create({
         data: { opinion, target, Survey: { connect: { id: targetId } }, User: { connect: { id: userId } } }
       })
