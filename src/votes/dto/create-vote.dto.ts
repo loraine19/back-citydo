@@ -1,12 +1,12 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { $Enums } from "@prisma/client";
-import { IsNotEmpty, IsEnum } from "class-validator";
+import { IsNotEmpty, IsEnum, IsOptional } from "class-validator";
 
 export class CreateVoteDto {
     /// FOR DTO 
     @ApiProperty()
-    @IsNotEmpty()
-    userId: number;
+    @IsOptional()
+    userId?: number;
 
     @ApiProperty()
     @IsNotEmpty()

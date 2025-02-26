@@ -8,144 +8,28 @@ import { $Enums, Vote } from '@prisma/client';
 export class VotesService {
   constructor(private prisma: PrismaService) { }
   async create(data: CreateVoteDto): Promise<Vote> {
-    const { userId, targetId, ...vote } = data;
-    let dataCopy
-    if (vote.target === $Enums.VoteTarget.POOL) {
-      dataCopy = {
-        ...vote,
-        User: { connect: { id: userId } },
-        Pools: { connect: { id: targetId } }
-      }
-    } else if (vote.target === $Enums.VoteTarget.SURVEY) {
-      dataCopy = {
-        ...vote,
-        User: { connect: { id: userId } },
-        Surveys: { connect: { id: targetId } }
-      }
+    const { targetId, target, userId, opinion } = data
+    if (target === $Enums.VoteTarget.POOL) {
+      return await this.prisma.vote.create({
+        data: { opinion, target, Pool: { connect: { id: targetId } }, User: { connect: { id: userId } } }
+
+      })
     }
-    return await this.prisma.vote.create({
-      data: dataCopy,
-    });
-  }
+    if (target === $Enums.VoteTarget.SURVEY) {
+      return await this.prisma.vote.create({
+        data: { opinion, target, Survey: { connect: { id: targetId } }, User: { connect: { id: userId } } }
+      })
+    }
 
-
-  async findAll(): Promise<Vote[]> {
-    const votes = await this.prisma.vote.findMany({
-      include: {
-        User: { select: { id: true, email: true, Profile: true } },
-        Pools: true,
-        Surveys: true,
-      }
-    });
-    return votes.map(vote => ({
-      ...vote,
-      Pools: vote.target === $Enums.VoteTarget.POOL ? vote.Pools : undefined,
-      Surveys: vote.target === $Enums.VoteTarget.SURVEY ? vote.Surveys : undefined,
-    }));
   }
 
 
 
-  async findAllByUserId(userId: number): Promise<Vote[]> {
-    const votes = await this.prisma.vote.findMany({
-      where: { userId },
-      include: {
-        User: { select: { id: true, email: true, Profile: true } },
-        Pools: true,
-        Surveys: true,
-      }
-    });
-    if (votes.length === 0) throw new HttpException(`no votes found`, HttpStatus.NO_CONTENT);
-    return votes.map(vote => ({
-      ...vote,
-      Pools: vote.target === $Enums.VoteTarget.POOL ? vote.Pools : undefined,
-      Surveys: vote.target === $Enums.VoteTarget.SURVEY ? vote.Surveys : undefined,
-    }));
-  }
-  async findAllPool(): Promise<Vote[]> {
-    const votes = await this.prisma.vote.findMany({
-      where: { target: $Enums.VoteTarget.POOL },
-      include: {
-        User: { select: { id: true, email: true, Profile: true } },
-        Pools: true,
-      }
-    });
-    if (!votes) throw new HttpException(`no votes found`, HttpStatus.NO_CONTENT);
-    return votes
-  }
-
-  async findAllPoolByUserId(userId: number): Promise<Vote[]> {
-    const votes = await this.prisma.vote.findMany({
-      where: { target: $Enums.VoteTarget.POOL, userId },
-      include: {
-        User: { select: { id: true, email: true, Profile: true } },
-        Pools: true,
-      }
-    });
-    if (!votes || votes.length === 0) throw new HttpException(`no votes found`, HttpStatus.NO_CONTENT);
-    return votes
-  }
-
-  async findAllSurvey(): Promise<Vote[]> {
-    const votes = await this.prisma.vote.findMany({
-      where: { target: $Enums.VoteTarget.SURVEY },
-      include: {
-        User: { select: { id: true, email: true, Profile: true } },
-        Surveys: true,
-      }
-    });
-    if (!votes) throw new HttpException(`no votes found`, HttpStatus.NO_CONTENT);
-    return votes
-  }
-
-  async findAllSurveyByUserId(userId: number): Promise<Vote[]> {
-
-    const votes = await this.prisma.vote.findMany({
-      where: { target: $Enums.VoteTarget.SURVEY, userId },
-      include: {
-        User: { select: { id: true, email: true, Profile: true } },
-        Surveys: true,
-      }
-    });
-    if (!votes) throw new HttpException(`no votes found`, HttpStatus.NO_CONTENT);
-    return votes
-  }
-
-
-  async findOne(userId: number, targetId: number, target: $Enums.VoteTarget): Promise<Vote> {
-    const vote = await this.prisma.vote.findUnique({
-      where: { userId_target_targetId: { userId, targetId, target } },
-      include: {
-        User: { select: { id: true, email: true, Profile: true } },
-        Pools: true,
-        Surveys: true,
-      }
-    })
-    vote.Pools = vote.target === $Enums.VoteTarget.POOL ? vote.Pools : undefined;
-    vote.Surveys = vote.target === $Enums.VoteTarget.SURVEY ? vote.Surveys : undefined;
-    return vote;
-  }
-
-
-
-  async findOneByUserId(userId: number): Promise<Vote[]> {
-    const votes = await this.prisma.vote.findMany({
-      where: { userId },
-      include: {
-        User: { select: { id: true, email: true, Profile: true } },
-        Pools: true,
-        Surveys: true,
-      }
-    });
-    if (!votes || votes.length === 0) throw new HttpException(`no votes found`, HttpStatus.NO_CONTENT);
-    return votes.map(vote => ({
-      ...vote,
-      Pools: vote.target === $Enums.VoteTarget.POOL ? vote.Pools : undefined,
-      Surveys: vote.target === $Enums.VoteTarget.SURVEY ? vote.Surveys : undefined,
-    }));
-  }
-
-  async update(userId: number, targetId: number, target: $Enums.VoteTarget, data: UpdateVoteDto): Promise<Vote> {
+  async update(userId: number, data: UpdateVoteDto): Promise<Vote> {
+    const { targetId, target } = data
+    const vote = await this.prisma.vote.findUnique({ where: { userId_target_targetId: { userId, targetId: data.targetId, target: data.target } } });
+    if (!vote) throw new HttpException('Votre vote n\'existe pas', 404)
+    if (vote.userId !== userId) throw new HttpException('Vous ne pouvez pas modifier ce vote', 403)
     return await this.prisma.vote.update({
       where: { userId_target_targetId: { userId, targetId, target } },
       data: { ...data },

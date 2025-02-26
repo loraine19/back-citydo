@@ -444,9 +444,9 @@ const seed = async () => {
       const cond = await prisma.vote.findUnique({ where: { userId_target_targetId: { userId, target, targetId } } });
       if (!cond && targetId) {
         if (target === $Enums.VoteTarget.POOL) {
-          await prisma.vote.create({ data: { ...vote, target, User: { connect: { id: userId } }, Pools: { connect: { id: targetId } } } });
+          await prisma.vote.create({ data: { ...vote, target, User: { connect: { id: userId } }, Pool: { connect: { id: targetId } } } });
         } else if (target === $Enums.VoteTarget.SURVEY) {
-          await prisma.vote.create({ data: { ...vote, target, User: { connect: { id: userId } }, Surveys: { connect: { id: targetId } } } });
+          await prisma.vote.create({ data: { ...vote, target, User: { connect: { id: userId } }, Survey: { connect: { id: targetId } } } });
         }
       }
     }

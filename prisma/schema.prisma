@@ -216,8 +216,8 @@ model Vote {
   User      User        @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
-  Pools     Pool?       @relation(fields: [targetId], references: [id], name: "PoolVote", map: "poolVote", onUpdate: Cascade, onDelete: Cascade)
-  Surveys   Survey?     @relation(fields: [targetId], references: [id], name: "SurveyVote", map: "surveyVote", onUpdate: Cascade, onDelete: Cascade)
+  Pool      Pool?       @relation(fields: [targetId], references: [id], name: "PoolVote", map: "poolVote", onUpdate: Cascade, onDelete: Cascade)
+  Survey    Survey?     @relation(fields: [targetId], references: [id], name: "SurveyVote", map: "surveyVote", onUpdate: Cascade, onDelete: Cascade)
 
   @@id([userId, target, targetId])
 }
