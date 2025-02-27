@@ -8,6 +8,8 @@ import { AuthGuard } from '../auth/auth.guard';
 import { parseData } from 'middleware/BodyParser';
 import { IssueEntity } from './entities/issue.entity';
 import { ImageInterceptor } from '../../middleware/ImageInterceptor';
+import { User } from 'middleware/decorators';
+import { Issue } from '@prisma/client';
 
 @ApiTags('issues')
 @Controller('issues')
@@ -21,7 +23,10 @@ export class IssuesController {
   @ApiBody({ type: CreateIssueDto })
   @UseInterceptors(ImageInterceptor.create('issues'))
   @ApiConsumes('multipart/form-data')
-  async create(@Body() data: any, @UploadedFile() image: Express.Multer.File, @Req() req: RequestWithUser) {
+  async create(
+    @Body() data: any,
+    @UploadedFile() image: Express.Multer.File,
+    @Req() req: RequestWithUser) {
     const userId = req.user.sub;
     data.userid && (data.userId = userId);
     data = await parseData(data, image)
@@ -34,7 +39,10 @@ export class IssuesController {
   @ApiBody({ type: UpdateIssueDto })
   @UseInterceptors(ImageInterceptor.create('issues'))
   @ApiConsumes('multipart/form-data')
-  async update(@Param('id', ParseIntPipe) id: number, @Body() data: UpdateIssueDto, @UploadedFile() image: Express.Multer.File, @Req() req: RequestWithUser) {
+  async update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() data: UpdateIssueDto, @UploadedFile() image: Express.Multer.File,
+    @Req() req: RequestWithUser) {
     const userId = req.user.sub;
     const issue = await this.issuesService.findOneById(id, userId);
     if (issue.image && data.image) {
@@ -47,29 +55,18 @@ export class IssuesController {
 
   @Get()
   @ApiBearerAuth()
-  findAll(@Req() req: RequestWithUser) {
-    const userId = req.user.sub;
+  findAll(
+    @User() userId: number): Promise<{ issues: Issue[], count: number }> {
     return this.issuesService.findAll(userId);
   }
 
-  @Get('mines')
-  @ApiBearerAuth()
-  findMine(@Req() req: RequestWithUser) {
-    const userId = req.user.sub;
-    return this.issuesService.findAllByUserId(userId);
-  }
 
-  @Get('ImModo')
-  @ApiBearerAuth()
-  findImModo(@Req() req: RequestWithUser) {
-    const userId = req.user.sub;
-    return this.issuesService.findAllByUserModoId(userId);
-  }
 
   @Get(':id')
   @ApiBearerAuth()
-  findOneById(@Param('id', ParseIntPipe) id: number, @Req() req: RequestWithUser) {
-    const userId = req.user.sub;
+  findOneById(
+    @Param('id', ParseIntPipe) id: number,
+    @User() userId: number) {
     return this.issuesService.findOneById(id, userId);
   }
 

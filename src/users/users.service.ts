@@ -31,6 +31,7 @@ export class UsersService {
 
   async findAllModo(id: number): Promise<Partial<User>[]> {
     const user = await this.prisma.user.findUnique({ where: { id }, include: { GroupUser: true } });
+    const grouId = user.GroupUser.map(g => g.groupId)
     return await this.prisma.user.findMany({
       where: {
         id: { not: id },

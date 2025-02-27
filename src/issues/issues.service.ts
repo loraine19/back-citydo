@@ -3,12 +3,23 @@ import { PrismaService } from '../prisma/prisma.service';
 import { $Enums, Profile, Issue, Service, Prisma } from '@prisma/client';
 import { CreateIssueDto } from './dto/create-issue.dto';
 import { UpdateIssueDto } from './dto/update-issue.dto';
-import { GetPoints } from 'middleware/GetPoints';
 import { ImageInterceptor } from '../../middleware/ImageInterceptor';
 
 @Injectable()
 export class IssuesService {
   constructor(private prisma: PrismaService) { }
+
+
+  private issueIncludeConfig(userId?: number) {
+    return {
+      User: { select: { email: true, Profile: { include: { Address: true } } } },
+      UserResp: { select: { email: true, Profile: { include: { Address: true } } } },
+    };
+  }
+  limit = parseInt(process.env.LIMIT)
+  skip(page: number) { return (page - 1) * this.limit }
+
+
   async create(data: CreateIssueDto): Promise<Issue> {
     const { userId, userIdModo, serviceId, userIdModoResp, ...issue } = data;
     const service = await this.prisma.service.findUnique({ where: { id: serviceId } });
@@ -40,7 +51,7 @@ export class IssuesService {
     return await this.prisma.issue.create(createData);
   }
 
-  async findAll(userId: number): Promise<Issue[]> {
+  async findAll(userId: number): Promise<{ issues: Issue[], count: number }> {
     const issues = await this.prisma.issue.findMany({
       where: {
         OR: [
@@ -61,9 +72,9 @@ export class IssuesService {
             UserResp: { select: { id: true, email: true, Profile: true } }
           }
         }
-      }
+      },
     })
-    return issues;
+    return { issues, count: issues.length };
   }
 
   async findAllByUserId(userId: number): Promise<Issue[]> {
@@ -137,6 +148,7 @@ export class IssuesService {
 
 
   async findOneById(id: number, userId: number): Promise<Issue> {
+    console.log('id', id)
     const issue = await this.prisma.issue.findUniqueOrThrow({
       where: { serviceId: id },
       include: {
@@ -151,7 +163,7 @@ export class IssuesService {
         }
       }
     })
-    if (issue.UserModo.id === userId || issue.UserModoResp.id === userId || issue.Service.User.id === userId || issue.Service.UserResp.id === userId) {
+    if (issue?.UserModo?.id === userId || issue?.UserModoResp?.id === userId || issue.Service.User.id === userId || issue.Service.UserResp.id === userId) {
       return issue
     }
     throw new HttpException('Vous n\'êtes pas autorisé à accéder à cette ressource', 403)
