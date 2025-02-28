@@ -57,7 +57,8 @@ export class UsersService {
         email: true,
         lastConnection: true,
         status: true,
-        Profile: { include: { Address: true } }
+        Profile: { include: { Address: true } },
+        GroupUser: { select: { groupId: true, role: true } }
       },
     });
   }
