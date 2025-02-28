@@ -123,13 +123,13 @@ docker-compose up -d
 7. Run the Prisma migrations:
 
 ```sh
-docker-compose exec app npx prisma migrate dev
+run docker exec -it back-collectif npx prisma migrate dev
 ```
 
 8. If the seed doesn't run automatically, you can run it manually:
 
 ```sh
-docker-compose exec app npm run prisma-seed
+run docker exec -it- back-collectif npm run prisma-seed
 ```
 
 9. Access the API at `http://dockercontainername/api or serverIp:dockerport/api (you must give port first in docker compose)`.
