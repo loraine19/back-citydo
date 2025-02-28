@@ -11,7 +11,7 @@
     "outDir": "./dist",
     "baseUrl": "./",
     "paths": {
-      "src/*": ["src/*"], // <- ADD THIS!  Maps src/* to the src directory
+      "src/*": ["src/*"], // Add
       "middleware/*": ["middleware/*"]
     },
     "incremental": true,

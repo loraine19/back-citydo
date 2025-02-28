@@ -27,9 +27,11 @@ COPY --from=build /app/node_modules ./node_modules
 
 COPY --from=build /app/dist ./dist
 
+COPY --from=build /app/middleware ./middleware
+
 COPY --from=build /app/prisma ./prisma 
 
-#RUN npm prune --omit=dev  
+RUN npm prune --omit=dev  
 
 EXPOSE 3000
 
