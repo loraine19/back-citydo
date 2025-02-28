@@ -30,6 +30,7 @@ export class EventsController {
     @User() userId: number):
     Promise<Event> {
     data.userId = userId
+    console.log(data)
     data = await parseData(data, image)
     return this.eventsService.create(data)
   }

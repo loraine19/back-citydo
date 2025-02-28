@@ -97,6 +97,7 @@ export class EventsService {
 
   //// ACTIONS
   async create(data: CreateEventDto): Promise<Event> {
+    console.log('dataevent', data)
     const { userId, addressId, Address, ...event } = data
     const addressIdVerified = await this.addressService.verifyAddress(Address);
     return await this.prisma.event.create({
