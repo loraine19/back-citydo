@@ -33,7 +33,7 @@ export class AuthService {
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'strict',
             maxAge: parseInt(process.env.COOKIE_EXPIRES_ACCESS),
-            path: '/',
+            path: '/api',
         });
     }
 
