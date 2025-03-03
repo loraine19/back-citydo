@@ -8,7 +8,7 @@ export class AuthGuard implements CanActivate {
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const request = await context.switchToHttp().getRequest();
         console.log(request.cookies)
-        const token = request.cookies['access'];
+        const token = request.cookies[process.env.ACCESS_COOKIE_NAME];
         if (!token) throw new HttpException('Unauthorized access, missing token', 401);
         try {
             const payload = await this.jwtService.verifyAsync(token, { secret: process.env.JWT_SECRET });

@@ -3,7 +3,6 @@ import { HttpException, Injectable, Res, UnauthorizedException } from '@nestjs/c
 import { Response } from 'express';
 import { PrismaService } from '../prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
-import { AuthEntity, RefreshEntity } from './auth.entities/auth.entity';
 import * as argon2 from 'argon2';
 import { SignInDto } from './dto/signIn.dto';
 import { $Enums } from '@prisma/client';
@@ -27,13 +26,14 @@ export class AuthService {
         res.setHeader('Pragma', 'no-cache');
         // deja expere ne pas mettre en cache 
         res.setHeader('Expires', '0');
-        res.cookie('access', accessToken, {
+        res.cookie(process.env.ACCESS_COOKIE_NAME, accessToken, {
             httpOnly: true,
-            domain: process.env.DOMAIN,
+            // domain: process.env.DOMAIN,
             secure: process.env.NODE_ENV === 'production',
+            // secure: false,
             sameSite: 'strict',
             maxAge: parseInt(process.env.COOKIE_EXPIRES_ACCESS),
-            path: '/api',
+            path: '/',
         });
     }
 
@@ -65,6 +65,7 @@ export class AuthService {
         await this.prisma.token.deleteMany({ where: { userId: user.id } })
         await this.prisma.token.create({ data: { userId: user.id, token: await argon2.hash(refreshToken), type: $Enums.TokenType.REFRESH } })
         this.setAuthCookies(res, accessToken);
+        console.log(res)
         return { refreshToken }
     }
 
@@ -115,7 +116,7 @@ export class AuthService {
 
     async logOut(userId: number, res: Response): Promise<{ message: string }> {
         await this.prisma.token.deleteMany({ where: { userId, type: $Enums.TokenType.REFRESH } });
-        res.clearCookie('access');
+        res.clearCookie(process.env.ACCESS_COOKIE_NAME);
         return { message: 'Vous etes deconnecté' }
     }
 
