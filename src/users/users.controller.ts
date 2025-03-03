@@ -5,10 +5,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { UsersService } from './users.service';
 import { UserEntity } from './entities/user.entity';
 import { AuthGuard } from '../../src/auth/auth.guard';
-import { RequestWithUser } from 'src/auth/auth.entities/auth.entity';
 import { User } from '@prisma/client';
-import { EventsService } from '../events/events.service';
-import { ServicesService } from '../service/service.service';
 import { User as UserDec } from 'middleware/decorators';
 
 
@@ -50,6 +47,7 @@ export class UsersController {
   @ApiBearerAuth()
   @ApiOkResponse({ type: UserEntity })
   async FindMe(@UserDec() userId: number): Promise<Partial<User>> {
+    console.log('userId', userId)
     return this.usersService.findOne(userId)
   }
 

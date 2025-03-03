@@ -4,11 +4,12 @@ import { JwtService } from '@nestjs/jwt';
 export const User = createParamDecorator(
     (data: unknown, ctx: ExecutionContext) => {
         const request = ctx.switchToHttp().getRequest()
-        const token = request.cookies['access'];
+        const token = request.cookies[process.env.ACCESS_COOKIE_NAME];
         if (token) {
             const jwtService = new JwtService();
             try {
                 const payload = jwtService.verify(token, { secret: process.env.JWT_SECRET });
+                console.log('payload', payload.sub)
                 return payload.sub; // on retourne payload.sub qui contien UserId
             } catch (error) {
                 console.error('Erreur de décodage du token:', error);

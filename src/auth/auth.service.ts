@@ -20,17 +20,13 @@ export class AuthService {
     async generateVerifyToken(sub: number) { return this.jwtService.sign({ sub }, { secret: process.env.JWT_SECRET, expiresIn: process.env.JWT_EXPIRES_VERIFY }) }
 
     async setAuthCookies(res: Response, accessToken: string) {
-        //ne pas stocker la resp ( browser / proxy / server)
         res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-        //ne pas stocker la resp old browser
         res.setHeader('Pragma', 'no-cache');
-        // deja expere ne pas mettre en cache 
         res.setHeader('Expires', '0');
         res.cookie(process.env.ACCESS_COOKIE_NAME, accessToken, {
             httpOnly: true,
             // domain: process.env.DOMAIN,
-            // secure: process.env.NODE_ENV === 'production',
-            secure: true,
+            secure: process.env.NODE_ENV === 'prod',
             sameSite: 'strict',
             maxAge: parseInt(process.env.COOKIE_EXPIRES_ACCESS),
             path: '/',
@@ -63,9 +59,14 @@ export class AuthService {
         const refreshToken = await this.generateRefreshToken(user.id);
         const accessToken = await this.generateAccessToken(user.id);
         await this.prisma.token.deleteMany({ where: { userId: user.id } })
-        await this.prisma.token.create({ data: { userId: user.id, token: await argon2.hash(refreshToken), type: $Enums.TokenType.REFRESH } })
+        await this.prisma.token.create({
+            data: {
+                userId: user.id,
+                token: await argon2.hash(refreshToken),
+                type: $Enums.TokenType.REFRESH
+            }
+        })
         this.setAuthCookies(res, accessToken);
-        console.log(res)
         return { refreshToken }
     }
 

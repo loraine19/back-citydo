@@ -22,7 +22,6 @@ export class AuthController {
   async signinVerify(
     @Body() data: SignInVerifyDto,
     @Res({ passthrough: true }) res: Response): Promise<{ refreshToken: string } | { message: string }> {
-    console.log(data)
     return this.authService.signInVerify(data, res);
   }
 
