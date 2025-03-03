@@ -29,8 +29,8 @@ export class AuthService {
         res.cookie(process.env.ACCESS_COOKIE_NAME, accessToken, {
             httpOnly: true,
             // domain: process.env.DOMAIN,
-            secure: process.env.NODE_ENV === 'production',
-            // secure: false,
+            // secure: process.env.NODE_ENV === 'production',
+            secure: true,
             sameSite: 'strict',
             maxAge: parseInt(process.env.COOKIE_EXPIRES_ACCESS),
             path: '/',
