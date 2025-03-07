@@ -26,11 +26,12 @@ export class AuthService {
         res.cookie(process.env.ACCESS_COOKIE_NAME, accessToken, {
             httpOnly: true,
             // domain: process.env.DOMAIN,
-            secure: process.env.NODE_ENV === 'prod',
+            secure: true,
             sameSite: 'strict',
             maxAge: parseInt(process.env.COOKIE_EXPIRES_ACCESS),
             path: '/',
         });
+        console.log('Headers après définition du cookie:', res.getHeaders()); // AJOUTEZ CECI
     }
 
     async signUp(data: SignInDto): Promise<{ message: string }> {

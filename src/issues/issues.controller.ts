@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Req, UseGuards, UploadedFile, UseInterceptors, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Req, UseGuards, UploadedFile, UseInterceptors, ParseIntPipe, Query, DefaultValuePipe } from '@nestjs/common';
 import { IssuesService } from './issues.service';
 import { CreateIssueDto } from './dto/create-issue.dto';
 import { UpdateIssueDto } from './dto/update-issue.dto';
@@ -55,9 +55,12 @@ export class IssuesController {
 
   @Get()
   @ApiBearerAuth()
-  findAll(
-    @User() userId: number): Promise<{ issues: Issue[], count: number }> {
-    return this.issuesService.findAll(userId);
+  async findAll(
+    @User() userId: any,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page?: number,
+    @Query('filter') filter?: any): Promise<{ issues: Issue[], count: number }> {
+    const res = await this.issuesService.findAll(userId, page, filter);
+    return res
   }
 
 

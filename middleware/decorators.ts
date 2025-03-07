@@ -9,8 +9,7 @@ export const User = createParamDecorator(
             const jwtService = new JwtService();
             try {
                 const payload = jwtService.verify(token, { secret: process.env.JWT_SECRET });
-                console.log('payload', payload.sub)
-                return payload.sub; // on retourne payload.sub qui contien UserId
+                return parseInt(payload.sub);
             } catch (error) {
                 console.error('Erreur de décodage du token:', error);
                 return null;
