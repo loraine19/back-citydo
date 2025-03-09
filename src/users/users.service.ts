@@ -11,6 +11,8 @@ import * as argon2 from 'argon2';
 export class UsersService {
   constructor(private prisma: PrismaService) { }
 
+  goupId = 1
+
   async create(data: CreateUserDto): Promise<User> {
     let user = { ...data };
     const userFind = await this.prisma.user.findUnique({ where: { email: user.email } });
@@ -31,7 +33,6 @@ export class UsersService {
 
   async findAllModo(id: number): Promise<Partial<User>[]> {
     const user = await this.prisma.user.findUnique({ where: { id }, include: { GroupUser: true } });
-    const grouId = user.GroupUser.map(g => g.groupId)
     return await this.prisma.user.findMany({
       where: {
         id: { not: id },
@@ -58,7 +59,7 @@ export class UsersService {
         lastConnection: true,
         status: true,
         Profile: { include: { Address: true } },
-        GroupUser: { select: { groupId: true, role: true } }
+        GroupUser: { where: { groupId: this.goupId } }
       },
     });
   }
