@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Req, UseGuards, UploadedFile, UseInterceptors, ParseIntPipe, Query, DefaultValuePipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Req, UseGuards, UploadedFile, UseInterceptors, ParseIntPipe, Query, DefaultValuePipe, Put } from '@nestjs/common';
 import { IssuesService } from './issues.service';
 import { CreateIssueDto } from './dto/create-issue.dto';
 import { UpdateIssueDto } from './dto/update-issue.dto';
@@ -9,7 +9,7 @@ import { parseData } from 'middleware/BodyParser';
 import { IssueEntity } from './entities/issue.entity';
 import { ImageInterceptor } from '../../middleware/ImageInterceptor';
 import { User } from 'middleware/decorators';
-import { Issue } from '@prisma/client';
+import { Issue, IssueStep } from '@prisma/client';
 
 @ApiTags('issues')
 @Controller('issues')
@@ -52,6 +52,22 @@ export class IssuesController {
     return this.issuesService.update(id, data, userId);
   }
 
+  @Put(':id')
+  @ApiBearerAuth()
+  @ApiOkResponse({ type: IssueEntity })
+  async updateStep(
+    @Param('id', ParseIntPipe) id: number,
+    @Query('step') step: IssueStep,
+    @User() userId: number,
+    @Body() data: { pourcent: number }): Promise<Issue> {
+    console.log('rrrrr', step)
+    if (step) {
+      return this.issuesService.updateValidModo(id, userId);
+    }
+    return this.issuesService.updateFinish(id, userId, data.pourcent,);
+  }
+
+
 
   @Get()
   @ApiBearerAuth()
@@ -75,7 +91,9 @@ export class IssuesController {
 
   @Delete(':id')
   @ApiBearerAuth()
-  remove(@Param('id') id: string) {
-    return this.issuesService.remove(+id);
+  remove(
+    @Param('id', ParseIntPipe) id: number,
+    @User() userId: number) {
+    return this.issuesService.remove(id, userId);
   }
 }
