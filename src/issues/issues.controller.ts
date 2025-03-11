@@ -41,7 +41,8 @@ export class IssuesController {
   @ApiConsumes('multipart/form-data')
   async update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() data: UpdateIssueDto, @UploadedFile() image: Express.Multer.File,
+    @Body() data: UpdateIssueDto,
+    @UploadedFile() image: Express.Multer.File,
     @Req() req: RequestWithUser) {
     const userId = req.user.sub;
     const issue = await this.issuesService.findOneById(id, userId);

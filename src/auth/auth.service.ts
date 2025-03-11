@@ -5,7 +5,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import * as argon2 from 'argon2';
 import { SignInDto } from './dto/signIn.dto';
-import { $Enums } from '@prisma/client';
+import { $Enums, User } from '@prisma/client';
 import { MailerService } from 'src/mailer/mailer.service';
 
 
@@ -34,6 +34,7 @@ export class AuthService {
         console.log('Headers après définition du cookie:', res.getHeaders()); // AJOUTEZ CECI
     }
 
+    includeConfigUser = { Profile: { include: { Address: true } }, GroupUser: true }
     async signUp(data: SignInDto): Promise<{ message: string }> {
         let { email, password } = data
         const user = await this.prisma.user.findUnique({ where: { email: email } });
@@ -47,12 +48,12 @@ export class AuthService {
     }
 
     //// SIGN IN
-    async signIn(data: SignInDto, res: Response): Promise<{ refreshToken: string } | { message: string }> {
+    async signIn(data: SignInDto, res: Response): Promise<{ refreshToken: string, user: Partial<User> } | { message: string }> {
         let { email, password } = data
-        const user = await this.prisma.user.findUnique({ where: { email: email } });
-        if (!user) { return { message: 'Utilisateur introuvable' } }
+        const user = await this.prisma.user.findUnique({ where: { email }, include: this.includeConfigUser });
+        if (!user) { return { message: 'Identifiants incorrect' } }
         const isPasswordValid = await argon2.verify(user.password, password)
-        if (!isPasswordValid) return { message: 'mot de passe incorrect' }
+        if (!isPasswordValid) return { message: 'Identifiants incorrect' }
         if (user.status === $Enums.UserStatus.INACTIVE) {
             this.mailerService.sendVerificationEmail(email, await this.generateVerifyToken(user.id));
             return { message: 'Votre compte est inactif, veuillez verifier votre email' }
@@ -68,13 +69,14 @@ export class AuthService {
             }
         })
         this.setAuthCookies(res, accessToken);
-        return { refreshToken }
+        user.password = ''
+        return { refreshToken, user }
     }
 
     //// SIGN IN VERIFY
-    async signInVerify(data: SignInDto & { verifyToken: string }, res: Response): Promise<{ refreshToken: string }> {
+    async signInVerify(data: SignInDto & { verifyToken: string }, res: Response): Promise<{ refreshToken: string, user: Partial<User> } | { message: string }> {
         let { email, password, verifyToken } = data
-        const user = await this.prisma.user.findUniqueOrThrow({ where: { email: email } });
+        const user = await this.prisma.user.findUniqueOrThrow({ where: { email: email }, include: this.includeConfigUser });
         !user && new HttpException('Utilisateur introuvable', 404)
         const userToken = await this.prisma.token.findFirst({ where: { userId: user.id, type: $Enums.TokenType.VERIFY } })
         if (!userToken) throw new HttpException('Erreur de verification', 404)
@@ -88,7 +90,8 @@ export class AuthService {
         await this.prisma.token.deleteMany({ where: { userId: user.id, type: $Enums.TokenType.REFRESH } })
         await this.prisma.token.create({ data: { userId: user.id, token: await argon2.hash(refreshToken), type: $Enums.TokenType.REFRESH } })
         this.setAuthCookies(res, accessToken);
-        return { refreshToken }
+        user.password = ''
+        return { refreshToken, user }
     }
 
 
