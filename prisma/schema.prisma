@@ -40,7 +40,7 @@ model User {
   Service        Service[]     @relation("Service")
   ServiceResp    Service[]     @relation("ServiceResp")
   IssueModo      Issue[]       @relation("Modo")
-  IssueModoResp  Issue[]       @relation("ModoResp")
+  IssueModoOn    Issue[]       @relation("ModoOn")
   Issue          Issue[]       @relation("Issue")
   Pool           Pool[]        @relation("Pool")
   Benef          Pool[]        @relation("PoolBenef")
@@ -164,20 +164,20 @@ model Service {
 
 ////// ISSUE
 model Issue {
-  serviceId      Int       @id @unique
-  description    String?   @db.MediumText
-  date           DateTime  @default(now())
-  status         IssueStep @default(STEP_0)
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
-  userIdModo     Int?
-  userIdModoResp Int?
-  image          String?
-  UserModo       User?     @relation(fields: [userIdModo], references: [id], name: "Modo", onUpdate: Cascade, onDelete: Cascade)
-  UserModoResp   User?     @relation(fields: [userIdModoResp], references: [id], name: "ModoResp", onUpdate: Cascade, onDelete: Cascade)
-  Service        Service   @relation(fields: [serviceId], references: [id], onUpdate: Cascade, onDelete: Cascade)
-  User           User      @relation(fields: [userId], references: [id], name: "Issue", onUpdate: Cascade, onDelete: Cascade)
-  userId         Int
+  serviceId    Int       @id @unique
+  description  String?   @db.MediumText
+  date         DateTime  @default(now())
+  status       IssueStep @default(STEP_0)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  userIdModo   Int?
+  userIdModoOn Int?
+  image        String?
+  UserModo     User?     @relation(fields: [userIdModo], references: [id], name: "Modo", onUpdate: Cascade, onDelete: Cascade)
+  UserModoOn   User?     @relation(fields: [userIdModoOn], references: [id], name: "ModoOn", onUpdate: Cascade, onDelete: Cascade)
+  Service      Service   @relation(fields: [serviceId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  User         User      @relation(fields: [userId], references: [id], name: "Issue", onUpdate: Cascade, onDelete: Cascade)
+  userId       Int
 }
 
 ///// SURVEY POOL 

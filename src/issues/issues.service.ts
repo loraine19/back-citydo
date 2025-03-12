@@ -15,7 +15,7 @@ export class IssuesService {
   issueIncludeConfig = {
     User: { select: { email: true, Profile: { include: { Address: true } } } },
     UserModo: { select: { email: true, Profile: { include: { Address: true } } } },
-    UserModoResp: { select: { email: true, Profile: { include: { Address: true } } } },
+    UserModoOn: { select: { email: true, Profile: { include: { Address: true } } } },
     Service: {
       include: {
         User: { select: { email: true, Profile: { include: { Address: true } } } },
@@ -29,13 +29,13 @@ export class IssuesService {
 
 
   async create(data: CreateIssueDto): Promise<Issue> {
-    const { userId, userIdModo, serviceId, userIdModoResp, ...issue } = data;
+    const { userId, userIdModo, serviceId, userIdModoOn, ...issue } = data;
     const service = await this.prisma.service.findUnique({ where: { id: serviceId } });
     if (!service) {
       throw new HttpException('Impossible de trouver le service', HttpStatus.NOT_FOUND);
     }
     let createData: Prisma.IssueCreateArgs;
-    if (service.userId === userId) {
+    if (service.userId !== userId || service.userIdResp !== userId) throw new HttpException('Vous n\'êtes pas autorisé à créer une demande', 403); {
       createData = {
         data: {
           ...issue,
@@ -44,17 +44,6 @@ export class IssuesService {
           UserModo: { connect: { id: userIdModo } }
         }
       };
-    } else if (service.userIdResp === userId) {
-      createData = {
-        data: {
-          ...issue,
-          User: { connect: { id: userId } },
-          Service: { connect: { id: serviceId } },
-          UserModoResp: { connect: { id: userIdModoResp } }
-        }
-      };
-    } else {
-      throw new HttpException('Vous n\'êtes pas autorisé à créer une demande', 403);
     }
     return await this.prisma.issue.create(createData);
   }
@@ -75,7 +64,7 @@ export class IssuesService {
     const where = {
       OR: [
         { UserModo: { is: { id: userId } } },
-        { UserModoResp: { is: { id: userId } } },
+        { UserModoOn: { is: { id: userId } } },
         { Service: { is: { userId } } },
         { Service: { is: { userIdResp: userId } } },
       ],
@@ -101,7 +90,7 @@ export class IssuesService {
   async findAllByUserModoId(userId: number): Promise<Issue[]> {
     return await this.prisma.issue.findMany({
       where: {
-        OR: [{ UserModo: { is: { id: userId } } }, { UserModoResp: { is: { id: userId } } }]
+        OR: [{ UserModo: { is: { id: userId } } }, { UserModoOn: { is: { id: userId } } }]
       },
       include: this.issueIncludeConfig
     })
@@ -111,7 +100,7 @@ export class IssuesService {
     const issue = await this.prisma.issue.findUniqueOrThrow({
       where: { serviceId: id }, include: this.issueIncludeConfig
     })
-    const isAuthorized = [issue.userIdModo, issue.userIdModoResp, issue.Service.userId, issue.Service.userIdResp].includes(userId);
+    const isAuthorized = [issue.userIdModo, issue.userIdModoOn, issue.Service.userId, issue.Service.userIdResp].includes(userId);
     if (isAuthorized) return issue;
     throw new HttpException('Vous n\'êtes pas autorisé à accéder à cette ressource', 403)
   }
@@ -122,13 +111,13 @@ export class IssuesService {
     if (!isAuthorized) throw new HttpException('Vous n\'êtes pas autorisé à accéder à cette ressource', 403);
     if (issue.status !== IssueStep.STEP_0 && issue.status !== IssueStep.STEP_1) throw new HttpException('Cette demande n\'est plus modifiable', 403);
     const status = issue.status === IssueStep.STEP_0 ? IssueStep.STEP_1 : IssueStep.STEP_2;
-    const data = issue.userIdModo === userId ? { userIdModo: modoId, status } : { userIdModoResp: modoId, status };
+    const data = issue.userIdModo === userId ? { userIdModo: modoId, status } : { userIdModoOn: modoId, status };
     return await this.prisma.issue.update({ where: { serviceId: id }, data });
   }
 
   async updateValidModo(id: number, userId: number): Promise<Issue> {
     const issue = await this.prisma.issue.findUniqueOrThrow({ where: { serviceId: id }, include: this.issueIncludeConfig });
-    const isAuthorized = [issue.userIdModo, issue.userIdModoResp].includes(userId);
+    const isAuthorized = [issue.userIdModo, issue.userIdModoOn].includes(userId);
     if (!isAuthorized) throw new HttpException('Vous n\'êtes pas autorisé à accéder à cette ressource', 403);
     const user = await this.prisma.user.findUniqueOrThrow({ where: { id: userId }, include: { GroupUser: { where: { groupId: 1 } } } });
     // if (user.GroupUser[0].role !== $Enums.Role.MODO) throw new HttpException('Vous n\'êtes pas autorisé à modérer dans ce groupe', 403);
@@ -150,7 +139,7 @@ export class IssuesService {
 
   async updateFinish(id: number, userId: number, pourcent: number): Promise<Issue> {
     const issue = await this.prisma.issue.findUniqueOrThrow({ where: { serviceId: id }, include: this.issueIncludeConfig });
-    if (userId !== issue.userIdModo && userId !== issue.userIdModoResp) throw new HttpException('Vous n\'êtes pas autorisé à accéder à cette ressource', 403);
+    if (userId !== issue.userIdModo && userId !== issue.userIdModoOn) throw new HttpException('Vous n\'êtes pas autorisé à accéder à cette ressource', 403);
     const status = issue.status === IssueStep.STEP_3 ? IssueStep.STEP_4 : IssueStep.STEP_5;
     const servicePoints: number = issue.Service.points;
     const pointsToCred: number = (pourcent * servicePoints) / 200;
@@ -161,7 +150,7 @@ export class IssuesService {
     await this.prisma.service.update({ where: { id: issue.serviceId }, data: { points: servicePoints / 2 } });
     if (status === IssueStep.STEP_4) await this.prisma.service.update({ where: { id: issue.serviceId }, data: { status: ServiceStep.STEP_4 } });
     const mails = [issue.userIdModo === userId ? issue.Service.UserResp.email : issue.Service.User.email];
-    const title = status === IssueStep.STEP_4 ? 'Votre concialation à ete mise à jour' : 'Votre concialation à ete cloturé';
+    const title = status === IssueStep.STEP_4 ? 'Votre concialation à ete mise à jour' : 'Votre conciliation à ete cloturé';
     const msg = issue.userIdModo === userId ? `Vous avez recu ${pointsToCred} points pour cette concialation` : `Vous avez recu ${servicePoints - pointsToCred} points pour cette concialation`;
     await this.mailer.sendNotificationEmail(mails, title, id, 'conciliation', ActionType.UPDATE, msg)
     return await this.prisma.issue.update({ where: { serviceId: id }, data: { status } });

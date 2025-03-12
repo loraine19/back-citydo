@@ -43,7 +43,7 @@ export class CreateIssueDto {
     @IsOptional()
     @Type(() => Number)
     @IsNumber({}, { message: 'The userIdModo2 must be a number' })
-    userIdModoResp: number;
+    userIdModoOn: number;
 
     @ApiProperty({ type: 'string', format: 'binary', required: false, })
     @IsOptional()

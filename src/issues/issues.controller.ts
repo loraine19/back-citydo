@@ -61,7 +61,6 @@ export class IssuesController {
     @Query('step') step: IssueStep,
     @User() userId: number,
     @Body() data: { pourcent: number }): Promise<Issue> {
-    console.log('rrrrr', step)
     if (step) {
       return this.issuesService.updateValidModo(id, userId);
     }
