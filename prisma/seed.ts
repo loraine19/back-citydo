@@ -141,8 +141,8 @@ const CreateRandomParticipant = (): CreateParticipantDto => {
 
 const CreateRandomService = async (): Promise<CreateServiceDto> => {
   const status = newFaker.helpers.arrayElement(Object.values($Enums.ServiceStep))
-  const userIdResp = status === $Enums.ServiceStep.STEP_0 ? 0 : newFaker.number.int({ min: 1, max: max / 3 })
-  const UserResp = userIdResp > 0 && await prisma.profile.findUnique({ where: { userId: userIdResp } })
+  const userIdResp = (status !== $Enums.ServiceStep.STEP_0) ? newFaker.number.int({ min: 1, max: max / 3 }) : null
+  const UserResp = userIdResp && await prisma.profile.findUnique({ where: { userId: userIdResp } })
   const skill = newFaker.helpers.arrayElement(Object.values($Enums.SkillLevel))
   const hard = newFaker.helpers.arrayElement(Object.values($Enums.HardLevel))
   const userRespPoints = UserResp ? getEnumVal(UserResp.assistance, AssistanceLevel) : 0
@@ -150,7 +150,7 @@ const CreateRandomService = async (): Promise<CreateServiceDto> => {
   const points = base + userRespPoints / 2
   return {
     userId: newFaker.number.int({ min: 1, max: max / 3 }),
-    ...(userIdResp !== 0 && { userIdResp }),
+    ...(userIdResp && { userIdResp }),
     type: newFaker.helpers.arrayElement(Object.values($Enums.ServiceType)),
     title: 'Service ' + newFaker.lorem.words({ min: 2, max: 3 }),
     description: newFaker.lorem.lines({ min: 1, max: 2 }),
