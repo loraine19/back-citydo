@@ -22,11 +22,12 @@ export class FlagsService {
     const exist = await this.prisma.flag.findUnique({ where: { userId_target_targetId: { userId, target, targetId } } });
     if (exist) throw new HttpException('ce flag existe déja', HttpStatus.CONFLICT);
     const d = { ...flag, User: { connect: { id: userId } }, target }
-    let data2;
+    let data2: { data: any, include: any };
     if (target === $Enums.FlagTarget.EVENT) data2 = { data: { ...d, Event: { connect: { id: targetId } } }, include: { Event: true } };
     if (target === $Enums.FlagTarget.POST) data2 = { data: { ...d, Post: { connect: { id: targetId } } }, include: { Post: true } };
     if (target === $Enums.FlagTarget.SERVICE) data2 = { data: { ...d, Service: { connect: { id: targetId } } }, include: { Service: true } };
     if (target === $Enums.FlagTarget.SURVEY) data2 = { data: { ...d, Survey: { connect: { id: targetId } } }, include: { Survey: true } };
+    if (!data2) throw new HttpException('Invalid target or targetId', HttpStatus.BAD_REQUEST);
     const flagCreated = await this.prisma.flag.create({ data: data2.data, include: data2.include });
     const flagCount = await this.prisma.flag.count({ where: { targetId, target, reason: flag.reason } });
     if (flagCount >= 3) {

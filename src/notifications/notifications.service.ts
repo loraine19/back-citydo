@@ -21,7 +21,6 @@ export class NotificationsService {
   }
 
   async create(user: UserNotifInfo, data: CreateNotificationDto) {
-    console.log(this.sendMail, this.compare(user.Profile.mailSub, data.level))
     if (this.compare(user.Profile.mailSub, data.level) && this.sendMail) {
 
       this.mailer.sendNotificationEmail([user.email], data);
