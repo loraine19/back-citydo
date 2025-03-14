@@ -4,7 +4,7 @@
   "description": "back api for colllectif",
   "author": "Loraine P",
   "private": true,
-  "license": "UNLICENSED",
+  "license": "Personal use",
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",

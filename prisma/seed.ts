@@ -25,14 +25,14 @@ import { NotificationsService } from 'src/notifications/notifications.service';
 import { MailerService } from 'src/mailer/mailer.service';
 import { GroupsService } from 'src/groups/groups.service';
 import { GroupUsersService } from 'src/group-users/group-users.service';
-import { ProfilesService } from '../src/profiles/profiles.service';
-import { ParticipantsService } from '../src/participants/participants.service';
+import { ProfilesService } from 'src/profiles/profiles.service';
+import { ParticipantsService } from 'src/participants/participants.service';
 import { ServicesService } from 'src/service/service.service';
-import { IssuesService } from '../src/issues/issues.service';
+import { IssuesService } from 'src/issues/issues.service';
 import { PostsService } from 'src/posts/posts.service';
 import { LikesService } from 'src/likes/likes.service';
 import { VotesService } from 'src/votes/votes.service';
-import { FlagsService } from '../src/flags/flags.service';
+import { FlagsService } from 'src/flags/flags.service';
 
 const prisma = new PrismaClient();
 const prismaService = new PrismaService();
