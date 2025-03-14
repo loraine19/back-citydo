@@ -1,12 +1,11 @@
-import { Body, Controller, HttpException, Post, Req, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, HttpException, Post, Res, UseGuards } from '@nestjs/common';
 import { Response } from 'express';
 import { AuthService } from './auth.service';
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
-import { AuthEntity, RefreshEntity, RequestWithUser } from './auth.entities/auth.entity';
+import { AuthEntity, RefreshEntity } from './auth.entities/auth.entity';
 import { UsersService } from '../../src/users/users.service';
 import { SignInDto, SignInVerifyDto } from './dto/signIn.dto';
 import { SignUpDto } from './dto/signUp.dto';
-import { RefreshDto } from './dto/refresh.dto';
 import { AuthGuard, AuthGuardRefresh } from '../auth/auth.guard';
 import { GetRefreshToken, User } from 'middleware/decorators';
 import { DeleteAccountDto } from './dto/deleteAccount.dto';
@@ -87,7 +86,6 @@ export class AuthController {
     @Body() data: DeleteAccountDto,
     @User() userId: number): Promise<{ message: string }> {
     const { email, deleteToken } = data;
-    console.log(email, deleteToken)
     return this.authService.deletAccountConfirm(userId, email, deleteToken);
   }
 

@@ -2,15 +2,14 @@ import { HttpException, HttpStatus, Injectable, UnauthorizedException } from '@n
 import * as argon2 from 'argon2';
 import * as jwt from 'jsonwebtoken';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { $Enums, Token, Prisma } from '@prisma/client';
-import { UsersService } from 'src/users/users.service';
+import { $Enums, Token } from '@prisma/client';
 import { JwtService } from '@nestjs/jwt';
 import { MailerService } from 'src/mailer/mailer.service';
 
 
 @Injectable()
 export class ResetPasswordService {
-  constructor(private prisma: PrismaService, private userService: UsersService, private jwtService: JwtService, private mailerService: MailerService) { }
+  constructor(private prisma: PrismaService, private jwtService: JwtService, private mailerService: MailerService) { }
   generateResetToken = (email: string): string => {
     const payload = { email };
     const secret = process.env.JWT_SECRET;
@@ -29,7 +28,7 @@ export class ResetPasswordService {
   }
 
   async validate(payload: { email: string }) {
-    const user = await this.userService.findUnique(payload.email);
+    const user = await this.prisma.user.findUnique({ where: { email: payload.email } });
     if (!user) { throw new UnauthorizedException("no User"); }
     return user;
   }

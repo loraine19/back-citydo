@@ -1,16 +1,16 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../../src/prisma/prisma.service';
-import { $Enums, Event, MailSubscriptions, Profile } from '@prisma/client';
+import { $Enums, Event } from '@prisma/client';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { ImageInterceptor } from 'middleware/ImageInterceptor';
-import { MailerService } from 'src/mailer/mailer.service';
-import { ActionType } from 'src/mailer/constant';
 import { AddressService } from 'src/addresses/address.service';
+import { Notification, UserNotifInfo } from '../notifications/entities/notification.entity';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class EventsService {
-  constructor(private prisma: PrismaService, private mailer: MailerService, private addressService: AddressService) { }
+  constructor(private prisma: PrismaService, private notificationsService: NotificationsService, private addressService: AddressService) { }
 
   private eventIncludeConfig(userId?: number) {
     return {
@@ -20,11 +20,20 @@ export class EventsService {
       Flags: { where: { target: $Enums.FlagTarget.EVENT, userId } }
     };
   }
+
+  private userSelectConfig = {
+    id: true,
+    email: true,
+    Profile: { select: { mailSub: true } }
+  }
+
   limit = parseInt(process.env.LIMIT)
   skip(page: number) { return (page - 1) * this.limit }
+  updateNotif = $Enums.NotificationLevel.SUB_2
+  deleteNotif = $Enums.NotificationLevel.SUB_1
 
 
-
+  //// CONSULT
   async findAll(userId: number, page?: number, category?: string): Promise<{ events: Event[], count: number }> {
     const skip = page ? this.skip(page) : 0;
     const where: { category?: $Enums.EventCategory } = category ? { category: $Enums.EventCategory[category] } : {}
@@ -97,19 +106,29 @@ export class EventsService {
 
   //// ACTIONS
   async create(data: CreateEventDto): Promise<Event> {
-    console.log('dataevent', data)
     const { userId, addressId, Address, ...event } = data
     const addressIdVerified = await this.addressService.verifyAddress(Address);
-    return await this.prisma.event.create({
+
+    const createdEvent = await this.prisma.event.create({
       data: { ...event, Address: { connect: { id: addressIdVerified } }, User: { connect: { id: userId } } }
     });
+    const usersNotif = await this.prisma.user.findMany({ where: { Profile: { mailSub: $Enums.MailSubscriptions.SUB_4 } }, select: this.userSelectConfig })
+    const notification = {
+      type: $Enums.NotificationType.EVENT,
+      title: `${event.title} à été créé`,
+      description: `L'évènement ${event.title} à été créé dans la catégorie ${event.category}`,
+      link: `evenement/${createdEvent.id}`,
+      level: $Enums.NotificationLevel.SUB_4,
+      addressId: Address.id
+    }
+    this.notificationsService.createMany(usersNotif, notification)
+    return createdEvent
   }
 
   async update(updateId: number, data: UpdateEventDto, userIdC: number): Promise<Event> {
     const { userId, addressId, Address, ...event } = data;
     if (userIdC !== userId) throw new HttpException('Vous n\'avez pas les droits de modifier cet évènement', 403)
     const addressIdVerified = await this.addressService.verifyAddress(Address);
-    console.log('addressIdVerified', addressIdVerified)
     const eventUpdated = await this.prisma.event.update({
       where: { id: updateId },
       include: this.eventIncludeConfig(userId),
@@ -118,9 +137,16 @@ export class EventsService {
       }
     });
     if (eventUpdated) {
-      const MailList = eventUpdated.Participants.map(p => this.mailer.level(p.User.Profile) > 1 ? p.User.email : null).filter(email => email)
-      console.log(MailList)
-      MailList.length > 0 && this.mailer.sendNotificationEmail(MailList, event.title, updateId, 'evenement', ActionType.UPDATE)
+      const UserList = eventUpdated.Participants.map(p => new UserNotifInfo(p.User))
+      const notification = new Notification({
+        title: `${eventUpdated.title} à été modifié`,
+        description: `L'évènement ${eventUpdated.title} à été modifié, veuillez consulter l'application pour plus de détails`,
+        link: `/evenement/${eventUpdated.id}`,
+        type: $Enums.NotificationType.EVENT,
+        level: this.updateNotif,
+        addressId: Address.id
+      });
+      await this.notificationsService.createMany(UserList, notification)
     }
     return eventUpdated
   }
@@ -130,9 +156,18 @@ export class EventsService {
     const element = await this.prisma.event.findUniqueOrThrow({ where: { id } });
     if (userId !== element.userId) throw new HttpException('Vous n\'avez pas les droits de modifier cet évènement', 403)
     element.image && ImageInterceptor.deleteImage(element.image);
-    const event = await this.prisma.event.delete({ where: { id }, include: { Participants: { select: { User: { include: { Profile: true } } } } } });
+    const event = await this.prisma.event.delete({ where: { id }, include: this.eventIncludeConfig(userId) });
     if (event) {
-      this.mailer.sendNotificationEmail(event.Participants.map(p => this.mailer.level(p.User.Profile) > 1 && p.User.email), event.title, event.id, 'evenement', ActionType.DELETE)
+      const UserList = event.Participants.map(p => { return new UserNotifInfo(p.User) })
+      const notification = new Notification({
+        title: `${event.title} à été supprimé`,
+        description: `L'évènement ${event.title} à été supprimé`,
+        link: `evenement/${event.id}`,
+        type: $Enums.NotificationType.EVENT,
+        level: this.deleteNotif,
+        addressId: event.Address.id
+      });
+      this.notificationsService.createMany(UserList, notification)
     }
     return event
   }

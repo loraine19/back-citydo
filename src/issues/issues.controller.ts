@@ -1,8 +1,7 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Req, UseGuards, UploadedFile, UseInterceptors, ParseIntPipe, Query, DefaultValuePipe, Put } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, UploadedFile, UseInterceptors, ParseIntPipe, Query, DefaultValuePipe, Put } from '@nestjs/common';
 import { IssuesService } from './issues.service';
 import { CreateIssueDto } from './dto/create-issue.dto';
 import { UpdateIssueDto } from './dto/update-issue.dto';
-import { RequestWithUser } from 'src/auth/auth.entities/auth.entity';
 import { ApiTags, ApiBearerAuth, ApiConsumes, ApiOkResponse, ApiBody } from '@nestjs/swagger';
 import { AuthGuard } from '../auth/auth.guard';
 import { parseData } from 'middleware/BodyParser';
@@ -26,8 +25,7 @@ export class IssuesController {
   async create(
     @Body() data: any,
     @UploadedFile() image: Express.Multer.File,
-    @Req() req: RequestWithUser) {
-    const userId = req.user.sub;
+    @User() userId: number) {
     data.userid && (data.userId = userId);
     data = await parseData(data, image)
     return this.issuesService.create(data);
@@ -43,12 +41,12 @@ export class IssuesController {
     @Param('id', ParseIntPipe) id: number,
     @Body() data: UpdateIssueDto,
     @UploadedFile() image: Express.Multer.File,
-    @Req() req: RequestWithUser) {
-    const userId = req.user.sub;
+    @User() userId: number) {
     const issue = await this.issuesService.findOneById(id, userId);
     if (issue.image && data.image) {
       ImageInterceptor.deleteImage(issue.image);
     }
+    data.userId = userId;
     data = await parseData(data, image)
     return this.issuesService.update(id, data, userId);
   }
@@ -67,19 +65,14 @@ export class IssuesController {
     return this.issuesService.updateFinish(id, userId, data.pourcent,);
   }
 
-
-
   @Get()
   @ApiBearerAuth()
   async findAll(
     @User() userId: any,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page?: number,
     @Query('filter') filter?: any): Promise<{ issues: Issue[], count: number }> {
-    const res = await this.issuesService.findAll(userId, page, filter);
-    return res
+    return await this.issuesService.findAll(userId, page, filter);
   }
-
-
 
   @Get(':id')
   @ApiBearerAuth()
@@ -96,4 +89,5 @@ export class IssuesController {
     @User() userId: number) {
     return this.issuesService.remove(id, userId);
   }
+
 }

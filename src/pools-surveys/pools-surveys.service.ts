@@ -7,10 +7,11 @@ import { ImageInterceptor } from 'middleware/ImageInterceptor';
 import { CreatePoolDto } from './dto/create-pool.dto';
 import { UpdatePoolDto } from './dto/update-pool.dto';
 import { CreateSurveyDto } from './dto/create-survey.dto';
+import { NotificationsService } from 'src/notifications/notifications.service';
 
 @Injectable()
 export class PoolsSurveysService {
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService, private notificationsService: NotificationsService) { }
 
   private poolIncludeConfig(userId?: number) {
     return {
@@ -19,12 +20,19 @@ export class PoolsSurveysService {
       UserBenef: { select: { id: true, email: true, Profile: true } }
     }
   }
+
   private surveyIncludeConfig(userId?: number) {
     return {
       User: { select: { email: true, Profile: { include: { Address: true } } } },
       Votes: { where: { target: $Enums.VoteTarget.SURVEY } },
       Flags: { where: { target: $Enums.FlagTarget.SURVEY, userId } }
     }
+  }
+
+  private userSelectConfig = {
+    id: true,
+    email: true,
+    Profile: { select: { mailSub: true } }
   }
 
   limit = parseInt(process.env.LIMIT)
@@ -64,6 +72,13 @@ export class PoolsSurveysService {
   }
 
   ////POOLS 
+  async findOnePool(id: number, userId: number): Promise<Pool> {
+    return await this.prisma.pool.findUniqueOrThrow({
+      where: { id },
+      include: this.poolIncludeConfig(userId)
+    })
+  }
+
   async createPool(data: CreatePoolDto): Promise<Pool> {
     const { userId, userIdBenef, ...pool } = data;
     return await this.prisma.pool.create({
@@ -73,16 +88,7 @@ export class PoolsSurveysService {
         ...pool,
       },
       include: this.poolIncludeConfig(userId)
-    });
-  }
-
-
-
-  async findOnePool(id: number, userId: number): Promise<Pool> {
-    return await this.prisma.pool.findUniqueOrThrow({
-      where: { id },
-      include: this.poolIncludeConfig(userId)
-    });
+    })
   }
 
   async updatePool(id: number, data: UpdatePoolDto): Promise<Pool> {
@@ -95,13 +101,13 @@ export class PoolsSurveysService {
         UserBenef: { connect: { id: userIdBenef } },
         ...pool,
       },
-    });
+    })
   }
 
   async removePool(id: number, userId: number): Promise<Pool> {
     const pool = await this.prisma.pool.delete({
-      where: { id }
-    });
+      where: { id, userId }
+    })
     if (pool.userId !== userId) throw new HttpException('Vous n\'êtes pas autorisé à supprimer cette cagnotte', 403)
     return pool
   }
@@ -109,28 +115,39 @@ export class PoolsSurveysService {
 
 
   ////SURVEYS
+  async findOneSurvey(id: number, userId: number): Promise<Survey> {
+    return await this.prisma.survey.findUniqueOrThrow({
+      where: { id },
+      include: this.surveyIncludeConfig(userId)
+    });
+  }
+
   async createSurvey(data: CreateSurveyDto): Promise<Survey> {
-    const { userId, ...survey } = data
-    return await this.prisma.survey.create(
+    const { userId, ...survey } = data;
+    const users = await this.prisma.user.findMany({ select: this.userSelectConfig })
+    const surveyCreated = await this.prisma.survey.create(
       {
         include: this.surveyIncludeConfig(userId),
         data: { ...survey, User: { connect: { id: userId } } }
       })
+    const notification = {
+      title: 'Nouvelle enquête',
+      description: 'Une nouvelle enquête a été créée',
+      type: $Enums.NotificationType.SURVEY,
+      level: $Enums.NotificationLevel.SUB_4,
+      link: `/sondage/${surveyCreated.id}`
+    }
+    await this.notificationsService.createMany(users, notification)
+    return surveyCreated
   }
 
 
-  async findOneSurvey(id: number, userId: number): Promise<Survey> {
-    const survey = await this.prisma.survey.findUniqueOrThrow({
-      where: { id },
-      include: this.surveyIncludeConfig(userId)
-    })
-    return survey
-  }
+
 
   async updateSurvey(id: number, data: any): Promise<Survey> {
     const { userId, userIdResp, ...service } = data
     return await this.prisma.survey.update({
-      where: { id },
+      where: { id, userId },
       include: this.surveyIncludeConfig(userId),
       data: {
         ...service, User: { connect: { id: userId } },
@@ -140,7 +157,7 @@ export class PoolsSurveysService {
   }
 
   async removeSurvey(id: number, userId: number): Promise<Survey> {
-    const survey = await this.prisma.survey.findUniqueOrThrow({ where: { id } })
+    const survey = await this.prisma.survey.findUniqueOrThrow({ where: { id, userId } })
     if (survey.userId !== userId) throw new HttpException('Vous n\'êtes pas autorisé à supprimer cette enquête', 403)
     survey.image && ImageInterceptor.deleteImage(survey.image)
     return await this.prisma.survey.delete({ where: { id } });

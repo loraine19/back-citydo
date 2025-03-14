@@ -1,10 +1,7 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpException, HttpStatus, ParseIntPipe, UseGuards, Req } from '@nestjs/common';
+import { Controller, Post, Body, Param, Delete, ParseIntPipe, UseGuards, Req } from '@nestjs/common';
 import { LikesService } from './likes.service';
 import { CreateLikeDto } from './dto/create-like.dto';
-import { UpdateLikeDto } from './dto/update-like.dto';
 import { ApiTags, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
-import { UsersService } from '../users/users.service';
-import { PostsService } from '../posts/posts.service';
 import { LikeEntity } from './entities/like.entity';
 import { AuthGuard } from '../auth/auth.guard';
 import { Like } from '@prisma/client';
@@ -16,7 +13,7 @@ const route = "likes"
 @ApiTags(route)
 
 export class LikesController {
-  constructor(private readonly likesService: LikesService, private usersService: UsersService, private postService: PostsService) { }
+  constructor(private readonly likesService: LikesService) { }
 
   @Post()
   @ApiBearerAuth()

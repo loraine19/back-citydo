@@ -3,3 +3,17 @@ export enum ActionType {
     UPDATE = 'modifié',
     DELETE = 'supprimé'
 }
+
+export enum EntityType {
+    SYSTEM = '',
+    POST = 'annonce',
+    LIKE = 'like',
+    ISSUE = 'conciliation',
+    SURVEY = 'vote',
+    POOL = 'cagnote',
+    USER = 'utilisateur',
+    SERVICE = 'service',
+    PARTICIPANT = 'participant',
+    EVENT = 'événement',
+    NOTIFICATION = 'notification'
+}

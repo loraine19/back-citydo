@@ -1,4 +1,4 @@
-import { $Enums, AssistanceLevel, PrismaClient, Address } from '@prisma/client';
+import { $Enums, AssistanceLevel, PrismaClient, Address, Prisma, Service } from '@prisma/client';
 import { CreateServiceDto } from 'src/service/dto/create-service.dto';
 import { fr, base, Faker, } from '@faker-js/faker';
 import type { LocaleDefinition } from '@faker-js/faker';
@@ -17,8 +17,40 @@ import { Decimal, } from '@prisma/client/runtime/library';
 import { CreateFlagDto } from 'src/flags/dto/create-flag.dto';
 import { CreateIssueDto } from 'src/issues/dto/create-issue.dto';
 import { getEnumVal } from 'middleware/GetPoints';
+import { UsersService } from 'src/users/users.service';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { EventsService } from 'src/events/events.service';
+import { AddressService } from 'src/addresses/address.service';
+import { NotificationsService } from 'src/notifications/notifications.service';
+import { MailerService } from 'src/mailer/mailer.service';
+import { GroupsService } from 'src/groups/groups.service';
+import { GroupUsersService } from 'src/group-users/group-users.service';
+import { ProfilesService } from '../src/profiles/profiles.service';
+import { ParticipantsService } from '../src/participants/participants.service';
+import { ServicesService } from 'src/service/service.service';
+import { IssuesService } from '../src/issues/issues.service';
+import { PostsService } from 'src/posts/posts.service';
+import { LikesService } from 'src/likes/likes.service';
+import { VotesService } from 'src/votes/votes.service';
+import { FlagsService } from '../src/flags/flags.service';
 
 const prisma = new PrismaClient();
+const prismaService = new PrismaService();
+const mailerService = new MailerService()
+const notificationsService = new NotificationsService(prismaService, mailerService)
+const addressService = new AddressService(prismaService)
+const user = new UsersService(prismaService)
+const groupsService = new GroupsService(prismaService)
+const groupUsersService = new GroupUsersService(prismaService)
+const profilesService = new ProfilesService(prismaService, addressService)
+const eventService = new EventsService(prismaService, notificationsService, addressService)
+const participantsService = new ParticipantsService(prismaService, notificationsService)
+const servicesService = new ServicesService(prismaService, notificationsService)
+const issuesService = new IssuesService(prismaService, notificationsService)
+const postsService = new PostsService(prismaService, notificationsService)
+const likesService = new LikesService(prismaService, notificationsService)
+const votesService = new VotesService(prismaService, notificationsService)
+const flagsService = new FlagsService(prismaService, notificationsService)
 
 /// GENERE IMAGE FROM SEED 
 export const getImageBlob = async (url: string): Promise<Uint8Array<ArrayBufferLike>> => {
@@ -132,7 +164,7 @@ const CreateRandomEvent = async (): Promise<CreateEventDto> => {
   }
 }
 
-const CreateRandomParticipant = (): CreateParticipantDto => {
+const CreateRandomParticipant = async (): Promise<CreateParticipantDto> => {
   return {
     eventId: newFaker.number.int({ min: 1, max }),
     userId: newFaker.number.int({ min: 1, max: max / 3 }),
@@ -141,16 +173,16 @@ const CreateRandomParticipant = (): CreateParticipantDto => {
 
 const CreateRandomService = async (): Promise<CreateServiceDto> => {
   const status = newFaker.helpers.arrayElement(Object.values($Enums.ServiceStep))
-  const userIdResp = (status !== $Enums.ServiceStep.STEP_0) ? newFaker.number.int({ min: 1, max: max / 3 }) : null
-  const UserResp = userIdResp && await prisma.profile.findUnique({ where: { userId: userIdResp } })
   const skill = newFaker.helpers.arrayElement(Object.values($Enums.SkillLevel))
   const hard = newFaker.helpers.arrayElement(Object.values($Enums.HardLevel))
+  const userIdResp = status === $Enums.ServiceStep.STEP_0 ? null : newFaker.number.int({ min: 1, max: max / 3 })
+  const UserResp = status === $Enums.ServiceStep.STEP_0 ? null : await prisma.profile.findUnique({ where: { userId: userIdResp } })
   const userRespPoints = UserResp ? getEnumVal(UserResp.assistance, AssistanceLevel) : 0
   const base = Number(((getEnumVal(hard, $Enums.HardLevel) / 2 + getEnumVal(skill, $Enums.SkillLevel) / 2) + 1).toFixed(1))
   const points = base + userRespPoints / 2
   return {
     userId: newFaker.number.int({ min: 1, max: max / 3 }),
-    ...(userIdResp && { userIdResp }),
+    userIdResp,
     type: newFaker.helpers.arrayElement(Object.values($Enums.ServiceType)),
     title: 'Service ' + newFaker.lorem.words({ min: 2, max: 3 }),
     description: newFaker.lorem.lines({ min: 1, max: 2 }),
@@ -163,14 +195,13 @@ const CreateRandomService = async (): Promise<CreateServiceDto> => {
   }
 }
 
-const CreateRandomIssue = async (): Promise<CreateIssueDto> => {
-  const serviceId = newFaker.number.int({ min: 1, max })
-  const service = await prisma.service.findUnique({ where: { id: serviceId } });
+const CreateRandomIssue = async (service: Service): Promise<CreateIssueDto> => {
   const user = await prisma.user.findUnique({ where: { id: service.userId }, include: { GroupUser: true } })
   const status = newFaker.helpers.arrayElement(Object.values($Enums.IssueStep));
   const modos = await prisma.user.findMany({
     where: {
-      id: { notIn: [service.userId, ...(service.userIdResp ? [service.userIdResp] : [])] },
+      NOT: { id: service.userId },
+      AND: { id: { not: service.userIdResp } },
       GroupUser: {
         some: { groupId: { in: user.GroupUser.map(g => g.groupId) }, role: { equals: $Enums.Role.MODO } }
       }
@@ -181,11 +212,12 @@ const CreateRandomIssue = async (): Promise<CreateIssueDto> => {
     }
   })
   const userId = newFaker.helpers.arrayElement([service.userId, service.userIdResp]);
+  console.log('userId', userId, [service.userId, service.userIdResp])
   const userIdModo = ((userId !== service.userId && status === $Enums.IssueStep.STEP_0)) ? null : newFaker.helpers.arrayElement(modos.map(m => m.id));
   const userIdModoOn = ((userId !== service.userIdResp && status === $Enums.IssueStep.STEP_0)) ? null : newFaker.helpers.arrayElement(modos.map(m => (m.id !== userIdModo) && m.id))
   return {
     status,
-    serviceId,
+    serviceId: service.id,
     userIdModo,
     userIdModoOn,
     userId,
@@ -233,7 +265,7 @@ const CreateRandomSurvey = (): any => {
   }
 }
 
-const CreateRandomVote = (): CreateVoteDto => {
+const CreateRandomVote = async (): Promise<CreateVoteDto> => {
   return {
     userId: newFaker.number.int({ min: 1, max: max / 3 }),
     targetId: newFaker.number.int({ min: 1, max }),
@@ -242,7 +274,7 @@ const CreateRandomVote = (): CreateVoteDto => {
   }
 }
 
-const CreateRandomFlag = (): CreateFlagDto => {
+const CreateRandomFlag = async (): Promise<CreateFlagDto> => {
   return {
     userId: newFaker.number.int({ min: 1, max: max / 3 }),
     targetId: newFaker.number.int({ min: 1, max }),
@@ -293,33 +325,33 @@ const seed = async () => {
   // USER no fk 
   const User = async () => {
     await prisma.user.deleteMany({ where: { email: { in: ['test@mail.com', 'lou.hoffmann@gmail.com'] } } });
-    await prisma.user.create({ data: { email: 'test@mail.com', password: await argon2.hash('passwordtest'), status: $Enums.UserStatus.ACTIVE } })
-    await prisma.user.create({ data: { email: 'lou.hoffmann@gmail.com', password: await argon2.hash('lolololo'), status: $Enums.UserStatus.ACTIVE } })
-    while (await prisma.user.count() < max / 3) { await prisma.user.create({ data: await CreateRandomUser() }) }
+    await user.create({ email: 'test@mail.com', password: await argon2.hash('passwordtest'), status: $Enums.UserStatus.ACTIVE })
+    await user.create({ email: 'lou.hoffmann@gmail.com', password: await argon2.hash('lolololo'), status: $Enums.UserStatus.ACTIVE })
+    while (await prisma.user.count() < max / 3) { await user.create(await CreateRandomUser()) }
   }
   await User();
 
   // ADDRESS no fk 
-  const address = async () => {
+  const Address = async () => {
     while (await prisma.address.count() < max) {
       const newAddress = CreateRandomAddress();
       const exist = await prisma.address.findUnique({ where: { address_zipcode: { address: newAddress.address, zipcode: newAddress.zipcode } } })
       if (!exist) {
-        await prisma.address.create({ data: newAddress })
+        await addressService.create(newAddress)
       }
     }
   }
-  await address();
+  await Address();
 
   // GROUP fk address
-  const group = async () => {
+  const Group = async () => {
     while (await prisma.group.count() < 1) {
       const { addressId, ...group } = CreateRandomGroup();
       const cond = await prisma.address.findUnique({ where: { id: addressId } });
-      if (cond) await prisma.group.create({ data: { ...group, Address: { connect: { id: addressId } } } })
+      if (cond) await groupsService.create({ ...group, addressId })
     }
   }
-  await group();
+  await Group();
 
   // GROUPUSER fk user fk group
   const groupUser = async () => {
@@ -337,6 +369,12 @@ const seed = async () => {
 
   // PROFILE fk user fk address fk userSP
   const profile = async () => {
+    await prisma.profile.create({
+      data: { userId: 1, addressId: 1, userIdSp: 2, firstName: 'Testeur', lastName: 'Test', phone: '+33606060606', image: 'https://avatars.githubusercontent.com/u/71236683?v=4', addressShared: true, mailSub: $Enums.MailSubscriptions.SUB_1, }
+    })
+    await prisma.profile.create({
+      data: { userId: 2, addressId: 2, userIdSp: 1, firstName: 'Loraine', lastName: 'Marseille', phone: '+33606060606', image: 'https://avatars.githubusercontent.com/u/71236683?v=4', addressShared: true, mailSub: $Enums.MailSubscriptions.SUB_2, }
+    })
     while (await prisma.profile.count() < max / 3) {
       {
         const { userId, addressId, userIdSp, ...profile } = await CreateRandomProfile();
@@ -353,9 +391,7 @@ const seed = async () => {
   // EVENT fk address fk user 
   const event = async () => {
     while (await prisma.event.count() < max) {
-      const { userId, addressId, ...event } = await CreateRandomEvent()
-      await prisma.event.create(
-        { data: { ...event, Address: { connect: { id: addressId } }, User: { connect: { id: userId } } } })
+      await eventService.create(await CreateRandomEvent())
     }
   }
   await event();
@@ -364,9 +400,9 @@ const seed = async () => {
   const participant = async () => {
     while (await prisma.participant.count() < max * 3) {
       {
-        const { userId, eventId, ...participant } = CreateRandomParticipant();
+        const { userId, eventId, ...participant } = await CreateRandomParticipant();
         const cond = await prisma.participant.findUnique({ where: { userId_eventId: { userId, eventId } } });
-        if (!cond) await prisma.participant.create({ data: { ...participant, User: { connect: { id: userId } }, Event: { connect: { id: eventId } } } })
+        if (!cond) await participantsService.create({ ...participant, userId, eventId })
       }
     }
   }
@@ -377,40 +413,25 @@ const seed = async () => {
   const service = async () => {
     while (await prisma.service.count() < max) {
       const { userId, userIdResp, ...service } = await CreateRandomService();
-      if (userId !== userIdResp)
-        await prisma.service.create({
-          data: {
-            ...service,
-            User: { connect: { id: userId } },
-            ...(userIdResp ? { UserResp: { connect: { id: userIdResp } } } : {}),
+      if (userId !== userIdResp) {
+        const serviceCreated = await servicesService.create({ userId, userIdResp, ...service })
+        if (serviceCreated.status !== $Enums.ServiceStep.STEP_0) {
+          const serviceUpdated = await servicesService.updatePostResp(serviceCreated.id, userIdResp)
+          if (serviceUpdated.status === $Enums.ServiceStep.STEP_4) {
+            await issuesService.create(await CreateRandomIssue(serviceUpdated))
           }
-        })
-    }
-  }
-  await service();
-
-  // ISSUE fk user fk userModo fk userModoResp fk service
-  const issue = async () => {
-    const serviceIssue = await prisma.service.findMany({ where: { status: { equals: $Enums.ServiceStep.STEP_4 } } });
-    while (await prisma.issue.count() < serviceIssue.length) {
-      const { userId, userIdModo, userIdModoOn, serviceId, ...issue } = await CreateRandomIssue();
-      if (userId) {
-        const cond = await prisma.issue.findUnique({ where: { serviceId } });
-        const cond2 = await prisma.service.findUnique({ where: { id: serviceId } });
-        if (!cond && cond2) {
-          await prisma.issue.create(
-            { data: { ...issue, User: { connect: { id: userId } }, ...(userIdModo && { UserModo: { connect: { id: userIdModo } } }), ...(userIdModoOn && { UserModoOn: { connect: { id: userIdModoOn } } }), Service: { connect: { id: serviceId } } } })
         }
       }
     }
   }
-  await issue();
+  await service();
+
+
 
   // POST fk user 
   const post = async () => {
     while (await prisma.post.count() < max) {
-      const { userId, ...post } = await CreateRandomPost();
-      await prisma.post.create({ data: { ...post, User: { connect: { id: userId } } } })
+      await postsService.create(await CreateRandomPost())
     }
   }
   await post();
@@ -420,7 +441,7 @@ const seed = async () => {
     while (await prisma.like.count() < max * 2) {
       const { userId, postId, ...like } = CreateRandomLike();
       const cond = await prisma.like.findUnique({ where: { userId_postId: { userId, postId } } });
-      if (!cond) await prisma.like.create({ data: { ...like, User: { connect: { id: userId } }, Post: { connect: { id: postId } } } })
+      if (!cond) await likesService.create({ ...like, userId, postId })
     }
   }
   await like();
@@ -448,15 +469,9 @@ const seed = async () => {
   // VOTE fk user 
   const vote = async () => {
     while (await prisma.vote.count() < max * 5) {
-      const { userId, targetId, target, ...vote } = CreateRandomVote();
+      const { userId, targetId, target, ...vote } = await CreateRandomVote();
       const cond = await prisma.vote.findUnique({ where: { userId_target_targetId: { userId, target, targetId } } });
-      if (!cond && targetId) {
-        if (target === $Enums.VoteTarget.POOL) {
-          await prisma.vote.create({ data: { ...vote, target, User: { connect: { id: userId } }, Pool: { connect: { id: targetId } } } });
-        } else if (target === $Enums.VoteTarget.SURVEY) {
-          await prisma.vote.create({ data: { ...vote, target, User: { connect: { id: userId } }, Survey: { connect: { id: targetId } } } });
-        }
-      }
+      if (!cond && targetId) await votesService.create({ ...vote, userId, targetId, target })
     }
   }
   await vote();
@@ -464,18 +479,10 @@ const seed = async () => {
   // FLAG fk user
   const flag = async () => {
     while (await prisma.flag.count() < max * 4) {
-      const { userId, targetId, target, ...flag } = CreateRandomFlag();
+      const { userId, target, targetId, ...flag } = await CreateRandomFlag();
       const cond = await prisma.flag.findUnique({ where: { userId_target_targetId: { userId, target, targetId } } });
       if (!cond) {
-        if (target === $Enums.FlagTarget.EVENT) {
-          await prisma.flag.create({ data: { ...flag, target, User: { connect: { id: userId } }, Event: { connect: { id: targetId } } } });
-        } else if (target === $Enums.FlagTarget.POST) {
-          await prisma.flag.create({ data: { ...flag, target, User: { connect: { id: userId } }, Post: { connect: { id: targetId } } } });
-        } else if (target === $Enums.FlagTarget.SERVICE) {
-          await prisma.flag.create({ data: { ...flag, target, User: { connect: { id: userId } }, Service: { connect: { id: targetId } } } });
-        } else if (target === $Enums.FlagTarget.SURVEY) {
-          await prisma.flag.create({ data: { ...flag, target, User: { connect: { id: userId } }, Survey: { connect: { id: targetId } } } });
-        }
+        const flagCreated = await flagsService.create({ ...flag, userId, target, targetId })
       }
     }
   }

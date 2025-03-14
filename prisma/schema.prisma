@@ -21,13 +21,13 @@ model GroupUser {
 }
 
 model User {
-  id             Int           @id @default(autoincrement())
-  email          String        @unique
+  id             Int            @id @default(autoincrement())
+  email          String         @unique
   password       String
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
-  lastConnection DateTime      @default(now())
-  status         UserStatus    @default(INACTIVE)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  lastConnection DateTime       @default(now())
+  status         UserStatus     @default(INACTIVE)
   Token          Token[]
   GroupUser      GroupUser[]
   Event          Event[]
@@ -37,15 +37,16 @@ model User {
   Vote           Vote[]
   Participant    Participant[]
   Survey         Survey[]
-  Service        Service[]     @relation("Service")
-  ServiceResp    Service[]     @relation("ServiceResp")
-  IssueModo      Issue[]       @relation("Modo")
-  IssueModoOn    Issue[]       @relation("ModoOn")
-  Issue          Issue[]       @relation("Issue")
-  Pool           Pool[]        @relation("Pool")
-  Benef          Pool[]        @relation("PoolBenef")
-  Profile        Profile?      @relation("Profile")
-  UserSp         Profile[]     @relation("Sponsor")
+  Service        Service[]      @relation("Service")
+  ServiceResp    Service[]      @relation("ServiceResp")
+  IssueModo      Issue[]        @relation("Modo")
+  IssueModoOn    Issue[]        @relation("ModoOn")
+  Issue          Issue[]        @relation("Issue")
+  Pool           Pool[]         @relation("Pool")
+  Benef          Pool[]         @relation("PoolBenef")
+  Profile        Profile?       @relation("Profile")
+  UserSp         Profile[]      @relation("Sponsor")
+  Notifications  Notification[]
 }
 
 model Group {
@@ -61,17 +62,18 @@ model Group {
 }
 
 model Address {
-  id        Int       @id @default(autoincrement())
-  zipcode   String
-  city      String
-  address   String
-  lat       Decimal
-  lng       Decimal
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  Groups    Group[]
-  Profiles  Profile[]
-  Events    Event[]
+  id            Int            @id @default(autoincrement())
+  zipcode       String
+  city          String
+  address       String
+  lat           Decimal
+  lng           Decimal
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  Groups        Group[]
+  Profiles      Profile[]
+  Events        Event[]
+  Notifications Notification[]
 
   @@unique([address, zipcode])
 }
@@ -265,6 +267,25 @@ model Flag {
   @@id([userId, target, targetId])
 }
 
+////// NOTIFICATION
+model Notification {
+  id          Int               @id @default(autoincrement())
+  userId      Int
+  title       String
+  description String            @db.MediumText
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  addressId   Int?
+  type        NotificationType  @default(SYSTEM)
+  link        String?
+  User        User              @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  Address     Address?          @relation(fields: [addressId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  read        Boolean           @default(false)
+  level       NotificationLevel @default(ONLY_APP)
+  /// 
+  data        Json?
+}
+
 ///// ENUM
 enum UserStatus {
   ACTIVE
@@ -399,4 +420,26 @@ enum MailSubscriptions {
   SUB_2
   SUB_3
   SUB_4
+}
+
+enum NotificationType {
+  EVENT
+  POST
+  SURVEY
+  SERVICE
+  POOL
+  ISSUE
+  SYSTEM
+  PARTICIPANT
+  FLAG
+  LIKE
+  VOTE
+}
+
+enum NotificationLevel {
+  SUB_1
+  SUB_2
+  SUB_3
+  SUB_4
+  ONLY_APP
 }

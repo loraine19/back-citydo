@@ -1,12 +1,11 @@
 import { Module } from '@nestjs/common';
 import { LikesService } from './likes.service';
 import { LikesController } from './likes.controller';
-import { UsersService } from '../users/users.service';
-import { PostsService } from '../posts/posts.service';
 import { ImageInterceptor } from 'middleware/ImageInterceptor';
+import { NotificationsService } from 'src/notifications/notifications.service';
 
 @Module({
   controllers: [LikesController],
-  providers: [LikesService, UsersService, PostsService, ImageInterceptor],
+  providers: [LikesService, ImageInterceptor, NotificationsService],
 })
 export class LikesModule { }

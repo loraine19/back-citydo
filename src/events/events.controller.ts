@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, NotFoundException, ParseIntPipe, Req, UploadedFile, UseInterceptors, UseGuards, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, UploadedFile, UseInterceptors, UseGuards, Query } from '@nestjs/common';
 import { ApiOkResponse, ApiTags, ApiBearerAuth, ApiBody, ApiConsumes } from '@nestjs/swagger';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
@@ -30,7 +30,6 @@ export class EventsController {
     @User() userId: number):
     Promise<Event> {
     data.userId = userId
-    console.log(data)
     data = await parseData(data, image)
     return this.eventsService.create(data)
   }
@@ -88,7 +87,9 @@ export class EventsController {
   @Delete(':id')
   @ApiBearerAuth()
   @ApiOkResponse({ type: EventEntity })
-  async remove(@Param('id', ParseIntPipe) id: number, @User() userId: number): Promise<Event> {
+  async remove(
+    @Param('id', ParseIntPipe) id: number,
+    @User() userId: number): Promise<Event> {
     return this.eventsService.remove(id, userId)
   }
 

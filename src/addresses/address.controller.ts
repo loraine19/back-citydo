@@ -40,10 +40,4 @@ export class AddressController {
   }
 
 
-  @Delete(':id')
-  @ApiBearerAuth()
-  @ApiOkResponse({ type: AddressEntity })
-  async remove(@Param('id', ParseIntPipe) id: number): Promise<Address> {
-    return this.addressService.remove(id);
-  }
 }

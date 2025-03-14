@@ -1,13 +1,13 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { CreatePostDto } from './dto/create-post.dto';
-import { UpdatePostDto } from './dto/update-post.dto';
 import { PrismaService } from '../../src/prisma/prisma.service';
 import { $Enums, Post } from '@prisma/client';
 import { ImageInterceptor } from 'middleware/ImageInterceptor';
+import { NotificationsService } from 'src/notifications/notifications.service';
 
 @Injectable()
 export class PostsService {
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService, private notificationsService: NotificationsService) { }
 
 
   private postIncludeConfig(userId?: number) {
@@ -18,12 +18,31 @@ export class PostsService {
     };
   }
 
+  private userSelectConfig = {
+    id: true,
+    email: true,
+    Profile: { select: { mailSub: true } }
+  }
+
   limit = parseInt(process.env.LIMIT)
   skip(page: number) { return (page - 1) * this.limit }
 
   async create(data: CreatePostDto): Promise<Post> {
     const { userId, ...post } = data
-    return await this.prisma.post.create({ data: { ...post, User: { connect: { id: userId } } } })
+    const postCreated = await this.prisma.post.create({ data: { ...post, User: { connect: { id: userId } } } })
+    const user = await this.prisma.user.findUnique({ where: { id: userId, Profile: { addressShared: true } }, select: { id: true, email: true, Profile: { select: { Address: true } } } });
+    const addressId = user ? user.Profile.Address.id : null;
+    const users = await this.prisma.user.findMany({ select: this.userSelectConfig });
+    const notification = {
+      type: $Enums.NotificationType.POST,
+      level: $Enums.NotificationLevel.ONLY_APP,
+      title: `Nouvelle annonce`,
+      description: `${post.title} a été postée`,
+      link: `/annonce/${postCreated.id}`,
+      addressId
+    }
+    await this.notificationsService.createMany(users, notification)
+    return postCreated;
   }
 
   async findAll(userId: number, page?: number, category?: string): Promise<{ posts: Post[], count: number }> {
@@ -31,6 +50,7 @@ export class PostsService {
     const where = category ? { category: $Enums.PostCategory[category] } : {}
     const count = await this.prisma.post.count({ where });
     const take = page ? this.limit : count;
+    console.log(skip, take, where)
     const posts = await this.prisma.post.findMany({
       skip,
       take,

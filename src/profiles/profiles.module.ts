@@ -6,7 +6,6 @@ import { ImageInterceptor } from 'middleware/ImageInterceptor';
 import { AddressService } from 'src/addresses/address.service';
 
 @Module({
-  imports: [PrismaModule],
   controllers: [ProfilesController],
   providers: [ProfilesService, AddressService, ImageInterceptor],
 })

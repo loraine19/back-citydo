@@ -19,6 +19,8 @@ export class AuthService {
 
     async generateVerifyToken(sub: number) { return this.jwtService.sign({ sub }, { secret: process.env.JWT_SECRET, expiresIn: process.env.JWT_EXPIRES_VERIFY }) }
 
+    errorCredentials = { message: 'Identifiants incorrect' }
+
     async setAuthCookies(res: Response, accessToken: string) {
         res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
         res.setHeader('Pragma', 'no-cache');
@@ -36,31 +38,34 @@ export class AuthService {
 
     includeConfigUser = { Profile: { include: { Address: true } }, GroupUser: true }
     async signUp(data: SignInDto): Promise<{ message: string }> {
-        let { email, password } = data
+        const { email, password } = data
         const user = await this.prisma.user.findUnique({ where: { email: email } });
         if (user) return { message: 'Vous avez déjà un compte' };
-        password = await argon2.hash(password);
-        const createdUser = await this.prisma.user.create({ data: { email, password } });
+        const createdUser = await this.prisma.user.create({ data: { email, password: await argon2.hash(password) } });
         const verifyToken = await this.generateRefreshToken(createdUser.id);
-        await this.prisma.token.create({ data: { userId: createdUser.id, token: await argon2.hash(verifyToken), type: $Enums.TokenType.VERIFY } })
+        await this.prisma.token.create({
+            data: { userId: createdUser.id, token: await argon2.hash(verifyToken), type: $Enums.TokenType.VERIFY }
+        })
         this.mailerService.sendVerificationEmail(email, verifyToken)
         return { message: 'Votre compte à bien été crée, veuillez vérifier votre email' }
     }
 
     //// SIGN IN
     async signIn(data: SignInDto, res: Response): Promise<{ refreshToken: string, user: Partial<User> } | { message: string }> {
-        let { email, password } = data
+        const { email, password } = data
         const user = await this.prisma.user.findUnique({ where: { email }, include: this.includeConfigUser });
-        if (!user) { return { message: 'Identifiants incorrect' } }
+        if (!user) return this.errorCredentials
         const isPasswordValid = await argon2.verify(user.password, password)
-        if (!isPasswordValid) return { message: 'Identifiants incorrect' }
+        if (!isPasswordValid) return this.errorCredentials
         if (user.status === $Enums.UserStatus.INACTIVE) {
             this.mailerService.sendVerificationEmail(email, await this.generateVerifyToken(user.id));
             return { message: 'Votre compte est inactif, veuillez verifier votre email' }
         }
         const refreshToken = await this.generateRefreshToken(user.id);
         const accessToken = await this.generateAccessToken(user.id);
-        await this.prisma.token.deleteMany({ where: { userId: user.id } })
+        await this.prisma.token.deleteMany({
+            where: { userId: user.id }
+        })
         await this.prisma.token.create({
             data: {
                 userId: user.id,
@@ -75,15 +80,15 @@ export class AuthService {
 
     //// SIGN IN VERIFY
     async signInVerify(data: SignInDto & { verifyToken: string }, res: Response): Promise<{ refreshToken: string, user: Partial<User> } | { message: string }> {
-        let { email, password, verifyToken } = data
+        const { email, password, verifyToken } = data
         const user = await this.prisma.user.findUniqueOrThrow({ where: { email: email }, include: this.includeConfigUser });
-        !user && new HttpException('Utilisateur introuvable', 404)
+        if (!user) return this.errorCredentials
         const userToken = await this.prisma.token.findFirst({ where: { userId: user.id, type: $Enums.TokenType.VERIFY } })
-        if (!userToken) throw new HttpException('Erreur de verification', 404)
+        if (!userToken) return this.errorCredentials
         const refreshTokenValid = await argon2.verify(userToken.token, verifyToken)
-        if (!refreshTokenValid) throw new HttpException('Probleme de verification' + userToken.createdAt, 401)
+        if (!refreshTokenValid) return this.errorCredentials
         const isPasswordValid = await argon2.verify(user.password, password)
-        if (!isPasswordValid) throw new HttpException('Invalid password', 401)
+        if (!isPasswordValid) return this.errorCredentials
         const accessToken = await this.generateAccessToken(user.id);
         const refreshToken = await this.generateRefreshToken(user.id);
         await this.prisma.user.update({ where: { id: user.id }, data: { status: $Enums.UserStatus.ACTIVE } })
@@ -105,15 +110,13 @@ export class AuthService {
                 if (!refreshTokenValid) throw new HttpException('connexion interrompue, re-identifiez vous ', 403);
                 await prisma.token.deleteMany({ where: { userId, type: $Enums.TokenType.REFRESH } });
                 const accessToken = await this.generateAccessToken(userId);
-                const newRefreshToken = await this.generateRefreshToken(userId);
-                const newRefreshTokenHash = await argon2.hash(newRefreshToken);
+                const newRefreshToken = await this.generateRefreshToken(userId)
                 await prisma.token.create({
-                    data: { userId, token: newRefreshTokenHash, type: $Enums.TokenType.REFRESH }
+                    data: { userId, token: await argon2.hash(newRefreshToken), type: $Enums.TokenType.REFRESH }
                 });
                 await this.setAuthCookies(res, accessToken)
                 return { refreshToken: newRefreshToken };
             } catch (error) {
-                console.error('Erreur lors du refresh du token :', error);
                 throw new HttpException(error.message, 401);
             }
         });

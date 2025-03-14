@@ -1,17 +1,17 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { $Enums, MailSubscriptions, Profile, Service } from '@prisma/client';
+import { $Enums, Profile, Service } from '@prisma/client';
 import { CreateServiceDto } from './dto/create-service.dto';
-import { UpdateServiceDto } from './dto/update-service.dto';
 import { GetPoints } from '../../middleware/GetPoints';
 import { ImageInterceptor } from 'middleware/ImageInterceptor';
 import { MailerService } from 'src/mailer/mailer.service';
-import { ActionType } from 'src/mailer/constant';
+import { NotificationsService } from '../notifications/notifications.service';
+import { UserNotifInfo } from 'src/notifications/entities/notification.entity';
 
 //// SERVICE MAKE ACTION
 @Injectable()
 export class ServicesService {
-  constructor(private prisma: PrismaService, private mailer: MailerService) { }
+  constructor(private prisma: PrismaService, private notificationsService: NotificationsService) { }
 
 
   private serviceIncludeConfig(userId?: number) {
@@ -21,6 +21,12 @@ export class ServicesService {
       Flags: { where: { target: $Enums.FlagTarget.SERVICE, userId } }
     }
   }
+  private userSelectConfig = {
+    id: true,
+    email: true,
+    Profile: { select: { mailSub: true } }
+  }
+
   limit = parseInt(process.env.LIMIT)
   skip(page: number) { return (page - 1) * this.limit }
 
@@ -81,7 +87,28 @@ export class ServicesService {
 
   async create(data: CreateServiceDto): Promise<Service> {
     const { userId, userIdResp, ...service } = data;
-    return await this.prisma.service.create({ data: { ...service, User: { connect: { id: userId } } } })
+    const userProfile = await this.prisma.profile.findUnique({ where: { userId } });
+    const users = await this.prisma.user.findMany({
+      select: {
+        id: true,
+        email: true,
+        Profile: {
+          select: { mailSub: true }
+        }
+      }
+    });
+    const createdService = await this.prisma.service.create({ data: { ...service, User: { connect: { id: userId } } } })
+    const notification = {
+      title: 'Nouveau service',
+      description: `Un nouveau service ${service.title} a été créé`,
+      type: $Enums.NotificationType.SERVICE,
+      level: $Enums.NotificationLevel.SUB_1,
+      link: `/service/${createdService.id}`,
+      addressId: userProfile?.addressShared ? userProfile?.addressId : null
+
+    }
+    await this.notificationsService.createMany(users.map(u => new UserNotifInfo(u)), notification)
+    return createdService
   }
 
   async update(id: number, data: any,): Promise<Service> {
@@ -107,14 +134,16 @@ export class ServicesService {
       data: { UserResp: { connect: { id: userId } }, status: $Enums.ServiceStep.STEP_1 }
     });
     if (update) {
-      let MailList = [];
-      if (this.mailer.level(update.User.Profile) > 1) MailList.push(update.User.email)
-      if (this.mailer.level(update.UserResp.Profile) > 1) MailList.push(update.UserResp.email)
-      this.mailer.sendNotificationEmail(MailList, update.title, id, 'service', ActionType.UPDATE,
-        `Votre service a été pris en charge par ${update.UserResp.Profile.firstName} `
-      )
+      const notification = {
+        title: 'Prise en charge de service',
+        description: `le service ${update.title} a été pris en charge par ${update.UserResp.Profile.firstName}`,
+        type: $Enums.NotificationType.SERVICE,
+        level: $Enums.NotificationLevel.SUB_2,
+        link: `/service/${id}`
+      }
+      await this.notificationsService.createMany([new UserNotifInfo(update.User), new UserNotifInfo(update.UserResp)], notification)
+      return update;
     }
-    return update;
   }
 
   //// CANCEL_RESP
@@ -125,16 +154,17 @@ export class ServicesService {
       include: this.serviceIncludeConfig(userId),
       data: { UserResp: { disconnect: true }, status: $Enums.ServiceStep.STEP_0 }
     })
-
     if (update) {
-      let MailList = [];
-      if (this.mailer.level(update.User.Profile) > 1) MailList.push(update.User.email);
-      if (this.mailer.level(origin.UserResp.Profile) > 1) MailList.push(origin.UserResp.email);
-      this.mailer.sendNotificationEmail(MailList, update.title, id, 'service', ActionType.UPDATE,
-        `La réponse au service a été annulée par ${userId === update.User.id ? update.User.Profile.firstName : origin.UserResp.Profile.firstName} `
-      )
+      const notification = {
+        title: 'annulation de prise en charge de service',
+        description: `la prise en charge du service ${update.title} a été annuler par${update.UserResp.Profile.firstName}`,
+        type: $Enums.NotificationType.SERVICE,
+        level: $Enums.NotificationLevel.SUB_2,
+        link: `/service/${id}`
+      }
+      await this.notificationsService.createMany([new UserNotifInfo(update.User), new UserNotifInfo(update.UserResp)], notification)
+      return update;
     }
-    return update;
   }
 
 
@@ -153,14 +183,16 @@ export class ServicesService {
       data: { UserResp: { connect: { id: service.userIdResp } }, status: $Enums.ServiceStep.STEP_2, points }
     });
     if (update) {
-      let MailList = [];
-      if (this.mailer.level(update.User.Profile) > 1) MailList.push(update.User.email)
-      if (this.mailer.level(update.UserResp.Profile) > 1) MailList.push(update.UserResp.email)
-      this.mailer.sendNotificationEmail(MailList, update.title, id, 'service', ActionType.UPDATE,
-        `La réponse au service a été validée, ${UserDo.Profile.firstName} recevra ${points} points, après l'accomplissement ${update.title} par ${UserGet.Profile.firstName} `
-      )
+      const notification = {
+        title: 'Validation de service',
+        description: `le service ${update.title} a ete validé par${update.User.Profile.firstName}`,
+        type: $Enums.NotificationType.SERVICE,
+        level: $Enums.NotificationLevel.SUB_2,
+        link: `/service/${id}`
+      }
+      await this.notificationsService.createMany([new UserNotifInfo(update.User), new UserNotifInfo(update.UserResp)], notification)
+      return update;
     }
-    return update
   }
 
 
@@ -171,24 +203,23 @@ export class ServicesService {
     const UserGet = service.type === $Enums.ServiceType.GET ? service.UserResp : service.User;
     const points = GetPoints(service, UserDo.Profile)
     if (UserGet.id !== userId) throw new HttpException(`Vous n'avez pas le droit de cloturerce service`, HttpStatus.FORBIDDEN)
-    const updateUserProfile: Profile = await this.prisma.profile.update({ where: { userId: UserDo.id }, data: { points: UserDo.Profile.points + points } });
+    await this.prisma.profile.update({ where: { userId: UserDo.id }, data: { points: UserDo.Profile.points + points } });
     const update = await this.prisma.service.update({
       where: { id },
       include: this.serviceIncludeConfig(userId),
       data: { status: $Enums.ServiceStep.STEP_3 }
     });
     if (update) {
-      let MailList = [];
-      if (this.mailer.level(update.User.Profile) > 1) MailList.push(update.User.email)
-      if (this.mailer.level(update.UserResp.Profile) > 1) MailList.push(update.UserResp.email)
-      this.mailer.sendNotificationEmail(MailList, update.title, id, 'service', ActionType.UPDATE,
-        `Le service a été clôturé par ${UserGet.Profile.firstName} ,
-          ${points} points ont été transférés à 
-          ${UserDo.Profile.firstName} `
-      )
+      const notification = {
+        title: 'Cloture de service',
+        description: `le service ${update.title} a été cloturé par ${UserGet.Profile.firstName},  ${points} points ont été transférés à ${UserDo.Profile.firstName}`,
+        type: $Enums.NotificationType.SERVICE,
+        level: $Enums.NotificationLevel.SUB_2,
+        link: `/service/${id}`
+      }
+      await this.notificationsService.createMany([new UserNotifInfo(update.User), new UserNotifInfo(update.UserResp)], notification)
+      return update;
     }
-    return update
-
   }
 
   async remove(id: number): Promise<Service> {

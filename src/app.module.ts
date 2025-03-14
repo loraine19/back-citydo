@@ -16,11 +16,11 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { FlagsModule } from './flags/flags.module';
 import { IssuesModule } from './issues/issues.module';
-import { NotifsModule } from './notifs/notifs.module';
 import { ResetPasswordModule } from './reset-password/reset-password.module';
 import { PoolsSurveysModule } from './pools-surveys/pools-surveys.module';
 import { MailerModule } from './mailer/mailer.module';
 import { LoggerModule } from './logger/logger.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 
 @Module({
@@ -45,11 +45,12 @@ import { LoggerModule } from './logger/logger.module';
     VotesModule,
     FlagsModule,
     IssuesModule,
-    NotifsModule,
+    NotificationsModule,
     ResetPasswordModule,
     PoolsSurveysModule,
     MailerModule,
     LoggerModule,
+    NotificationsModule,
   ],
 })
 export class AppModule { }

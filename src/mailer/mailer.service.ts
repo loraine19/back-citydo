@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
 import { ActionType } from './constant';
 import { MailSubscriptions, Profile } from '@prisma/client';
+import { Notification } from 'src/notifications/entities/notification.entity';
 
 @Injectable()
 export class MailerService {
@@ -71,11 +72,11 @@ export class MailerService {
     }
 
 
-    public async sendNotificationEmail(to: string[], title: string, id: number, path: string, actionType: ActionType, msg?: string) {
-        const subject = `Notification de Collectif :  ${path}  ${actionType}`;
-        const html = this.generateEmailHtml(`L'élément ${title} a été ${actionType},
-            ${msg ? msg : 'veuillez consulter l\'application pour plus de détails.'}`,
-            actionType !== ActionType.DELETE && `<a href="${process.env.FRONT_URL}/${path}/${id}">Voir ${path}</a>`);
+    public async sendNotificationEmail(to: string[], Notification: Notification) {
+        const subject = `Notification de Collectif : ${Notification.title}`;
+        const html = this.generateEmailHtml(`${Notification.title} <br>,
+            ${Notification.description ?? 'veuillez consulter l\'application pour plus de détails.'}`,
+            Notification.link && `<a href="${process.env.FRONT_URL}/${Notification.link}">Voir ${Notification.type}</a>`);
         to.map(async (email) => {
             await this.sendEmail(email, subject, html)
         })

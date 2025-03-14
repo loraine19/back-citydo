@@ -68,7 +68,6 @@ export class UsersService {
     return await this.prisma.user.findUniqueOrThrow({ where: { email } });
   }
 
-
   async count(userId: number): Promise<number> {
     return await this.prisma.user.count()
   }
