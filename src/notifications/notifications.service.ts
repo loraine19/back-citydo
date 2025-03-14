@@ -11,9 +11,10 @@ export class NotificationsService {
 
   limit = parseInt(process.env.LIMIT)
   skip(page: number) { return (page - 1) * this.limit }
+  sendMail = process.env.SEND_MAIL === 'true'
 
   async create(user: UserNotifInfo, data: CreateNotificationDto) {
-    if (user.Profile.mailSub === data.level) {
+    if (user.Profile.mailSub === data.level && this.sendMail) {
       this.mailer.sendNotificationEmail([user.email], data);
     }
     return this.prisma.notification.create({ data: { userId: user.id, ...data } });
@@ -21,7 +22,7 @@ export class NotificationsService {
 
   async createMany(users: UserNotifInfo[], data: CreateNotificationDto) {
     users.forEach((user) => {
-      if (user.Profile.mailSub === data.level) {
+      if (user.Profile.mailSub === data.level && this.sendMail) {
         this.mailer.sendNotificationEmail([user.email], data)
       }
       return this.prisma.notification.create({ data: { userId: user.id, ...data } });
@@ -31,7 +32,6 @@ export class NotificationsService {
   async findAll(page: number, userId: number, filter: $Enums.NotificationType) {
     const skip = page ? this.skip(page) : 0;
     const where = filter ? { userId, type: filter, read: false } : { userId, read: false };
-    console.log('where', where)
     const count = await this.prisma.notification.count({ where });
     const take = page ? this.limit : count;
     const notifs = await this.prisma.notification.findMany({ where, skip, take, orderBy: { createdAt: 'desc' } });
