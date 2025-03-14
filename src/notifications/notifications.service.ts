@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { CreateNotificationDto } from './dto/create-notification.dto';
-import { $Enums, User, Profile } from '@prisma/client';
+import { $Enums, User, Profile, MailSubscriptions, NotificationLevel } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { MailerService } from 'src/mailer/mailer.service';
 import { UserNotifInfo } from './entities/notification.entity';
@@ -13,8 +13,16 @@ export class NotificationsService {
   skip(page: number) { return (page - 1) * this.limit }
   sendMail = process.env.SEND_MAIL === 'true'
 
+  private compare = (a: MailSubscriptions, b: NotificationLevel): boolean => {
+    const aNumber = parseInt(b.toString().replace('SUB_', ''))
+    const bNumber = parseInt(a.toString().replace('SUB_', ''))
+    if (typeof aNumber !== 'number' || typeof bNumber !== 'number') return false
+    return aNumber >= bNumber
+  }
+
   async create(user: UserNotifInfo, data: CreateNotificationDto) {
-    if (user.Profile.mailSub === data.level && this.sendMail) {
+
+    if (this.compare(user.Profile.mailSub, data.level) && this.sendMail) {
       this.mailer.sendNotificationEmail([user.email], data);
     }
     return this.prisma.notification.create({ data: { userId: user.id, ...data } });
@@ -22,7 +30,7 @@ export class NotificationsService {
 
   async createMany(users: UserNotifInfo[], data: CreateNotificationDto) {
     users.forEach((user) => {
-      if (user.Profile.mailSub === data.level && this.sendMail) {
+      if (this.compare(user.Profile.mailSub, data.level) && this.sendMail) {
         this.mailer.sendNotificationEmail([user.email], data)
       }
       return this.prisma.notification.create({ data: { userId: user.id, ...data } });

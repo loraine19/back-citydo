@@ -1,4 +1,4 @@
-import { Controller, Get, Put, Param, UseGuards, ParseIntPipe, Query } from '@nestjs/common';
+import { Controller, Get, Put, Param, UseGuards, ParseIntPipe, Query, DefaultValuePipe } from '@nestjs/common';
 import { NotificationsService } from './notifications.service';
 import { User } from 'middleware/decorators';
 import { ApiTags } from '@nestjs/swagger';
@@ -15,7 +15,7 @@ export class NotificationsController {
   @Get()
   async findAll(
     @User() userId: number,
-    @Query('page', ParseIntPipe) page?: number,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page?: number,
     @Query('filter') filter?: $Enums.NotificationType): Promise<{ notifs: Notification[], count: number }> {
     return this.notificationsService.findAll(page, userId, filter);
   }
