@@ -50,8 +50,8 @@ services:
 
   #Roundcube 
   roundcube:
-    container_name: roundcube
-    image: roundcube/roundcube:latest
+    container_name: roundcubemail
+    image: roundcube/roundcubemail:latest
     networks:
       - back
     depends_on:
