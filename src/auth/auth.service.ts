@@ -41,13 +41,15 @@ export class AuthService {
         const { email, password } = data
         const user = await this.prisma.user.findUnique({ where: { email: email } });
         if (user) return { message: 'Vous avez déjà un compte' };
-        const createdUser = await this.prisma.user.create({ data: { email, password: await argon2.hash(password) } });
+        const hashPassword = await argon2.hash(password);
+        const createdUser = await this.prisma.user.create({ data: { email, password: hashPassword } });
         const verifyToken = await this.generateRefreshToken(createdUser.id);
+        const hashToken = await argon2.hash(verifyToken);
         await this.prisma.token.create({
-            data: { userId: createdUser.id, token: await argon2.hash(verifyToken), type: $Enums.TokenType.VERIFY }
+            data: { userId: createdUser.id, token: hashToken, type: $Enums.TokenType.VERIFY }
         })
         this.mailerService.sendVerificationEmail(email, verifyToken)
-        return { message: 'Votre compte à bien été crée, veuillez vérifier votre email' }
+        return { message: 'Votre compte à bien été crée, veuillez cliquer sur le lien envoyé par email' }
     }
 
     //// SIGN IN
@@ -147,6 +149,12 @@ export class AuthService {
         if (!deleteTokenValid) throw new HttpException('Vous n\'avez pas le droit de supprimer ce compte', 403);
         await this.prisma.user.delete({ where: { id: userId } });
         return { message: 'Votre compte a bien été supprimé' }
+    }
+
+
+    async deleteTester() {
+        if (process.env.NODE_ENV === 'dev') { await this.prisma.user.deleteMany({ where: { email: 'collectif_tester@imagindev.com' } }) }
+        return { message: 'Les utilisateurs de test ont été supprimés' }
     }
 
 

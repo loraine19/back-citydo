@@ -60,7 +60,7 @@ export class MailerService {
     public async sendVerificationEmail(to: string, token: string) {
         const subject = 'Activation de votre compte Collectif';
         const html = this.generateEmailHtml('Bienvenue sur Collectif, cliquez sur le lien ci-dessous pour activer votre compte :',
-            `<a href="${process.env.FRONT_URL}/signin?email=${to}&token=${token}">Activer mon compte</a>`);
+            `<a id="activation-link" href="${process.env.FRONT_URL}/signin?email=${to}&token=${token}">Activer mon compte</a>`);
         await this.sendEmail(to, subject, html);
     }
 

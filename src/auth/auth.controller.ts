@@ -1,4 +1,4 @@
-import { Body, Controller, HttpException, Post, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, HttpException, Post, Res, UseGuards } from '@nestjs/common';
 import { Response } from 'express';
 import { AuthService } from './auth.service';
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
@@ -87,6 +87,11 @@ export class AuthController {
     @User() userId: number): Promise<{ message: string }> {
     const { email, deleteToken } = data;
     return this.authService.deletAccountConfirm(userId, email, deleteToken);
+  }
+
+  @Delete('tester')
+  async deleteTester() {
+    return await this.authService.deleteTester()
   }
 
 

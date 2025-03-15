@@ -9,10 +9,10 @@ services:
     restart: always
     env_file:
       - .env
-    environment:
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    # environment:
+    #   MYSQL_USER: ${MYSQL_USER}
+    #   MYSQL_DATABASE: ${MYSQL_DATABASE}
+    #   MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     networks:
       - back
     command: ["--default-authentication-plugin=caching_sha2_password"]
@@ -28,8 +28,8 @@ services:
       - .env
     environment:
       PMA_HOST: ${MYSQL_HOST}
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      # MYSQL_USER: ${MYSQL_USER}
+      # MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     networks:
       - back
 
