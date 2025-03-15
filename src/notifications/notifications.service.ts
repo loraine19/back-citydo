@@ -42,7 +42,7 @@ export class NotificationsService {
     const where = filter ? { userId, type: filter, read: false } : { userId, read: false };
     const count = await this.prisma.notification.count({ where });
     const take = page ? this.limit : count;
-    const notifs = await this.prisma.notification.findMany({ where, skip, take, orderBy: { createdAt: 'desc' } });
+    const notifs = await this.prisma.notification.findMany({ where, skip, take, orderBy: { createdAt: 'desc' }, include: { Address: true } });
     return { notifs, count };
   }
 
