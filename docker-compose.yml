@@ -48,6 +48,19 @@ services:
       - .env
     restart: unless-stopped
 
+  #Roundcube 
+  roundcube:
+    container_name: roundcube
+    image: roundcube/roundcube:latest
+    networks:
+      - back
+    depends_on:
+      - nest
+    env_file:
+      - .env
+    restart: unless-stopped  
+
+  
   #Prisma studio
   # prisma-studio:
   #   links:
