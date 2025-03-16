@@ -11,7 +11,6 @@ import { CreateGroupUserDto } from 'src/group-users/dto/create-group-user.dto';
 import { CreateParticipantDto } from 'src/participants/dto/create-participant.dto';
 import { CreatePostDto } from 'src/posts/dto/create-post.dto';
 import { CreateLikeDto } from 'src/likes/dto/create-like.dto';
-import * as argon2 from 'argon2';
 import { CreateVoteDto } from 'src/votes/dto/create-vote.dto';
 import { Decimal, } from '@prisma/client/runtime/library';
 import { CreateFlagDto } from 'src/flags/dto/create-flag.dto';
@@ -66,9 +65,9 @@ const customLocale: LocaleDefinition = {
     street_pattern: ['boulevard de la corderie', 'rue de la république', 'rue de la canebière', 'traverse du moulin de la villette', 'stade vélodrome', 'vieux port', 'cours julien', 'rue de la palud', 'rue de la loge'],
     PhoneModule: ['+33'],
     postcode: ['13001', '13002', '13003', '13004', '13005', '13006', '13007', '13008', '13009', '13010', '13011', '13012', '13013', '13014', '13015', '13016'],
-    latitude: { min: 42.8384, max: 48.8399 },
-    longitude: { min: 5.2219, max: 5.3621 },
-    building_number: Array.from({ length: 90 }, (_, i) => (i + 1).toString()),
+    latitude: { min: 43.20, max: 43.25 },
+    longitude: { min: 5.30, max: 5.40 },
+    building_number: Array.from({ length: 70 }, (_, i) => (i + 1).toString()),
   }
 };
 
@@ -82,8 +81,8 @@ const CreateRandomAddress = (): CreateAddressDto => {
   const zipcode = newFaker.location.zipCode();
   const city = newFaker.location.city();
   const address = newFaker.location.streetAddress();
-  const lat = new Decimal(newFaker.location.latitude({ min: 42.8384, max: 48.8399 }));
-  const lng = new Decimal(newFaker.location.longitude({ min: 5.2219, max: 5.3621 }));
+  const lat = new Decimal(newFaker.location.latitude({ min: 43.25, max: 43.39 }));
+  const lng = new Decimal(newFaker.location.longitude({ min: 5.28, max: 5.46 }));
   return {
     zipcode,
     city,
@@ -103,9 +102,9 @@ const CreateRandomGroup = (): CreateGroupDto => {
 }
 
 const CreateRandomUser = async (): Promise<CreateUserDto> => {
-  const password = await argon2.hash(newFaker.internet.password());
+  const password = newFaker.internet.password();
   return {
-    email: newFaker.internet.email(),
+    email: newFaker.internet.email({ provider: 'collectif.com' }),
     password,
     status: $Enums.UserStatus.INACTIVE,
   }
@@ -132,7 +131,7 @@ const CreateRandomProfile = async (): Promise<CreateProfileDto> => {
     userIdSp: newFaker.number.int({ min: 1, max: max / 3 }),
     firstName: newFaker.person.firstName(),
     lastName: newFaker.person.lastName(),
-    phone: newFaker.phone.number(),
+    phone: newFaker.phone.number({ style: 'international' }),
     image: newFaker.image.urlPicsumPhotos({ width: 200, height: 200, blur: 0 }),
     addressShared: newFaker.datatype.boolean(),
     mailSub: $Enums.MailSubscriptions.SUB_1,
@@ -212,7 +211,6 @@ const CreateRandomIssue = async (service: Service): Promise<CreateIssueDto> => {
     }
   })
   const userId = newFaker.helpers.arrayElement([service.userId, service.userIdResp]);
-  console.log('userId', userId, [service.userId, service.userIdResp])
   const userIdModo = ((userId !== service.userId && status === $Enums.IssueStep.STEP_0)) ? null : newFaker.helpers.arrayElement(modos.map(m => m.id));
   const userIdModoOn = ((userId !== service.userIdResp && status === $Enums.IssueStep.STEP_0)) ? null : newFaker.helpers.arrayElement(modos.map(m => (m.id !== userIdModo) && m.id))
   return {
@@ -277,7 +275,7 @@ const CreateRandomVote = async (): Promise<CreateVoteDto> => {
 const CreateRandomFlag = async (): Promise<CreateFlagDto> => {
   return {
     userId: newFaker.number.int({ min: 1, max: max / 3 }),
-    targetId: newFaker.number.int({ min: 1, max }),
+    targetId: newFaker.number.int({ min: 1, max: max / 2 }),
     target: newFaker.helpers.arrayElement(Object.values($Enums.FlagTarget)),
     reason: newFaker.helpers.arrayElement(Object.values($Enums.FlagReason)),
   }
@@ -318,6 +316,8 @@ async function reset() {
   await prisma.$executeRawUnsafe("ALTER TABLE `Group` AUTO_INCREMENT = 1")
   await prisma.$executeRawUnsafe("DELETE FROM `Address`")
   await prisma.$executeRawUnsafe("ALTER TABLE `Address` AUTO_INCREMENT = 1")
+  await prisma.$executeRawUnsafe("DELETE FROM `Notification`")
+  await prisma.$executeRawUnsafe("ALTER TABLE `Notification` AUTO_INCREMENT = 1")
 }
 
 const seed = async () => {
@@ -325,11 +325,12 @@ const seed = async () => {
   // USER no fk 
   const User = async () => {
     await prisma.user.deleteMany({ where: { email: { in: ['test@mail.com', 'lou.hoffmann@gmail.com'] } } });
-    await user.create({ email: 'test@mail.com', password: await argon2.hash('passwordtest'), status: $Enums.UserStatus.ACTIVE })
-    await user.create({ email: 'lou.hoffmann@gmail.com', password: await argon2.hash('lolololo'), status: $Enums.UserStatus.ACTIVE })
+    await user.create({ email: 'test@mail.com', password: 'passwordtest', status: $Enums.UserStatus.ACTIVE })
+    await user.create({ email: 'lou.hoffmann@gmail.com', password: 'lolololo', status: $Enums.UserStatus.ACTIVE })
     while (await prisma.user.count() < max / 3) { await user.create(await CreateRandomUser()) }
   }
-  await User();
+  await User()
+  console.log('users created')
 
   // ADDRESS no fk 
   const Address = async () => {
@@ -341,7 +342,8 @@ const seed = async () => {
       }
     }
   }
-  await Address();
+  await Address()
+  console.log('addresses created')
 
   // GROUP fk address
   const Group = async () => {
@@ -351,7 +353,8 @@ const seed = async () => {
       if (cond) await groupsService.create({ ...group, addressId })
     }
   }
-  await Group();
+  await Group()
+  console.log('groups created')
 
   // GROUPUSER fk user fk group
   const groupUser = async () => {
@@ -366,6 +369,7 @@ const seed = async () => {
     }
   }
   await groupUser();
+  console.log('groupusers created')
 
   // PROFILE fk user fk address fk userSP
   const profile = async () => {
@@ -373,7 +377,7 @@ const seed = async () => {
       data: { userId: 1, addressId: 1, userIdSp: 2, firstName: 'Testeur', lastName: 'Test', phone: '+33606060606', image: 'https://avatars.githubusercontent.com/u/71236683?v=4', addressShared: true, mailSub: $Enums.MailSubscriptions.SUB_1, }
     })
     await prisma.profile.create({
-      data: { userId: 2, addressId: 2, userIdSp: 1, firstName: 'Loraine', lastName: 'Marseille', phone: '+33606060606', image: 'https://avatars.githubusercontent.com/u/71236683?v=4', addressShared: true, mailSub: $Enums.MailSubscriptions.SUB_2, }
+      data: { userId: 2, addressId: 2, userIdSp: 1, firstName: 'Loraine', lastName: 'Marseille', phone: '+33606060606', image: 'https://image-uniservice.linternaute.com/image/450/7/1397936247/2954633.jpg', addressShared: true, mailSub: $Enums.MailSubscriptions.SUB_2, }
     })
     while (await prisma.profile.count() < max / 3) {
       {
@@ -385,7 +389,8 @@ const seed = async () => {
       }
     }
   }
-  await profile();
+  await profile()
+  console.log('profiles created')
 
 
   // EVENT fk address fk user 
@@ -394,7 +399,8 @@ const seed = async () => {
       await eventService.create(await CreateRandomEvent())
     }
   }
-  await event();
+  await event()
+  console.log('events created')
 
   //  PARTICIPANT fk user fk event
   const participant = async () => {
@@ -406,7 +412,8 @@ const seed = async () => {
       }
     }
   }
-  await participant();
+  await participant()
+  console.log('participant created')
 
 
   // SERVICE fk user fk userResp
@@ -424,9 +431,8 @@ const seed = async () => {
       }
     }
   }
-  await service();
-
-
+  await service()
+  console.log('services created')
 
   // POST fk user 
   const post = async () => {
@@ -434,7 +440,8 @@ const seed = async () => {
       await postsService.create(await CreateRandomPost())
     }
   }
-  await post();
+  await post()
+  console.log('posts created')
 
   // LIKE fk user fk post 
   const like = async () => {
@@ -444,7 +451,8 @@ const seed = async () => {
       if (!cond) await likesService.create({ ...like, userId, postId })
     }
   }
-  await like();
+  await like()
+  console.log('likes created')
 
   // POOL fk user fk userBenef 
   const pool = async () => {
@@ -454,7 +462,8 @@ const seed = async () => {
       if (!cond && (userId !== userIdBenef)) await prisma.pool.create({ data: { ...pool, User: { connect: { id: userId } }, UserBenef: { connect: { id: userIdBenef } } } })
     }
   }
-  await pool();
+  await pool()
+  console.log('pools created')
 
   // SURVEY fk user 
   const survey = async () => {
@@ -463,7 +472,8 @@ const seed = async () => {
       await prisma.survey.create({ data: { ...survey, User: { connect: { id: userId } } } })
     }
   }
-  await survey();
+  await survey()
+  console.log('surveys created')
 
 
   // VOTE fk user 
@@ -475,23 +485,23 @@ const seed = async () => {
     }
   }
   await vote();
+  console.log('votes created')
 
   // FLAG fk user
   const flag = async () => {
-    while (await prisma.flag.count() < max * 4) {
+    while (await prisma.flag.count() < max * 2) {
       const { userId, target, targetId, ...flag } = await CreateRandomFlag();
       const cond = await prisma.flag.findUnique({ where: { userId_target_targetId: { userId, target, targetId } } });
-      if (!cond) {
-        const flagCreated = await flagsService.create({ ...flag, userId, target, targetId })
-      }
+      if (!cond) await flagsService.create({ ...flag, userId, target, targetId })
     }
   }
   await flag();
+  console.log('flags created')
 }
 
 
 
-seed().then(async () => { await prisma.$disconnect() }).catch(async (e) => {
+seed().then(() => console.log('seed finished successfully')).finally(async () => { await prisma.$disconnect() }).catch(async (e) => {
   console.error(e)
   await prisma.$disconnect()
   process.exit(1)

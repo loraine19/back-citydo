@@ -15,8 +15,9 @@ export class VotesService {
   async create(data: CreateVoteDto): Promise<Vote> {
     const { targetId, target, userId, opinion } = data
     const find = target === $Enums.VoteTarget.POOL ?
-      await this.prisma.pool.findUnique({ where: { id: targetId }, select: { User: { select: this.userSelectConfig } } }) : await this.prisma.survey.findUnique({ where: { id: targetId }, select: { User: { select: this.userSelectConfig } } });
+      await this.prisma.pool.findUnique({ where: { id: targetId }, select: { User: { select: this.userSelectConfig } } }) : await this.prisma.survey.findUnique({ where: { id: targetId }, select: { User: { select: this.userSelectConfig }, title: true } });
     if (!find) throw new HttpException(`${target} n'existe pas`, HttpStatus.NOT_FOUND);
+    const title = target === $Enums.VoteTarget.SURVEY && 'title' in find ? find.title : find.User.Profile.firstName
     const vote = await this.prisma.vote.findUnique({ where: { userId_target_targetId: { userId, targetId, target } } });
     if (vote) throw new HttpException('Vous avez déjà voté', 403)
     const opinionS = opinion === $Enums.VoteOpinion.OK && 'pour ' || opinion === $Enums.VoteOpinion.NO && 'contre ' || 'neutre'
@@ -30,8 +31,8 @@ export class VotesService {
       const notification = {
         type: $Enums.NotificationType.VOTE,
         level: $Enums.NotificationLevel.SUB_3,
-        title: 'Nouveau vote',
-        description: `Un utilisateur a voté : ${opinionS} ,  votre cagnotte`,
+        title: 'Nouveau vote de cagnotte',
+        description: `Un utilisateur a voté : ${opinionS}, à votre cagnotte pour ${title}`,
         link: `/cagnotte/${targetId}`
       }
       await this.notificationsService.create(new UserNotifInfo(find.User), notification)
@@ -39,13 +40,14 @@ export class VotesService {
     }
     else if (target === $Enums.VoteTarget.SURVEY) {
       const vote = await this.prisma.vote.create({
-        data: { opinion, target, Survey: { connect: { id: targetId } }, User: { connect: { id: userId } } }
+        data: { opinion, target, Survey: { connect: { id: targetId } }, User: { connect: { id: userId } } },
+        include: { Survey: true }
       })
       const notification = {
         type: $Enums.NotificationType.VOTE,
         level: $Enums.NotificationLevel.SUB_3,
-        title: 'Nouveau vote',
-        description: `Un utilisateur a voté : ${opinionS} ,  votre sondage`,
+        title: 'Nouveau vote de sondage',
+        description: `Un utilisateur a voté ${opinionS}, à ${title}`,
         link: `/sondage/${targetId}`
       }
       await this.notificationsService.create(new UserNotifInfo(find.User), notification)

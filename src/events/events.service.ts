@@ -112,16 +112,16 @@ export class EventsService {
     const createdEvent = await this.prisma.event.create({
       data: { ...event, Address: { connect: { id: addressIdVerified } }, User: { connect: { id: userId } } }
     });
-    const usersNotif = await this.prisma.user.findMany({ where: { Profile: { mailSub: $Enums.MailSubscriptions.SUB_4 } }, select: this.userSelectConfig })
+    const usersNotif = await this.prisma.user.findMany({ select: this.userSelectConfig })
     const notification = {
       type: $Enums.NotificationType.EVENT,
-      title: `${event.title} à été créé`,
-      description: `L'évènement ${event.title} à été créé dans la catégorie ${event.category}`,
+      title: `Nouvel évènement`,
+      description: `${event.title} est proposé le ${event.start.toLocaleString()} à ${Address.city}, inscrivez-vous pour valider sa tenue`,
       link: `evenement/${createdEvent.id}`,
       level: $Enums.NotificationLevel.SUB_4,
       addressId: Address.id
     }
-    this.notificationsService.createMany(usersNotif, notification)
+    this.notificationsService.createMany(usersNotif.map(user => new UserNotifInfo(user)), notification)
     return createdEvent
   }
 

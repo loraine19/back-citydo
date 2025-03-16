@@ -81,7 +81,8 @@ export class PoolsSurveysService {
 
   async createPool(data: CreatePoolDto): Promise<Pool> {
     const { userId, userIdBenef, ...pool } = data;
-    return await this.prisma.pool.create({
+    const users = await this.prisma.user.findMany({ select: this.userSelectConfig })
+    const poolCreated = await this.prisma.pool.create({
       data: {
         User: { connect: { id: userId } },
         UserBenef: { connect: { id: userIdBenef } },
@@ -89,6 +90,15 @@ export class PoolsSurveysService {
       },
       include: this.poolIncludeConfig(userId)
     })
+    const notification = {
+      title: 'Nouvelle cagnotte',
+      description: `${poolCreated.title} a été créée , votez pour valider cette cagnotte `,
+      type: $Enums.NotificationType.SURVEY,
+      level: $Enums.NotificationLevel.SUB_4,
+      link: `/cagnotte/${poolCreated.id}`
+    }
+    await this.notificationsService.createMany(users, notification)
+    return poolCreated
   }
 
   async updatePool(id: number, data: UpdatePoolDto): Promise<Pool> {
@@ -132,7 +142,7 @@ export class PoolsSurveysService {
       })
     const notification = {
       title: 'Nouvelle enquête',
-      description: 'Une nouvelle enquête a été créée',
+      description: `${surveyCreated.title} a été créée, votez pour valider cette descision du groupe`,
       type: $Enums.NotificationType.SURVEY,
       level: $Enums.NotificationLevel.SUB_4,
       link: `/sondage/${surveyCreated.id}`

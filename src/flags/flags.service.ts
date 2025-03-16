@@ -30,20 +30,19 @@ export class FlagsService {
     }
     if (target === $Enums.FlagTarget.POST) {
       const postExists = await this.prisma.post.findUnique({ where: { id: targetId } });
-      if (!postExists) throw new HttpException('Invalid targetId for POST', HttpStatus.BAD_REQUEST);
+      if (!postExists) throw new HttpException(`l'annonce ${targetId} n\'existe pas`, HttpStatus.BAD_REQUEST);
       data2 = { data: { ...d, Post: { connect: { id: targetId } } }, include: { Post: true } };
     }
     if (target === $Enums.FlagTarget.SERVICE) {
       const serviceExists = await this.prisma.service.findUnique({ where: { id: targetId } });
-      if (!serviceExists) throw new HttpException('Invalid targetId for SERVICE', HttpStatus.BAD_REQUEST);
+      if (!serviceExists) throw new HttpException(`le service ${targetId} n\'existe pas`, HttpStatus.BAD_REQUEST);
       data2 = { data: { ...d, Service: { connect: { id: targetId } } }, include: { Service: true } };
     }
     if (target === $Enums.FlagTarget.SURVEY) {
       const surveyExists = await this.prisma.survey.findUnique({ where: { id: targetId } });
-      if (!surveyExists) throw new HttpException('Invalid targetId for SURVEY', HttpStatus.BAD_REQUEST);
+      if (!surveyExists) throw new HttpException(`le sondage ${targetId} n\'existe pas`, HttpStatus.BAD_REQUEST);
       data2 = { data: { ...d, Survey: { connect: { id: targetId } } }, include: { Survey: true } };
     }
-    if (!data2) throw new HttpException('Invalid target or targetId', HttpStatus.BAD_REQUEST);
     const flagCreated = await this.prisma.flag.create({ data: data2.data, include: data2.include });
     const flagCount = await this.prisma.flag.count({ where: { targetId, target, reason: flag.reason } });
     if (flagCount >= 3) {
@@ -53,8 +52,7 @@ export class FlagsService {
         type: $Enums.NotificationType.FLAG,
         level: $Enums.NotificationLevel.SUB_1,
         title: `Votre ${target.toLowerCase()} a été supprimé`,
-        description: `Votre ${flagCreated[target]} a été supprimé pour cause de ${flag.reason}`,
-        link: `${target.toLowerCase()}/${targetId}`
+        description: `Votre ${target.toLowerCase()} a été supprimé suite à plusieurs signalements, veuillez respecter le réglement du groupe pour éviter de futurs signalements `
       }
       await this.notificationsService.create(userNotif, notification);
     }

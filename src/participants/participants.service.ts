@@ -19,12 +19,12 @@ export class ParticipantsService {
         Event: { connect: { id: eventId } },
       }
     });
-    const event = await this.prisma.event.findUnique({ where: { id: eventId }, select: { title: true, Address: true, User: { select: { id: true, email: true, Profile: { select: { mailSub: true } } } } } });
+    const event = await this.prisma.event.findUnique({ where: { id: eventId }, select: { title: true, start: true, Address: true, User: { select: { id: true, email: true, Profile: { select: { mailSub: true } } } } } });
     const notification1 = {
       type: $Enums.NotificationType.PARTICIPANT,
       level: $Enums.NotificationLevel.SUB_2,
       title: `Nouveau participant`,
-      description: `${user.Profile.firstName} participe à votre événement`,
+      description: `${user.Profile.firstName} participe à votre événement ${event.title}`,
       link: `/evenement/${eventId}`,
     }
     const notification2 = {
@@ -32,7 +32,7 @@ export class ParticipantsService {
       type: $Enums.NotificationType.PARTICIPANT,
       level: $Enums.NotificationLevel.SUB_2,
       title: `Participation confirmée`,
-      description: `Votre participation à l'événement ${event.title} a été confirmée`,
+      description: `à l'événement ${event.title} le ${event.start.toLocaleDateString()}`,
       link: `/evenement/${eventId}`,
       addressId: event.Address.id
     }

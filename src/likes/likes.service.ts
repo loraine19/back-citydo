@@ -18,12 +18,12 @@ export class LikesService {
         Post: { connect: { id: postId } },
       },
     });
-    const post = await this.prisma.post.findUnique({ where: { id: postId }, select: { User: { select: { id: true, email: true, Profile: { select: { mailSub: true } } } } } });
+    const post = await this.prisma.post.findUnique({ where: { id: postId }, select: { title: true, User: { select: { id: true, email: true, Profile: { select: { mailSub: true } } } } } });
     const notification = {
       type: $Enums.NotificationType.LIKE,
-      level: $Enums.NotificationLevel.SUB_3,
-      title: `Votre post a été liké`,
-      description: `${user.Profile.firstName} a liké votre post`,
+      level: $Enums.NotificationLevel.SUB_2,
+      title: `Nouveau like`,
+      description: `${user.Profile.firstName} a liké votre annonce ${post.title}`,
       link: `/annonce/${postId}`
     }
     await this.notificationsService.create(new UserNotifInfo(post.User), notification);

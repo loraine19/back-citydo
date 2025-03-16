@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { CreateNotificationDto } from './dto/create-notification.dto';
-import { $Enums, User, Profile, MailSubscriptions, NotificationLevel } from '@prisma/client';
+import { $Enums, MailSubscriptions, NotificationLevel } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { MailerService } from 'src/mailer/mailer.service';
 import { UserNotifInfo } from './entities/notification.entity';
@@ -22,7 +22,6 @@ export class NotificationsService {
 
   async create(user: UserNotifInfo, data: CreateNotificationDto) {
     if (this.compare(user.Profile.mailSub, data.level) && this.sendMail) {
-
       this.mailer.sendNotificationEmail([user.email], data);
     }
     return this.prisma.notification.create({ data: { userId: user.id, ...data } });
@@ -37,12 +36,13 @@ export class NotificationsService {
     })
   }
 
-  async findAll(page: number, userId: number, filter: $Enums.NotificationType) {
-    const skip = page ? this.skip(page) : 0;
+  async findAll(page: number, userId: number, filter: $Enums.NotificationType, map: boolean) {
+    const skip = (page && page !== 0) ? this.skip(page) : 0;
     const where = filter ? { userId, type: filter, read: false } : { userId, read: false };
-    const count = await this.prisma.notification.count({ where });
-    const take = page ? this.limit : count;
-    const notifs = await this.prisma.notification.findMany({ where, skip, take, orderBy: { createdAt: 'desc' }, include: { Address: true } });
+    const mapOption = map ? { addressId: { not: null } } : {}
+    const count = await this.prisma.notification.count({ where: { ...where, ...mapOption } });
+    const take = (page && page !== 0) ? this.limit : count;
+    const notifs = await this.prisma.notification.findMany({ where: { ...where, ...mapOption }, skip, take, orderBy: { createdAt: 'desc' }, include: { Address: true } });
     return { notifs, count };
   }
 

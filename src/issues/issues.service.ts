@@ -45,14 +45,26 @@ export class IssuesService {
     if (!service) {
       throw new HttpException('Impossible de trouver le service', HttpStatus.NOT_FOUND);
     }
-    return await this.prisma.issue.create({
+    const createdIssue = await this.prisma.issue.create({
       data: {
         ...issue,
         User: { connect: { id: userId } },
         Service: { connect: { id: serviceId } },
         UserModo: { connect: { id: userIdModo } }
-      }
+      },
+      include: this.issueIncludeConfig
     });
+
+    const notification = {
+      title: 'Nouvelle conciliation',
+      description: `Une conciliation a été créée sur leservice ${service.title}`,
+      type: $Enums.NotificationType.ISSUE,
+      level: $Enums.NotificationLevel.SUB_1,
+      link: `conciliation/${createdIssue.serviceId}`
+    }
+    const issueUsers = [new UserNotifInfo(createdIssue.User), new UserNotifInfo(createdIssue.Service.UserResp), new UserNotifInfo(createdIssue.UserModo)];
+    await this.notificationsService.createMany(issueUsers, notification);
+    return createdIssue;
   }
 
   async findAll(userId: number, page: number, filter?: string): Promise<{ issues: Issue[], count: number }> {

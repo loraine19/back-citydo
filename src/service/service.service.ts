@@ -100,7 +100,7 @@ export class ServicesService {
     const createdService = await this.prisma.service.create({ data: { ...service, User: { connect: { id: userId } } } })
     const notification = {
       title: 'Nouveau service',
-      description: `Un nouveau service ${service.title} a été créé`,
+      description: `le ${service.title} a été créé par ${userProfile.firstName}`,
       type: $Enums.NotificationType.SERVICE,
       level: $Enums.NotificationLevel.SUB_1,
       link: `/service/${createdService.id}`,
