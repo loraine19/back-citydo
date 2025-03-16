@@ -42,6 +42,7 @@ export class ResetPasswordService {
       await this.saveResetToken(email, token);
       return { message: 'votre email de reinitialisation été envoyé' };
     } catch (error) {
+      console.log(error);
       throw new HttpException('Error sending reset password email', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }

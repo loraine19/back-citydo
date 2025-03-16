@@ -1,8 +1,3 @@
-export enum ActionType {
-    ADD = 'ajouté',
-    UPDATE = 'modifié',
-    DELETE = 'supprimé'
-}
 
 export enum EntityType {
     SYSTEM = '',

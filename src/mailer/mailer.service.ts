@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
-import { ActionType } from './constant';
 import { MailSubscriptions, Profile } from '@prisma/client';
 import { Notification } from 'src/notifications/entities/notification.entity';
+import * as fs from 'fs';
+import * as path from 'path';
 
 @Injectable()
 export class MailerService {
@@ -84,82 +85,18 @@ export class MailerService {
 
 
     private generateEmailHtml(text: string, link: string) {
-        return `
-        <html>
-        <head>
-            <style>
-                @import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;700&display=swap');
-                body {
-                    font-family: 'Comfortaa', Arial, sans-serif;
-                    line-height: 1.6;
-                    color: #00000080;
-                }
-                .container {
-                    max-width: 800px;
-                    margin: 0 auto;
-                    padding: 20px;
-                    border-radius: 0.8rem;
-                    box-shadow: 0 10px 10px #000000;
-                    background-color: #f9f9f9;
-                    border: 1px solid #ccc;
-                }
-                .header {
-                    margin-bottom: 10px;
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    width: 100%;
-                    gap: 50px;
-                }
-                .header img {
-                    width: 50px;
-                    height: 50px;
-                    padding: 10px;
-                }
-                .content {
-                    margin-bottom: 20px;
-                }
-                .content a {
-                    display: inline-block;
-                    padding: 5px 10px;
-                    color: #fff !important;
-                    background-color: #06B6D4;
-                    border-radius: 25px;
-                    text-decoration: none;
-                    text-align: center;
-                }
-                .footer {
-                    font-size: 12px;
-                    color: #777;
-                }
-                    .footer a {
-                    color: #9A3412;
-                    }
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <div class="header">
-                    <h1>Collectif</h1> <img src="cid:collectif@images.com" alt="Image">
-                </div>
-                <div class="content">
-                    <p>Bonjour,</p>
-                    <p>${text}</p>
-                    ${link}
-                </div>
-                <div class="footer">
-                    <p>&copy; 2025 Collect'if. Tous droits réservés.</p>
-                    <a href="${process.env.FRONT_URL}/myprofile">Changer mes préférences de notification</a>
-                </div>
-            </div>
-        </body>
-        </html>`;
-    }
+        const templatePath = 'src/mailer/email-template.html';
+        let htmlContent = fs.readFileSync(templatePath, 'utf8');
 
+        htmlContent = htmlContent.replace('{{TEXT}}', text);
+        htmlContent = htmlContent.replace('{{LINK}}', link ?? '');
+        htmlContent = htmlContent.replace('{{FRONT_URL}}', process.env.FRONT_URL);
+
+        return htmlContent;
+    }
 
     public level = (profile: Profile): number => {
         const level = profile && profile.mailSub || 0;
-        console.log(profile)
         switch (level) {
             case MailSubscriptions.SUB_1:
                 return 1;
