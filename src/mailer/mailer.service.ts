@@ -74,9 +74,9 @@ export class MailerService {
 
     public async sendNotificationEmail(to: string[], Notification: Notification) {
         const subject = `Notification de Collectif : ${Notification.title}`;
-        const html = this.generateEmailHtml(`${Notification.title} <br>,
+        const html = this.generateEmailHtml(`${Notification.title} ,<br>
             ${Notification.description ?? 'veuillez consulter l\'application pour plus de détails.'}`,
-            Notification.link && `<a href="${process.env.FRONT_URL}/${Notification.link}">Ouvrir dans l'application</a>`);
+            Notification.link && `<a href="${process.env.FRONT_URL}${Notification.link}">Ouvrir dans l'application</a>`);
         to.map(async (email) => {
             await this.sendEmail(email, subject, html)
         })
