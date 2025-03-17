@@ -28,7 +28,6 @@ export class ParticipantsService {
       link: `/evenement/${eventId}`,
     }
     const notification2 = {
-      userId,
       type: $Enums.NotificationType.PARTICIPANT,
       level: $Enums.NotificationLevel.SUB_2,
       title: `Participation confirmée`,

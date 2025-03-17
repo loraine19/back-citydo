@@ -3,7 +3,6 @@ import * as nodemailer from 'nodemailer';
 import { MailSubscriptions, Profile } from '@prisma/client';
 import { Notification } from 'src/notifications/entities/notification.entity';
 import * as fs from 'fs';
-import * as path from 'path';
 
 @Injectable()
 export class MailerService {
@@ -31,7 +30,7 @@ export class MailerService {
                 {
                     filename: 'logo.png',
                     path: 'middleware/logo.png',
-                    cid: 'collectif@images.com'
+                    cid: 'CityZen@images.com'
                 }
             ],
         };
@@ -59,14 +58,14 @@ export class MailerService {
 
 
     public async sendVerificationEmail(to: string, token: string) {
-        const subject = 'Activation de votre compte Collectif';
-        const html = this.generateEmailHtml('Bienvenue sur Collectif, cliquez sur le lien ci-dessous pour activer votre compte :',
+        const subject = 'Activation de votre compte City\'Zen';
+        const html = this.generateEmailHtml('Bienvenue sur City\'Zen, cliquez sur le lien ci-dessous pour activer votre compte :',
             `<a id="activation-link" href="${process.env.FRONT_URL}/signin?email=${to}&token=${token}">Activer mon compte</a>`);
         await this.sendEmail(to, subject, html);
     }
 
     public async sendDeleteAccountEmail(to: string, token: string) {
-        const subject = 'Suppression de votre compte Collectif';
+        const subject = 'Suppression de votre compte City\'Zen';
         const html = this.generateEmailHtml('Bonjour, vous avez demande de supprimer votre compte. cliquez sur le lien ci-dessous pour supprimer votre compte, vous ne pouvez plus revenir en arriere :',
             `<a href="${process.env.FRONT_URL}/delete_account?email=${to}&token=${token}">Supprimer mon compte</a>`);
         await this.sendEmail(to, subject, html);
@@ -74,7 +73,7 @@ export class MailerService {
 
 
     public async sendNotificationEmail(to: string[], Notification: Notification) {
-        const subject = `Notification de Collectif : ${Notification.title}`;
+        const subject = `Notification de City\'Zen : ${Notification.title}`;
         const html = this.generateEmailHtml(`${Notification.title} ,<br>
             ${Notification.description ?? 'veuillez consulter l\'application pour plus de détails.'}`,
             Notification.link && `<a href="${process.env.FRONT_URL}${Notification.link}">Ouvrir dans l'application</a>`);

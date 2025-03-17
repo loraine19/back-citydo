@@ -1,4 +1,4 @@
-import { $Enums, AssistanceLevel, PrismaClient, Address, Prisma, Service } from '@prisma/client';
+import { $Enums, AssistanceLevel, PrismaClient, Address, Service } from '@prisma/client';
 import { CreateServiceDto } from 'src/service/dto/create-service.dto';
 import { fr, base, Faker, } from '@faker-js/faker';
 import type { LocaleDefinition } from '@faker-js/faker';
@@ -62,11 +62,12 @@ export const getImageBlob = async (url: string): Promise<Uint8Array<ArrayBufferL
 const customLocale: LocaleDefinition = {
   location: {
     city_pattern: ['Marseille'],
-    street_pattern: ['boulevard de la corderie', 'rue de la république', 'rue de la canebière', 'traverse du moulin de la villette', 'stade vélodrome', 'vieux port', 'cours julien', 'rue de la palud', 'rue de la loge'],
+    street_pattern: ['boulevard de la corderie', 'rue de la république', 'rue de la canebière', 'traverse du moulin de la villette', "Rue Désirée Clary", "Boulevard de Paris", "Rue de Lyon", "Rue Jean Cristofol", "Rue Félix Pyat", "Rue Loubon",
+      "Boulvard Roger Salengro", "Rue Odette Jasse", "Rue de Ruffi", "Rue Ibrahim Ali"],
     PhoneModule: ['+33'],
-    postcode: ['13001', '13002', '13003', '13004', '13005', '13006', '13007', '13008', '13009', '13010', '13011', '13012', '13013', '13014', '13015', '13016'],
-    latitude: { min: 43.20, max: 43.25 },
-    longitude: { min: 5.30, max: 5.40 },
+    postcode: ['13001', '13002', '13003'],
+    latitude: { min: 43.303, max: 43.318 },
+    longitude: { min: 5.360, max: 5.375 },
     building_number: Array.from({ length: 70 }, (_, i) => (i + 1).toString()),
   }
 };
@@ -75,14 +76,35 @@ export const newFaker = new Faker({
   locale: [customLocale, fr, base],
 });
 
-const max = 60;
+const max = 30;
 
-const CreateRandomAddress = (): CreateAddressDto => {
-  const zipcode = newFaker.location.zipCode();
-  const city = newFaker.location.city();
-  const address = newFaker.location.streetAddress();
-  const lat = new Decimal(newFaker.location.latitude({ min: 43.25, max: 43.39 }));
-  const lng = new Decimal(newFaker.location.longitude({ min: 5.28, max: 5.46 }));
+const CreateRandomAddress = async (): Promise<CreateAddressDto> => {
+  let zipcode;
+  let city;
+  let address;
+
+  const fetchGPS = async () => {
+    zipcode = newFaker.location.zipCode();
+    city = newFaker.location.city();
+    address = newFaker.location.streetAddress();
+    console.log(`Fetching GPS for ${address}, ${city}, ${zipcode}`);
+    const response = await fetch(`https://nominatim.openstreetmap.org/search?street=${encodeURIComponent(address)}&city=${encodeURIComponent(city)}&postalcode=${encodeURIComponent(zipcode)}&format=json`);
+    const data = await response.json();
+    if (data.length > 0) {
+      return {
+        lat: new Decimal(data[0].lat),
+        lng: new Decimal(data[0].lon)
+      };
+    } else {
+      console.log('No GPS found, retrying...');
+      return fetchGPS();
+    }
+  };
+
+  const { lat, lng } = await fetchGPS();
+
+  // const lat = new Decimal(newFaker.location.latitude(customLocale.location.latitude));
+  // const lng = new Decimal(newFaker.location.longitude(customLocale.location.longitude));
   return {
     zipcode,
     city,
@@ -119,7 +141,7 @@ const CreateRandomGroupUser = (): CreateGroupUserDto => {
 }
 
 const CreateRandomProfile = async (): Promise<CreateProfileDto> => {
-  const addressData = CreateRandomAddress();
+  const addressData = await CreateRandomAddress();
   let Address: Address;
   const exist = await prisma.address.findUnique({ where: { address_zipcode: { address: addressData.address, zipcode: addressData.zipcode } } })
   if (!exist) { Address = await prisma.address.create({ data: addressData }) }
@@ -132,11 +154,11 @@ const CreateRandomProfile = async (): Promise<CreateProfileDto> => {
     firstName: newFaker.person.firstName(),
     lastName: newFaker.person.lastName(),
     phone: newFaker.phone.number({ style: 'international' }),
-    image: newFaker.image.urlPicsumPhotos({ width: 200, height: 200, blur: 0 }),
+    image: newFaker.image.personPortrait(),
     addressShared: newFaker.datatype.boolean(),
     mailSub: $Enums.MailSubscriptions.SUB_1,
     assistance: newFaker.helpers.arrayElement(Object.values($Enums.AssistanceLevel)),
-    points: newFaker.number.int({ min: 0, max: 30 }),
+    points: newFaker.number.int({ min: 5, max: 50 }),
     skills: newFaker.lorem.words({ min: 0, max: 3 }),
   }
 }
@@ -144,7 +166,7 @@ const CreateRandomProfile = async (): Promise<CreateProfileDto> => {
 const CreateRandomEvent = async (): Promise<CreateEventDto> => {
   const start = newFaker.date.future({ years: 0.5 });
   const end = new Date(start.getTime() + newFaker.number.int({ min: 1, max: 4 }) * 24 * 60 * 60 * 1000);
-  const addressData = CreateRandomAddress();
+  const addressData = await CreateRandomAddress();
   let Address: Address;
   const exist = await prisma.address.findUnique({ where: { address_zipcode: { address: addressData.address, zipcode: addressData.zipcode } } })
   if (!exist) { Address = await prisma.address.create({ data: addressData }) }
@@ -256,7 +278,7 @@ const CreateRandomSurvey = (): any => {
   const category = newFaker.helpers.arrayElement(Object.values($Enums.SurveyCategory));
   return {
     userId: newFaker.number.int({ min: 1, max: max / 3 }),
-    title: `Sondage ${category} ${newFaker.lorem.words({ min: 1, max: 2 })}`,
+    title: `Sondage ${newFaker.lorem.words({ min: 1, max: 2 })}`,
     description: newFaker.lorem.lines({ min: 1, max: 2 }),
     category,
     image: newFaker.image.urlPicsumPhotos({ width: 600, height: 400, blur: 0, grayscale: false }),
@@ -330,12 +352,12 @@ const seed = async () => {
     while (await prisma.user.count() < max / 3) { await user.create(await CreateRandomUser()) }
   }
   await User()
-  console.log('users created')
+  console.log('users created ✅ ')
 
   // ADDRESS no fk 
   const Address = async () => {
     while (await prisma.address.count() < max) {
-      const newAddress = CreateRandomAddress();
+      const newAddress = await CreateRandomAddress();
       const exist = await prisma.address.findUnique({ where: { address_zipcode: { address: newAddress.address, zipcode: newAddress.zipcode } } })
       if (!exist) {
         await addressService.create(newAddress)
@@ -343,7 +365,7 @@ const seed = async () => {
     }
   }
   await Address()
-  console.log('addresses created')
+  console.log('addresses created ✅ ')
 
   // GROUP fk address
   const Group = async () => {
@@ -354,7 +376,7 @@ const seed = async () => {
     }
   }
   await Group()
-  console.log('groups created')
+  console.log('groups created ✅ ')
 
   // GROUPUSER fk user fk group
   const groupUser = async () => {
@@ -369,7 +391,7 @@ const seed = async () => {
     }
   }
   await groupUser();
-  console.log('groupusers created')
+  console.log('groupusers created ✅ ')
 
   // PROFILE fk user fk address fk userSP
   const profile = async () => {
@@ -390,7 +412,7 @@ const seed = async () => {
     }
   }
   await profile()
-  console.log('profiles created')
+  console.log('profiles created ✅ ')
 
 
   // EVENT fk address fk user 
@@ -400,7 +422,7 @@ const seed = async () => {
     }
   }
   await event()
-  console.log('events created')
+  console.log('events created ✅ ')
 
   //  PARTICIPANT fk user fk event
   const participant = async () => {
@@ -413,7 +435,7 @@ const seed = async () => {
     }
   }
   await participant()
-  console.log('participant created')
+  console.log('participant created ✅ ')
 
 
   // SERVICE fk user fk userResp
@@ -432,7 +454,7 @@ const seed = async () => {
     }
   }
   await service()
-  console.log('services created')
+  console.log('services created ✅ ')
 
   // POST fk user 
   const post = async () => {
@@ -441,7 +463,7 @@ const seed = async () => {
     }
   }
   await post()
-  console.log('posts created')
+  console.log('posts created ✅ ')
 
   // LIKE fk user fk post 
   const like = async () => {
@@ -452,7 +474,7 @@ const seed = async () => {
     }
   }
   await like()
-  console.log('likes created')
+  console.log('likes created ✅ ')
 
   // POOL fk user fk userBenef 
   const pool = async () => {
@@ -463,7 +485,7 @@ const seed = async () => {
     }
   }
   await pool()
-  console.log('pools created')
+  console.log('pools created ✅ ')
 
   // SURVEY fk user 
   const survey = async () => {
@@ -473,7 +495,7 @@ const seed = async () => {
     }
   }
   await survey()
-  console.log('surveys created')
+  console.log('surveys created ✅ ')
 
 
   // VOTE fk user 
@@ -485,7 +507,7 @@ const seed = async () => {
     }
   }
   await vote();
-  console.log('votes created')
+  console.log('votes created ✅ ')
 
   // FLAG fk user
   const flag = async () => {
@@ -496,12 +518,12 @@ const seed = async () => {
     }
   }
   await flag();
-  console.log('flags created')
+  console.log('flags created ✅ ')
 }
 
 
 
-seed().then(() => console.log('seed finished successfully')).finally(async () => { await prisma.$disconnect() }).catch(async (e) => {
+seed().then(() => console.log('seed finished successfully ✅✅✅')).finally(async () => { await prisma.$disconnect() }).catch(async (e) => {
   console.error(e)
   await prisma.$disconnect()
   process.exit(1)

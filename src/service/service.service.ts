@@ -87,27 +87,18 @@ export class ServicesService {
 
   async create(data: CreateServiceDto): Promise<Service> {
     const { userId, userIdResp, ...service } = data;
-    const userProfile = await this.prisma.profile.findUnique({ where: { userId } });
-    const users = await this.prisma.user.findMany({
-      select: {
-        id: true,
-        email: true,
-        Profile: {
-          select: { mailSub: true }
-        }
-      }
-    });
-    const createdService = await this.prisma.service.create({ data: { ...service, User: { connect: { id: userId } } } })
+    const users = await this.prisma.user.findMany({ select: this.userSelectConfig });
+    const createdService = await this.prisma.service.create({ data: { ...service, User: { connect: { id: userId } } }, include: this.serviceIncludeConfig(userId) });
+    const addressId = createdService.User.Profile.addressShared ? createdService.User.Profile.addressId : null;
     const notification = {
       title: 'Nouveau service',
-      description: `le ${service.title} a été créé par ${userProfile.firstName}`,
+      description: `${service.title} a été créé par ${createdService.User.Profile.firstName}`,
       type: $Enums.NotificationType.SERVICE,
       level: $Enums.NotificationLevel.SUB_1,
       link: `/service/${createdService.id}`,
-      addressId: userProfile?.addressShared ? userProfile?.addressId : null
-
+      addressId
     }
-    await this.notificationsService.createMany(users.map(u => new UserNotifInfo(u)), notification)
+    await this.notificationsService.createMany(users, notification)
     return createdService
   }
 
@@ -138,8 +129,9 @@ export class ServicesService {
         title: 'Prise en charge de service',
         description: `le service ${update.title} a été pris en charge par ${update.UserResp.Profile.firstName}`,
         type: $Enums.NotificationType.SERVICE,
-        level: $Enums.NotificationLevel.SUB_2,
-        link: `/service/${id}`
+        level: $Enums.NotificationLevel.SUB_1,
+        link: `/service/${id}`,
+        addressId: update.UserResp.Profile.addressShared ? update.UserResp.Profile.addressId : null
       }
       await this.notificationsService.createMany([new UserNotifInfo(update.User), new UserNotifInfo(update.UserResp)], notification)
       return update;
@@ -159,7 +151,7 @@ export class ServicesService {
         title: 'annulation de prise en charge de service',
         description: `la prise en charge du service ${update.title} a été annuler par${update.UserResp.Profile.firstName}`,
         type: $Enums.NotificationType.SERVICE,
-        level: $Enums.NotificationLevel.SUB_2,
+        level: $Enums.NotificationLevel.SUB_1,
         link: `/service/${id}`
       }
       await this.notificationsService.createMany([new UserNotifInfo(update.User), new UserNotifInfo(update.UserResp)], notification)

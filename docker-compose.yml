@@ -9,10 +9,6 @@ services:
     restart: always
     env_file:
       - .env
-    # environment:
-    #   MYSQL_USER: ${MYSQL_USER}
-    #   MYSQL_DATABASE: ${MYSQL_DATABASE}
-    #   MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     networks:
       - back
     command: ["--default-authentication-plugin=caching_sha2_password"]
@@ -28,15 +24,13 @@ services:
       - .env
     environment:
       PMA_HOST: ${MYSQL_HOST}
-      # MYSQL_USER: ${MYSQL_USER}
-      # MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     networks:
       - back
 
   #Nest 
   nest:
-    container_name: collectif-back
-    image: lorainep/collectif-back:latest
+    container_name: cityzen-back
+    image: lorainep/cityzen-back:latest
     build:
       dockerfile: Dockerfile.nest
       context: .

@@ -28,12 +28,12 @@ export class NotificationsService {
   }
 
   async createMany(users: UserNotifInfo[], data: CreateNotificationDto) {
-    users.forEach((user) => {
+    for (const user of users) {
       if (this.compare(user.Profile.mailSub, data.level) && this.sendMail) {
-        this.mailer.sendNotificationEmail([user.email], data)
+        this.mailer.sendNotificationEmail([user.email], data);
       }
-      return this.prisma.notification.create({ data: { userId: user.id, ...data } });
-    })
+      await this.prisma.notification.create({ data: { userId: user.id, ...data } });
+    }
   }
 
   async findAll(page: number, userId: number, filter: $Enums.NotificationType, map: boolean) {
