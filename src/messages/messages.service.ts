@@ -118,10 +118,10 @@ export class MessagesService {
     })
     await this.prisma.notification.updateMany({
       where: {
-        userId: id,
+        userId,
         type: $Enums.NotificationType.MESSAGE,
         read: false,
-        link: `/chat/${userId}`
+        link: `/chat/${id}`
       },
       data: {
         read: true
