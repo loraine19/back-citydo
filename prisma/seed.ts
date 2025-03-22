@@ -32,7 +32,7 @@ import { PostsService } from 'src/posts/posts.service';
 import { LikesService } from 'src/likes/likes.service';
 import { VotesService } from 'src/votes/votes.service';
 import { FlagsService } from 'src/flags/flags.service';
-import { MessagesService } from '../src/messages/messages.service';
+import { MessagesService } from 'src/messages/messages.service';
 import { CreateMessageDto } from 'src/messages/dto/create-message.dto';
 
 const prisma = new PrismaClient();
