@@ -21,6 +21,8 @@ import { PoolsSurveysModule } from './pools-surveys/pools-surveys.module';
 import { MailerModule } from './mailer/mailer.module';
 import { LoggerModule } from './logger/logger.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { MessagesModule } from './messages/messages.module';
+import { ChatGateway } from './chat/chat.gateway';
 
 
 @Module({
@@ -51,6 +53,8 @@ import { NotificationsModule } from './notifications/notifications.module';
     MailerModule,
     LoggerModule,
     NotificationsModule,
+    MessagesModule,
+    //  ChatGateway,
   ],
 })
 export class AppModule { }

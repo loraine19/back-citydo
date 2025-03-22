@@ -45,8 +45,9 @@ model User {
   Pool           Pool[]         @relation("Pool")
   Benef          Pool[]         @relation("PoolBenef")
   Profile        Profile?       @relation("Profile")
-  UserSp         Profile[]      @relation("Sponsor")
   Notifications  Notification[]
+  Messages       Message[]      @relation("MessageUser")
+  MessagesDest   Message[]      @relation("MessageUserRec")
 }
 
 model Group {
@@ -95,7 +96,6 @@ model Profile {
   updatedAt     DateTime          @updatedAt
   Address       Address           @relation(fields: [addressId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   User          User              @relation(fields: [userId], references: [id], name: "Profile", onUpdate: Cascade, onDelete: Cascade)
-  UserSp        User?             @relation(fields: [userIdSp], references: [id], name: "Sponsor", onUpdate: Cascade, onDelete: Cascade)
 }
 
 model Token {
@@ -286,6 +286,18 @@ model Notification {
   data        Json?
 }
 
+model Message {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  userIdRec Int
+  message   String   @db.LongText
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  read      Boolean  @default(false)
+  User      User     @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Cascade, name: "MessageUser")
+  UserRec   User     @relation(fields: [userIdRec], references: [id], onUpdate: Cascade, onDelete: Cascade, name: "MessageUserRec")
+}
+
 ///// ENUM
 enum UserStatus {
   ACTIVE
@@ -434,6 +446,7 @@ enum NotificationType {
   FLAG
   LIKE
   VOTE
+  MESSAGE
 }
 
 enum NotificationLevel {

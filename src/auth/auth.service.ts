@@ -1,5 +1,5 @@
 //src/auth/auth.service.ts
-import { HttpException, Injectable, Res, UnauthorizedException } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { Response } from 'express';
 import { PrismaService } from '../prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
@@ -33,7 +33,7 @@ export class AuthService {
             maxAge: parseInt(process.env.COOKIE_EXPIRES_ACCESS),
             path: '/',
         });
-        console.log('Headers après définition du cookie:', res.getHeaders()); // AJOUTEZ CECI
+        console.log('Headers après définition du cookie:', res.getHeaders());
     }
 
     includeConfigUser = { Profile: { include: { Address: true } }, GroupUser: true }

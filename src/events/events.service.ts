@@ -49,6 +49,10 @@ export class EventsService {
     return { events, count }
   }
 
+
+
+  
+
   async findAllByUserId(userId: number, page?: number, category?: string): Promise<{ events: Event[], count: number }> {
     const skip = page ? this.skip(page) : 0;
     const where = category ? { userId, category: $Enums.EventCategory[category] } : { userId }

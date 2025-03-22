@@ -32,6 +32,8 @@ import { PostsService } from 'src/posts/posts.service';
 import { LikesService } from 'src/likes/likes.service';
 import { VotesService } from 'src/votes/votes.service';
 import { FlagsService } from 'src/flags/flags.service';
+import { MessagesService } from '../src/messages/messages.service';
+import { CreateMessageDto } from 'src/messages/dto/create-message.dto';
 
 const prisma = new PrismaClient();
 const prismaService = new PrismaService();
@@ -50,6 +52,7 @@ const postsService = new PostsService(prismaService, notificationsService)
 const likesService = new LikesService(prismaService, notificationsService)
 const votesService = new VotesService(prismaService, notificationsService)
 const flagsService = new FlagsService(prismaService, notificationsService)
+const messagesService = new MessagesService(prismaService, notificationsService)
 
 /// GENERE IMAGE FROM SEED 
 export const getImageBlob = async (url: string): Promise<Uint8Array<ArrayBufferLike>> => {
@@ -79,9 +82,9 @@ export const newFaker = new Faker({
 const max = 30;
 
 const CreateRandomAddress = async (): Promise<CreateAddressDto> => {
-  let zipcode;
-  let city;
-  let address;
+  let zipcode: string;
+  let city: string;
+  let address: string;
 
   const fetchGPS = async () => {
     zipcode = newFaker.location.zipCode();
@@ -150,7 +153,6 @@ const CreateRandomProfile = async (): Promise<CreateProfileDto> => {
     userId: newFaker.number.int({ min: 1, max: max / 3 }),
     Address: Address,
     addressId: Address.id,
-    userIdSp: newFaker.number.int({ min: 1, max: max / 3 }),
     firstName: newFaker.person.firstName(),
     lastName: newFaker.person.lastName(),
     phone: newFaker.phone.number({ style: 'international' }),
@@ -303,6 +305,14 @@ const CreateRandomFlag = async (): Promise<CreateFlagDto> => {
   }
 }
 
+const CreateRandomMessage = async (): Promise<CreateMessageDto> => {
+  return {
+    userId: newFaker.number.int({ min: 1, max: max / 3 }),
+    userIdRec: newFaker.number.int({ min: 1, max: max / 3 }),
+    message: newFaker.lorem.lines({ min: 1, max: 2 }),
+  }
+}
+
 
 async function reset() {
   // Reset the identity columns
@@ -340,6 +350,8 @@ async function reset() {
   await prisma.$executeRawUnsafe("ALTER TABLE `Address` AUTO_INCREMENT = 1")
   await prisma.$executeRawUnsafe("DELETE FROM `Notification`")
   await prisma.$executeRawUnsafe("ALTER TABLE `Notification` AUTO_INCREMENT = 1")
+  await prisma.$executeRawUnsafe("DELETE FROM `Message`")
+  await prisma.$executeRawUnsafe("ALTER TABLE `Message` AUTO_INCREMENT = 1")
 }
 
 const seed = async () => {
@@ -403,11 +415,10 @@ const seed = async () => {
     })
     while (await prisma.profile.count() < max / 3) {
       {
-        const { userId, addressId, userIdSp, ...profile } = await CreateRandomProfile();
+        const { userId, addressId, ...profile } = await CreateRandomProfile();
         const cond = await prisma.profile.findFirst({ where: { userId: userId } });
         const cond2 = await prisma.user.findUnique({ where: { id: userId } })
-        const cond3 = await prisma.user.findUnique({ where: { id: userIdSp } });
-        if (!cond && cond2 && cond3) await prisma.profile.create({ data: { ...profile, User: { connect: { id: userId } }, Address: { connect: { id: addressId } }, UserSp: { connect: { id: userIdSp } } } })
+        if (!cond && cond2) await prisma.profile.create({ data: { ...profile, User: { connect: { id: userId } }, Address: { connect: { id: addressId } } } })
       }
     }
   }
@@ -519,7 +530,19 @@ const seed = async () => {
   }
   await flag();
   console.log('flags created ✅ ')
+
+
+  // MESSAGE fk user
+  const message = async () => {
+    while (await prisma.message.count() < max * 4) {
+      const { userId, userIdRec, ...message } = await CreateRandomMessage();
+      await messagesService.create({ ...message, userId, userIdRec })
+    }
+  }
+  await message()
+  console.log('messages created ✅ ')
 }
+
 
 
 

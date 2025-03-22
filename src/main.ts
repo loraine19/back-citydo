@@ -9,6 +9,7 @@ import { join } from 'path';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { LoggerService } from './logger/logger.service';
 import * as cookieParser from 'cookie-parser'
+import { IoAdapter } from '@nestjs/platform-socket.io';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
@@ -52,12 +53,12 @@ async function bootstrap() {
         callback(new Error('Not allowed by CORS'));
       }
     },
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    allowedHeaders: 'Authorization,Content-Type, Accept',
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE, OPTIONS',
+    allowedHeaders: 'Authorization,Content-Type, AcceptX-Requested-With', // Ajout de Origin, X-Requested-With
     credentials: true,
     preflightContinue: false
   })
-
-  await app.listen(3000);
+  app.useWebSocketAdapter(new IoAdapter(app))
+  await app.listen(parseInt(process.env.PORT) || 3000);
 }
 bootstrap();

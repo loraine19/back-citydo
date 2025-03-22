@@ -11,14 +11,12 @@ import { CreateAddressDto } from 'src/addresses/dto/create-address.dto';
 export class ProfilesService {
   constructor(private prisma: PrismaService, private addressService: AddressService) { }
   async create(data: CreateProfileDto): Promise<Profile> {
-    const { userId, addressId, userIdSp, Address, ...profile } = data
+    const { userId, addressId, Address, ...profile } = data
     const addressIdVerified = await this.addressService.verifyAddress(Address);
     const cond = await this.prisma.profile.findFirst({ where: { userId: userId } });
     if (cond) { throw new HttpException(`l'utilisateur ${cond.firstName} à déja un profile`, HttpStatus.CONFLICT) }
     const createData: any = { ...profile, User: { connect: { id: userId } }, Address: { connect: { id: addressIdVerified } } };
-    if (userIdSp) {
-      createData.UserSp = { connect: { id: userIdSp } };
-    }
+
     return await this.prisma.profile.create({
       data: createData,
       include: { Address: true }
@@ -26,15 +24,12 @@ export class ProfilesService {
   }
 
   async update(data: UpdateProfileDto, userId: number): Promise<Profile> {
-    const { addressId, userIdSp, Address, userId: userIdC, ...profile } = data;
+    const { addressId, Address, userId: userIdC, ...profile } = data;
     if (userIdC !== userId) throw new HttpException('Vous n\'avez pas les droits de modifier cet utilisateur', 403)
     const addressIdVerified = await this.addressService.verifyAddress(Address);
     const updateData: any = { ...profile, User: { connect: { id: userId } }, Address: { connect: { id: addressIdVerified } } };
     if (userId) {
       updateData.User = { connect: { id: userId } };
-    }
-    if (userIdSp) {
-      updateData.UserSp = { connect: { id: userIdSp } };
     }
     return await this.prisma.profile.update({
       where: { userId },

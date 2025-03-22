@@ -17,12 +17,6 @@ export class CreateProfileDto {
     lastName: string;
 
     @ApiProperty({ type: 'number', required: false })
-    @Type(() => Number)
-    @IsOptional()
-    @IsNumber({}, { message: 'User id sp must be a number' })
-    userIdSp: number;
-
-    @ApiProperty({ type: 'number', required: false })
     @IsOptional()
     @Type(() => Number)
     @IsNumber({}, { message: 'User id must be a number' })
