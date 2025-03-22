@@ -4,10 +4,11 @@ import { $Enums, MailSubscriptions, NotificationLevel } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { MailerService } from 'src/mailer/mailer.service';
 import { UserNotifInfo } from './entities/notification.entity';
+import { NotifsGateway } from 'src/notifs/notifs.gateway';
 
 @Injectable()
 export class NotificationsService {
-  constructor(private prisma: PrismaService, private mailer: MailerService) { }
+  constructor(private prisma: PrismaService, private mailer: MailerService, private notifsGateway: NotifsGateway) { }
 
   limit = parseInt(process.env.LIMIT)
   skip(page: number) { return (page - 1) * this.limit }
@@ -24,7 +25,9 @@ export class NotificationsService {
     if (this.compare(user.Profile.mailSub, data.level) && this.sendMail) {
       this.mailer.sendNotificationEmail([user.email], data);
     }
-    return this.prisma.notification.create({ data: { userId: user.id, ...data } });
+    const notification = await this.prisma.notification.create({ data: { userId: user.id, ...data } });
+    this.notifsGateway.sendNotificationToUser(user.id.toString(), notification);
+    return notification
   }
 
   async createMany(users: UserNotifInfo[], data: CreateNotificationDto) {
@@ -32,7 +35,8 @@ export class NotificationsService {
       if (this.compare(user.Profile.mailSub, data.level) && this.sendMail) {
         this.mailer.sendNotificationEmail([user.email], data);
       }
-      await this.prisma.notification.create({ data: { userId: user.id, ...data } });
+      const notification = await this.prisma.notification.create({ data: { userId: user.id, ...data } });
+      this.notifsGateway.sendNotificationToUser(user.id.toString(), notification);
     }
   }
 

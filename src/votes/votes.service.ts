@@ -8,7 +8,7 @@ import { UserNotifInfo } from 'src/notifications/entities/notification.entity';
 
 @Injectable()
 export class VotesService {
-  constructor(private prisma: PrismaService, private notificationsService: NotificationsService) { }
+  constructor(private prisma: PrismaService, private notificationsService: NotificationsService,) { }
 
   private userSelectConfig = { id: true, email: true, Profile: { select: { mailSub: true, firstName: true } } }
 

@@ -34,11 +34,13 @@ import { VotesService } from 'src/votes/votes.service';
 import { FlagsService } from 'src/flags/flags.service';
 import { MessagesService } from 'src/messages/messages.service';
 import { CreateMessageDto } from 'src/messages/dto/create-message.dto';
+import { NotifsGateway } from 'src/notifs/notifs.gateway';
 
 const prisma = new PrismaClient();
 const prismaService = new PrismaService();
-const mailerService = new MailerService()
-const notificationsService = new NotificationsService(prismaService, mailerService)
+const mailerService = new MailerService();
+const notifsGateway = new NotifsGateway();
+const notificationsService = new NotificationsService(prismaService, mailerService, notifsGateway)
 const addressService = new AddressService(prismaService)
 const user = new UsersService(prismaService)
 const groupsService = new GroupsService(prismaService)

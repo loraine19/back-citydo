@@ -3,11 +3,10 @@ import { PostsService } from './posts.service';
 import { PostsController } from './posts.controller';
 import { ImageInterceptor } from 'middleware/ImageInterceptor';
 import { NotificationsService } from 'src/notifications/notifications.service';
-import { NotificationsModule } from 'src/notifications/notifications.module';
-import { MailerService } from 'src/mailer/mailer.service';
+import { NotifsGateway } from 'src/notifs/notifs.gateway';
 
 @Module({
   controllers: [PostsController],
-  providers: [PostsService, ImageInterceptor, NotificationsService],
+  providers: [PostsService, ImageInterceptor, NotificationsService, NotifsGateway],
 })
 export class PostsModule { }

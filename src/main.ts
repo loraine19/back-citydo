@@ -13,10 +13,8 @@ import { IoAdapter } from '@nestjs/platform-socket.io';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
-    logger: new LoggerService(),
-
+    logger: new LoggerService()
   });
-
 
   const config = new DocumentBuilder()
     .setTitle('Collectif API ')

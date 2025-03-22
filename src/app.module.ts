@@ -23,6 +23,7 @@ import { LoggerModule } from './logger/logger.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { MessagesModule } from './messages/messages.module';
 import { ChatGateway } from './chat/chat.gateway';
+import { NotifsGateway } from './notifs/notifs.gateway';
 
 
 @Module({
@@ -56,5 +57,6 @@ import { ChatGateway } from './chat/chat.gateway';
     MessagesModule,
     //  ChatGateway,
   ],
+  providers: [NotifsGateway],
 })
 export class AppModule { }

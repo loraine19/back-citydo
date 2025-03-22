@@ -1,19 +1,16 @@
 import { UseGuards } from '@nestjs/common';
+import { EventEmitter } from 'events';
 import {
   ConnectedSocket,
   MessageBody,
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
-  WsException,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { WsAuthGuard } from 'src/auth/auth.guard';
-import { CreateMessageDto } from 'src/messages/dto/create-message.dto';
-import { MessagesService } from 'src/messages/messages.service';
-import { PrismaService } from 'src/prisma/prisma.service';
 
-const WS = 'chat';
+const WS = 'notifs'
 @UseGuards(WsAuthGuard)
 @WebSocketGateway({
   namespace: '/' + WS,
@@ -23,11 +20,13 @@ const WS = 'chat';
     credentials: true,
   },
 })
-export class ChatGateway {
+export class NotifsGateway {
   @WebSocketServer()
   server: Server;
+  constructor() {
+    EventEmitter.defaultMaxListeners = 90; // Increase the limit
+  }
 
-  constructor(private readonly meessagesService: MessagesService) { }
 
   @SubscribeMessage(`${WS}-message`)
   async handleMessage(
@@ -35,33 +34,19 @@ export class ChatGateway {
     @ConnectedSocket() client: Socket,
   ): Promise<void> {
     const userId = client.user;
-    const { userIdRec, message } = data;
-
-    // if (!message) {
-    //   const errorMsg = 'Message is required';
-    //   throw new WsException(errorMsg);
-    // }
-
 
     const room = this.getRoomName(userId.toString());
     client.join(room);
     this.server.to(room).emit('newMessage', 'newMessage');
-
-
-    if (userIdRec) {
-      const newMessage = await this.meessagesService.create({ userId, userIdRec, message })
-      this.server.to(this.getRoomName(userIdRec)).emit('newMessage', newMessage);
-    }
   }
 
   private getRoomName(userId1: string): string {
-    const roomName = [userId1, 'chat'].sort().join('-');
-    console.log(`[SERVER] Room name generated: ${roomName} from users ${userId1} `);
+    const roomName = [userId1, 'all'].sort().join('-');
     return roomName;
   }
 
-
+  sendNotificationToUser(userId: string, notification: any) {
+    const room = this.getRoomName(userId.toString());
+    this.server.to(room).emit('newMessage', notification);
+  }
 }
-
-
-

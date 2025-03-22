@@ -36,7 +36,7 @@ export class MessagesService {
       level: $Enums.NotificationLevel.SUB_2,
       title: `Nouveau message`,
       description: `Vous avez reçu un message de ${user.Profile.firstName} ${user.Profile.lastName}`,
-      link: `/chat/${messageCreated.id}`,
+      link: `/chat/${userRec.id}`,
 
     }
     await this.notificationsService.create(new UserNotifInfo(userRec), notification);
@@ -106,8 +106,8 @@ export class MessagesService {
     return `This action updates a #${id} message`;
   }
 
-  readConversation(userId: number, id: number) {
-    return this.prisma.message.updateMany({
+  async readConversation(userId: number, id: number) {
+    const messages = await this.prisma.message.updateMany({
       where: {
         userId: id,
         userIdRec: userId
@@ -116,6 +116,18 @@ export class MessagesService {
         read: true
       }
     })
+    await this.prisma.notification.updateMany({
+      where: {
+        userId: id,
+        type: $Enums.NotificationType.MESSAGE,
+        read: false,
+        link: `/chat/${userId}`
+      },
+      data: {
+        read: true
+      }
+    })
+    return messages
   }
 
 
