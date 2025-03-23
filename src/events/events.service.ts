@@ -15,7 +15,7 @@ export class EventsService {
   private eventIncludeConfig(userId?: number) {
     return {
       User: { select: { email: true, Profile: { include: { Address: true } } } },
-      Participants: { include: { User: { select: { email: true, Profile: true, id: true } } } },
+      Participants: { include: { User: { select: { email: true, Profile: { include: { Address: true } }, id: true, } } } },
       Address: true,
       Flags: { where: { target: $Enums.FlagTarget.EVENT, userId } }
     };
@@ -51,7 +51,7 @@ export class EventsService {
 
 
 
-  
+
 
   async findAllByUserId(userId: number, page?: number, category?: string): Promise<{ events: Event[], count: number }> {
     const skip = page ? this.skip(page) : 0;
