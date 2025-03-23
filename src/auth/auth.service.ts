@@ -70,10 +70,13 @@ export class AuthService {
         await this.prisma.token.deleteMany({
             where: { userId: user.id }
         })
+        const hashRefreshToken = await argon2.hash(refreshToken);
+        const hashVerify = argon2.verify(hashRefreshToken, refreshToken)
+        if (!hashVerify) throw new HttpException('Erreur de hashage', 500);
         await this.prisma.token.create({
             data: {
                 userId: user.id,
-                token: await argon2.hash(refreshToken),
+                token: hashRefreshToken,
                 type: $Enums.TokenType.REFRESH
             }
         })
@@ -110,7 +113,7 @@ export class AuthService {
             try {
                 const userToken = await prisma.token.findFirst({ where: { userId: userId, type: $Enums.TokenType.REFRESH } });
                 if (!userToken) throw new HttpException('Impossible de renouveller la connexion , identifiez vous ', 403);
-                const refreshTokenValid = await argon2.verify(userToken.token.trim(), refreshToken.trim());
+                const refreshTokenValid = await argon2.verify(userToken.token, refreshToken);
                 if (!refreshTokenValid) throw new HttpException('connexion interrompue, re-identifiez vous ', 403);
                 await prisma.token.deleteMany({ where: { userId, type: $Enums.TokenType.REFRESH } });
                 const accessToken = await this.generateAccessToken(userId);
