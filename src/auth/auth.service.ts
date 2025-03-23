@@ -41,8 +41,9 @@ export class AuthService {
         const { email, password } = data
         const user = await this.prisma.user.findUnique({ where: { email: email } });
         if (user) return { message: 'Vous avez déjà un compte' };
-        const hashPassword = await argon2.hash(password);
-        console.log(hashPassword, password)
+        const hashPassword = await argon2.hash(password.trim());
+        const debugHash = await argon2.verify(hashPassword, password)
+        if (!debugHash) throw new HttpException('Erreur de hashage', 500);
         const createdUser = await this.prisma.user.create({ data: { email, password: hashPassword } });
         const verifyToken = await this.generateRefreshToken(createdUser.id);
         const hashToken = await argon2.hash(verifyToken);
