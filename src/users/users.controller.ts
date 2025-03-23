@@ -47,8 +47,16 @@ export class UsersController {
   @ApiBearerAuth()
   @ApiOkResponse({ type: UserEntity })
   async FindMe(@UserDec() userId: number): Promise<Partial<User>> {
-    console.log('userId', userId)
     return this.usersService.findOne(userId)
+  }
+
+  @Get(':id')
+  @ApiBearerAuth()
+  @ApiOkResponse({ type: UserEntity })
+  async FindOne(
+    @Param('id', ParseIntPipe) id: number,
+    @UserDec() userId: number): Promise<Partial<User>> {
+    return this.usersService.findOne(id)
   }
 
   @Patch(':id')

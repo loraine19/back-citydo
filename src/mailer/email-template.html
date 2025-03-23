@@ -11,7 +11,7 @@
         line-height: 1.6;
         color: #00000080;
         margin: 0;
-        padding: 0;
+        padding: 20px;
       }
       .button a {
         color: #fff !important;
@@ -19,7 +19,7 @@
       }
 
       .container {
-        max-width: 800px;
+        max-width: 100%;
         margin: 20px auto;
         padding: 20px;
         border-radius: 0.8rem;
@@ -52,6 +52,7 @@
         text-decoration: none;
         text-align: center;
       }
+
       .footer {
         font-size: 12px;
         color: #777;
@@ -61,6 +62,16 @@
         color: #9a3412;
         text-decoration: none;
       }
+
+      @media only screen and (max-width: 600px) {
+        .container {
+          padding: 10px;
+        }
+        .header {
+          flex-direction: column;
+          gap: 10px;
+        }
+      }
     </style>
   </head>
   <body>
@@ -68,16 +79,11 @@
       <tr>
         <td align="center" style="padding: 20px">
           <table
-            width="800"
+            width="100%"
             border="0"
             cellspacing="0"
             cellpadding="20"
-            style="
-              border-radius: 0.8rem;
-              box-shadow: 0 10px 10px rgba(0, 0, 0, 0.1);
-              background-color: #f9f9f9;
-              border: 1px solid #ccc;
-            "
+            class="container"
           >
             <tr>
               <td>
@@ -88,16 +94,24 @@
                         display: flex;
                         justify-content: center;
                         align-items: center;
-                        gap: 50px;
+                        gap: 10px;
                       "
                     >
-                      <h1 style="margin: 0; padding: 10px 0px">Collectif</h1>
+                      <h1
+                        style="
+                          margin: 0;
+                          padding: 10px 0px;
+                          font-family: 'Comfortaa', Arial, sans-serif;
+                        "
+                      >
+                        City'Zen
+                      </h1>
                       <img
-                        src="cid:collectif@images.com"
-                        alt="Collectif Logo"
+                        src="cid:cityzen@images.com"
+                        alt="City'Zen Logo"
                         width="50"
                         height="50"
-                        style="padding: 0px 10px"
+                        style="padding: 0px 0px"
                       />
                     </td>
                   </tr>
@@ -139,7 +153,7 @@
                 </p>
                 <p style="margin: 0">
                   <a href="{{FRONT_URL}}/myprofile" style="color: #9a3412">
-                    Changer mes préférences de notification</a
+                    Changer mes préférences de notification sur City'Zen</a
                   >
                 </p>
               </td>

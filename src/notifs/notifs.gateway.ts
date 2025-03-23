@@ -23,9 +23,12 @@ const WS = 'notifs'
 export class NotifsGateway {
   @WebSocketServer()
   server: Server;
+  private users: number[] = [];
   constructor() {
     EventEmitter.defaultMaxListeners = 90; // Increase the limit
   }
+
+
 
 
   @SubscribeMessage(`${WS}-message`)
@@ -34,6 +37,17 @@ export class NotifsGateway {
     @ConnectedSocket() client: Socket,
   ): Promise<void> {
     const userId = client.user;
+
+    if (!this.users.includes(userId)) {
+      this.users.push(userId);
+      this.server.emit(`${WS}-message`, { users: this.users });
+      // console.log('users connected' + WS, this.users)
+    }
+
+    client.on('disconnect', () => {
+      this.users = this.users.filter(user => user !== userId);
+      this.server.emit(`${WS}-message`, { users: this.users });
+    });
 
     const room = this.getRoomName(userId.toString());
     client.join(room);

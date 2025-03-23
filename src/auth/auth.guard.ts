@@ -62,14 +62,10 @@ export class WsAuthGuard implements CanActivate {
     async canActivate(context: ExecutionContext): Promise<boolean> {
         if (context.getType() !== 'ws') {
             console.error('WS Guard used in a non-WS context');
-            // Important: Only apply this guard to WebSocket contexts.
             return true; // Or throw an error, depending on your needs.
         }
-
         const client = context.switchToWs().getClient<Socket>();
         const handshake = client.handshake;
-
-        // Parse cookies from the handshake headers
         const cookies = cookie.parse(handshake.headers.cookie || '');
         const token = cookies[process.env.ACCESS_COOKIE_NAME]; // Use the environment variable
 

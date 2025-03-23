@@ -30,7 +30,7 @@ export class MailerService {
                 {
                     filename: 'logo.png',
                     path: 'middleware/logo.png',
-                    cid: 'CityZen@images.com'
+                    cid: 'cityzen@images.com'
                 }
             ],
         };
@@ -52,7 +52,7 @@ export class MailerService {
     public async sendResetPasswordEmail(to: string, token: string) {
         const subject = 'Initialisation de votre mot de passe';
         const html = this.generateEmailHtml('Vous avez demande une initialisation de votre mot de passe veuillez cliquer sur le lien ci-dessous (le lien est valable pendant 1 heure):',
-            `<a href="${process.env.FRONT_URL}/motdepasse_oublie/reset?email=${to}&token=${token}">Initialiser mon mot de passe</a>`);
+            `<a style="text-decoration: none; color: #fff" href="${process.env.FRONT_URL}/motdepasse_oublie/reset?email=${to}&token=${token}">Initialiser mon mot de passe</a>`);
         await this.sendEmail(to, subject, html);
     }
 
@@ -60,14 +60,14 @@ export class MailerService {
     public async sendVerificationEmail(to: string, token: string) {
         const subject = 'Activation de votre compte City\'Zen';
         const html = this.generateEmailHtml('Bienvenue sur City\'Zen, cliquez sur le lien ci-dessous pour activer votre compte :',
-            `<a id="activation-link" href="${process.env.FRONT_URL}/signin?email=${to}&token=${token}">Activer mon compte</a>`);
+            `<a style="text-decoration: none; color: #fff" id="activation-link" href="${process.env.FRONT_URL}/signin?email=${to}&token=${token}">Activer mon compte</a>`);
         await this.sendEmail(to, subject, html);
     }
 
     public async sendDeleteAccountEmail(to: string, token: string) {
         const subject = 'Suppression de votre compte City\'Zen';
         const html = this.generateEmailHtml('Bonjour, vous avez demande de supprimer votre compte. cliquez sur le lien ci-dessous pour supprimer votre compte, vous ne pouvez plus revenir en arriere :',
-            `<a href="${process.env.FRONT_URL}/delete_account?email=${to}&token=${token}">Supprimer mon compte</a>`);
+            `<a style="text-decoration: none; color: #fff"  href="${process.env.FRONT_URL}/delete_account?email=${to}&token=${token}">Supprimer mon compte</a>`);
         await this.sendEmail(to, subject, html);
     }
 
@@ -76,7 +76,7 @@ export class MailerService {
         const subject = `Notification de City\'Zen : ${Notification.title}`;
         const html = this.generateEmailHtml(`${Notification.title} ,<br>
             ${Notification.description ?? 'veuillez consulter l\'application pour plus de détails.'}`,
-            Notification.link && `<a href="${process.env.FRONT_URL}${Notification.link}">Ouvrir dans l'application</a>`);
+            Notification.link && `<a style="text-decoration: none; color: #fff"  href="${process.env.FRONT_URL}${Notification.link}">Ouvrir dans l'application</a>`);
         to.map(async (email) => {
             await this.sendEmail(email, subject, html)
         })
