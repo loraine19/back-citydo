@@ -37,16 +37,16 @@ export class NotifsGateway {
 
     const room = this.getRoomName(userId.toString());
     client.join(room);
-    this.server.to(room).emit('newMessage', 'newMessage');
+    this.server.to(room).emit(`${WS}-message`, `${WS}-message`);
   }
 
-  private getRoomName(userId1: string): string {
-    const roomName = [userId1, 'all'].sort().join('-');
+  private getRoomName(userId: string): string {
+    const roomName = `${userId}-${WS}`
     return roomName;
   }
 
   sendNotificationToUser(userId: string, notification: any) {
     const room = this.getRoomName(userId.toString());
-    this.server.to(room).emit('newMessage', notification);
+    this.server.to(room).emit(`${WS}-message`, notification);
   }
 }

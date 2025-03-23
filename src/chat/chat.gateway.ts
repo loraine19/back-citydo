@@ -5,14 +5,11 @@ import {
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
-  WsException,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { WsAuthGuard } from 'src/auth/auth.guard';
 import { CreateMessageDto } from 'src/messages/dto/create-message.dto';
 import { MessagesService } from 'src/messages/messages.service';
-import { PrismaService } from 'src/prisma/prisma.service';
-
 const WS = 'chat';
 @UseGuards(WsAuthGuard)
 @WebSocketGateway({
@@ -27,7 +24,7 @@ export class ChatGateway {
   @WebSocketServer()
   server: Server;
 
-  constructor(private readonly meessagesService: MessagesService) { }
+  constructor(private readonly messagesService: MessagesService) { }
 
   @SubscribeMessage(`${WS}-message`)
   async handleMessage(
@@ -37,31 +34,19 @@ export class ChatGateway {
     const userId = client.user;
     const { userIdRec, message } = data;
 
-    // if (!message) {
-    //   const errorMsg = 'Message is required';
-    //   throw new WsException(errorMsg);
-    // }
-
-
-    const room = this.getRoomName(userId.toString());
+    const room = this.getRoomName(userId);
     client.join(room);
-    this.server.to(room).emit('newMessage', 'newMessage');
-
-
     if (userIdRec) {
-      const newMessage = await this.meessagesService.create({ userId, userIdRec, message })
-      this.server.to(this.getRoomName(userIdRec)).emit('newMessage', newMessage);
+      const newMessage = await this.messagesService.create({ userId, userIdRec, message })
+      const recRoom = this.getRoomName(userIdRec)
+      this.server.to(recRoom).emit(`${WS}-message`, newMessage);
+      this.server.to(room).emit(`${WS}-message`, newMessage);
     }
   }
 
-  private getRoomName(userId1: string): string {
-    const roomName = [userId1, 'chat'].sort().join('-');
-    console.log(`[SERVER] Room name generated: ${roomName} from users ${userId1} `);
-    return roomName;
-  }
-
-
+  private getRoomName(id: number): string { return `${id.toString()}-${WS}` }
 }
+
 
 
 
