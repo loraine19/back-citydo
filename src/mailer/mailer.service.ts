@@ -84,7 +84,7 @@ export class MailerService {
 
 
     private generateEmailHtml(text: string, link: string) {
-        const templatePath = process.env.NODE_ENV === 'prod' ? __dirname + '/public/email-template.html' : './dist/public/email-template.html';
+        const templatePath = process.env.NODE_ENV === 'prod' ? __dirname + '/middleware/email-template.html' : './middleware/email-template.html';
         let htmlContent = fs.readFileSync(templatePath, 'utf8');
 
         htmlContent = htmlContent.replace('{{TEXT}}', text);
