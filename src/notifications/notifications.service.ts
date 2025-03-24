@@ -58,7 +58,16 @@ export class NotificationsService {
     return this.prisma.notification.update({ where: { id, userId }, data: { read: true } });
   }
 
+  updateAll(userId: number) {
+    return this.prisma.notification.updateMany({
+      where: { userId, read: false }, data: { read: true }
+    })
+  }
+
   remove(id: number, userId: number) {
     return this.prisma.notification.delete({ where: { id, userId } });
   }
+
+
+
 }

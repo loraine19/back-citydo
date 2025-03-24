@@ -36,4 +36,10 @@ export class NotificationsController {
     return this.notificationsService.update(id, userId);
   }
 
+  @Put('all')
+  updateAll(
+    @User() userId: number) {
+    return this.notificationsService.updateAll(userId);
+  }
+
 }

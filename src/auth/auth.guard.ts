@@ -7,8 +7,7 @@ import * as cookie from 'cookie';
 
 declare module 'socket.io' {
     interface Socket {
-        user?: number; // Or whatever type your user ID is (e.g., string, object)
-        // user?: { id: number; username: string; /* ... other properties ... */ }; // Example with a more complex user object
+        user?: number;
     }
 }
 
@@ -60,30 +59,21 @@ export class AuthGuardRefresh implements CanActivate {
 export class WsAuthGuard implements CanActivate {
     constructor(private jwtService: JwtService) { }
     async canActivate(context: ExecutionContext): Promise<boolean> {
-        if (context.getType() !== 'ws') {
-            console.error('WS Guard used in a non-WS context');
-            return true; // Or throw an error, depending on your needs.
-        }
+        if (context.getType() !== 'ws') throw new WsException('Malformed access to websocket');
         const client = context.switchToWs().getClient<Socket>();
         const handshake = client.handshake;
         const cookies = cookie.parse(handshake.headers.cookie || '');
         const token = cookies[process.env.ACCESS_COOKIE_NAME]; // Use the environment variable
-
-        if (!token) {
-            throw new WsException('Unauthorized: No access_token cookie found');
-        }
-
+        if (!token) { throw new WsException('Unauthorized access to websocket'); }
+        /// playload verification for WS
         try {
-            const payload = await this.jwtService.verifyAsync(token, {
-                secret: process.env.JWT_SECRET,
-
-            });
+            const payload = await this.jwtService.verifyAsync(token, { secret: process.env.JWT_SECRET });
             client.user = payload.sub;
-            return true; // Authentication successful
-
-        } catch (error) {
+            return true;
+        }
+        catch (error) {
             console.error('JWT Verification Error (WS):', error);
-            throw new WsException('Unauthorized: Invalid token');
+            throw new WsException('Unauthorized access to websocket');
         }
     }
 }

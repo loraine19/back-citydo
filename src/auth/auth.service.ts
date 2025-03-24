@@ -13,11 +13,22 @@ import { MailerService } from 'src/mailer/mailer.service';
 export class AuthService {
     constructor(private prisma: PrismaService, private jwtService: JwtService, private mailerService: MailerService) { }
 
-    async generateAccessToken(sub: number) { return this.jwtService.sign({ sub }, { secret: process.env.JWT_SECRET, expiresIn: process.env.JWT_EXPIRES_ACCESS }) }
+    async generateAccessToken(sub: number) {
+        return this.jwtService.sign({ sub }, { secret: process.env.JWT_SECRET, expiresIn: process.env.JWT_EXPIRES_ACCESS })
+    }
 
-    async generateRefreshToken(sub: number) { return this.jwtService.sign({ sub }, { secret: process.env.JWT_SECRET_REFRESH, expiresIn: process.env.JWT_EXPIRES_REFRESH }) }
+    async generateRefreshToken(sub: number): Promise<{ refreshToken: string, hashRefreshToken: string }> {
+        const refreshToken = this.jwtService.sign({ sub }, { secret: process.env.JWT_SECRET_REFRESH, expiresIn: process.env.JWT_EXPIRES_REFRESH })
+        const hashRefreshToken = await argon2.hash(refreshToken);
+        const hashVerify = await argon2.verify(hashRefreshToken, refreshToken)
+        console.log('hashVerify:', hashVerify);
+        if (!hashVerify) throw new HttpException('Erreur de hashage', 500);
+        return { refreshToken, hashRefreshToken }
+    }
 
-    async generateVerifyToken(sub: number) { return this.jwtService.sign({ sub }, { secret: process.env.JWT_SECRET, expiresIn: process.env.JWT_EXPIRES_VERIFY }) }
+    async generateVerifyToken(sub: number) {
+        return this.jwtService.sign({ sub }, { secret: process.env.JWT_SECRET, expiresIn: process.env.JWT_EXPIRES_VERIFY })
+    }
 
     errorCredentials = { message: 'Identifiants incorrect' }
 
@@ -45,7 +56,7 @@ export class AuthService {
         const debugHash = await argon2.verify(hashPassword, password)
         if (!debugHash) throw new HttpException('Erreur de hashage', 500);
         const createdUser = await this.prisma.user.create({ data: { email, password: hashPassword } });
-        const verifyToken = await this.generateRefreshToken(createdUser.id);
+        const verifyToken = await this.generateVerifyToken(createdUser.id);
         const hashToken = await argon2.hash(verifyToken);
         await this.prisma.token.create({
             data: { userId: createdUser.id, token: hashToken, type: $Enums.TokenType.VERIFY }
@@ -65,14 +76,11 @@ export class AuthService {
             this.mailerService.sendVerificationEmail(email, await this.generateVerifyToken(user.id));
             return { message: 'Votre compte est inactif, veuillez verifier votre email' }
         }
-        const refreshToken = await this.generateRefreshToken(user.id);
+        const { refreshToken, hashRefreshToken } = await this.generateRefreshToken(user.id);
         const accessToken = await this.generateAccessToken(user.id);
         await this.prisma.token.deleteMany({
             where: { userId: user.id }
         })
-        const hashRefreshToken = await argon2.hash(refreshToken);
-        const hashVerify = argon2.verify(hashRefreshToken, refreshToken)
-        if (!hashVerify) throw new HttpException('Erreur de hashage', 500);
         await this.prisma.token.create({
             data: {
                 userId: user.id,
@@ -97,10 +105,10 @@ export class AuthService {
         const isPasswordValid = await argon2.verify(user.password, password)
         if (!isPasswordValid) return this.errorCredentials
         const accessToken = await this.generateAccessToken(user.id);
-        const refreshToken = await this.generateRefreshToken(user.id);
+        const { refreshToken, hashRefreshToken } = await this.generateRefreshToken(user.id);
         await this.prisma.user.update({ where: { id: user.id }, data: { status: $Enums.UserStatus.ACTIVE } })
         await this.prisma.token.deleteMany({ where: { userId: user.id, type: $Enums.TokenType.REFRESH } })
-        await this.prisma.token.create({ data: { userId: user.id, token: await argon2.hash(refreshToken), type: $Enums.TokenType.REFRESH } })
+        await this.prisma.token.create({ data: { userId: user.id, token: hashRefreshToken, type: $Enums.TokenType.REFRESH } })
         this.setAuthCookies(res, accessToken);
         user.password = ''
         return { refreshToken, user }
@@ -111,18 +119,25 @@ export class AuthService {
         // Use PrismaClientTransaction to avoid errror in case of multi entrance in the same time
         return await this.prisma.$transaction(async (prisma) => {
             try {
-                const userToken = await prisma.token.findFirst({ where: { userId: userId, type: $Enums.TokenType.REFRESH } });
+                const userToken = await prisma.token.findFirst({ where: { userId, type: $Enums.TokenType.REFRESH } });
                 if (!userToken) throw new HttpException('Impossible de renouveller la connexion , identifiez vous ', 403);
-                const refreshTokenValid = await argon2.verify(userToken.token, refreshToken);
-                if (!refreshTokenValid) throw new HttpException('connexion interrompue, re-identifiez vous ', 403);
-                await prisma.token.deleteMany({ where: { userId, type: $Enums.TokenType.REFRESH } });
+                let refreshTokenValid = await argon2.verify(userToken.token, refreshToken);
+
+                if (!refreshTokenValid) console.log('refreshTokenValid:', refreshTokenValid);
+                refreshTokenValid = await argon2.verify(userToken.token, refreshToken);
+                if (!refreshTokenValid) {
+                    console.log('JWT created at:', this.jwtService.decode(refreshToken)?.iat, 'Refresh token:', userToken.createdAt);
+                    throw new HttpException('Impossible de renouveller la connexion 2 , identifiez vous ', 403);
+                }
+
                 const accessToken = await this.generateAccessToken(userId);
-                const newRefreshToken = await this.generateRefreshToken(userId)
-                await prisma.token.create({
-                    data: { userId, token: await argon2.hash(newRefreshToken), type: $Enums.TokenType.REFRESH }
+                const newRefresh = await this.generateRefreshToken(userId);
+                const updateRefreshToken = await prisma.token.update({
+                    where: { userId_type: { userId, type: $Enums.TokenType.REFRESH } },
+                    data: { userId, token: newRefresh.hashRefreshToken, type: $Enums.TokenType.REFRESH }
                 });
                 await this.setAuthCookies(res, accessToken)
-                return { refreshToken: newRefreshToken };
+                return { refreshToken: newRefresh.refreshToken };
             } catch (error) {
                 throw new HttpException(error.message, 401);
             }

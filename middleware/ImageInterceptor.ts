@@ -20,9 +20,11 @@ export class ImageInterceptor {
             limits: { fileSize: 1024 * 1024 * 5 }, // 5MB
         });
     }
+
     static deleteImage(filePath: string) {
         const fullPath = path.resolve(filePath.replace(process.env.STORAGE, 'dist'))
         console.log(fullPath)
+
         fs.unlink(fullPath, (err) => {
             if (err) {
                 console.error('Error deleting file:', err);

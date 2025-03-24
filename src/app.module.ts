@@ -22,8 +22,9 @@ import { MailerModule } from './mailer/mailer.module';
 import { LoggerModule } from './logger/logger.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { MessagesModule } from './messages/messages.module';
-import { ChatGateway } from './chat/chat.gateway';
 import { NotifsGateway } from './notifs/notifs.gateway';
+import { CronTaskModule } from './cron-task/cron-task.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 
 @Module({
@@ -34,6 +35,7 @@ import { NotifsGateway } from './notifs/notifs.gateway';
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'public'),
     }),
+    ScheduleModule.forRoot(),
     AuthModule,
     AddressModule,
     GroupsModule,
@@ -55,8 +57,8 @@ import { NotifsGateway } from './notifs/notifs.gateway';
     LoggerModule,
     NotificationsModule,
     MessagesModule,
-    //  ChatGateway,
+    CronTaskModule,
   ],
-  providers: [NotifsGateway],
+  // providers: [NotifsGateway],
 })
 export class AppModule { }
