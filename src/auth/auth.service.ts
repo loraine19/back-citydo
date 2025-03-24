@@ -21,7 +21,6 @@ export class AuthService {
         const refreshToken = this.jwtService.sign({ sub }, { secret: process.env.JWT_SECRET_REFRESH, expiresIn: process.env.JWT_EXPIRES_REFRESH })
         const hashRefreshToken = await argon2.hash(refreshToken);
         const hashVerify = await argon2.verify(hashRefreshToken, refreshToken)
-        console.log('hashVerify:', hashVerify);
         if (!hashVerify) throw new HttpException('Erreur de hashage', 500);
         return { refreshToken, hashRefreshToken }
     }
@@ -122,20 +121,19 @@ export class AuthService {
                 const userToken = await prisma.token.findFirst({ where: { userId, type: $Enums.TokenType.REFRESH } });
                 if (!userToken) throw new HttpException('Impossible de renouveller la connexion , identifiez vous ', 403);
                 let refreshTokenValid = await argon2.verify(userToken.token, refreshToken);
-
                 if (!refreshTokenValid) console.log('refreshTokenValid:', refreshTokenValid);
                 refreshTokenValid = await argon2.verify(userToken.token, refreshToken);
                 if (!refreshTokenValid) {
-                    console.log('JWT created at:', this.jwtService.decode(refreshToken)?.iat, 'Refresh token:', userToken.createdAt);
+                    console.log('JWT created at:', new Date(this.jwtService.decode(refreshToken)?.iat * 1000).toISOString(), 'Refresh token:', userToken.createdAt.toISOString());
                     throw new HttpException('Impossible de renouveller la connexion 2 , identifiez vous ', 403);
                 }
-
                 const accessToken = await this.generateAccessToken(userId);
                 const newRefresh = await this.generateRefreshToken(userId);
                 const updateRefreshToken = await prisma.token.update({
                     where: { userId_type: { userId, type: $Enums.TokenType.REFRESH } },
                     data: { userId, token: newRefresh.hashRefreshToken, type: $Enums.TokenType.REFRESH }
                 });
+                if (!updateRefreshToken) throw new HttpException('Impossible de renouveller la connexion 3 , identifiez vous ', 403);
                 await this.setAuthCookies(res, accessToken)
                 return { refreshToken: newRefresh.refreshToken };
             } catch (error) {
