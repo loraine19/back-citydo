@@ -13,6 +13,9 @@ export class NotificationsService {
   limit = parseInt(process.env.LIMIT)
   skip(page: number) { return (page - 1) * this.limit }
   sendMail = process.env.SEND_MAIL === 'true'
+  // TO DISABLE INSTANT NOTIFICATIONS
+  sendinstant = process.env.NODE_ENV === 'dev'
+
 
   private compare = (a: MailSubscriptions, b: NotificationLevel): boolean => {
     const aNumber = parseInt(b.toString().replace('SUB_', ''))
@@ -26,7 +29,7 @@ export class NotificationsService {
       this.mailer.sendNotificationEmail([user.email], data);
     }
     const notification = await this.prisma.notification.create({ data: { userId: user.id, ...data } });
-    this.notifsGateway.sendNotificationToUser(user.id.toString(), notification);
+    this.sendinstant && this.notifsGateway.sendNotificationToUser(user.id.toString(), notification);
     return notification
   }
 
@@ -35,8 +38,9 @@ export class NotificationsService {
       if (this.compare(user.Profile.mailSub, data.level) && this.sendMail) {
         this.mailer.sendNotificationEmail([user.email], data);
       }
+
       const notification = await this.prisma.notification.create({ data: { userId: user.id, ...data } });
-      this.notifsGateway.sendNotificationToUser(user.id.toString(), notification);
+      this.sendinstant && this.notifsGateway.sendNotificationToUser(user.id.toString(), notification);
     }
   }
 
