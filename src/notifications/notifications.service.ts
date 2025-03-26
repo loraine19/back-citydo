@@ -14,7 +14,7 @@ export class NotificationsService {
   skip(page: number) { return (page - 1) * this.limit }
   sendMail = process.env.SEND_MAIL === 'true'
   // TO DISABLE INSTANT NOTIFICATIONS
-  sendinstant = process.env.NODE_ENV === 'dev'
+  sendInstant = process.env.SEND_WS === 'true'
 
 
   private compare = (a: MailSubscriptions, b: NotificationLevel): boolean => {
