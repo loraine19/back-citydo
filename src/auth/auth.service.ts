@@ -115,31 +115,32 @@ export class AuthService {
 
 
     async refresh(refreshToken: string, userId: number, res: Response): Promise<{ refreshToken: string } | { message: string }> {
-        // Use PrismaClientTransaction to avoid errror in case of multi entrance in the same time
-        return await this.prisma.$transaction(async (prisma) => {
-            try {
-                const userToken = await prisma.token.findFirst({ where: { userId, type: $Enums.TokenType.REFRESH } });
-                if (!userToken) throw new HttpException('Impossible de renouveller la connexion , identifiez vous ', 403);
-                let refreshTokenValid = await argon2.verify(userToken.token, refreshToken);
-                if (!refreshTokenValid) console.log('refreshTokenValid:', refreshTokenValid);
-                refreshTokenValid = await argon2.verify(userToken.token, refreshToken);
-                if (!refreshTokenValid) {
-                    console.log('JWT created at:', new Date(this.jwtService.decode(refreshToken)?.iat * 1000).toISOString(), 'Refresh token:', userToken.createdAt.toISOString());
-                    throw new HttpException('Impossible de renouveller la connexion 2 , identifiez vous ', 403);
-                }
-                const accessToken = await this.generateAccessToken(userId);
-                const newRefresh = await this.generateRefreshToken(userId);
-                const updateRefreshToken = await prisma.token.update({
-                    where: { userId_type: { userId, type: $Enums.TokenType.REFRESH } },
-                    data: { userId, token: newRefresh.hashRefreshToken, type: $Enums.TokenType.REFRESH }
-                });
-                if (!updateRefreshToken) throw new HttpException('Impossible de renouveller la connexion 3 , identifiez vous ', 403);
-                await this.setAuthCookies(res, accessToken)
-                return { refreshToken: newRefresh.refreshToken };
-            } catch (error) {
-                throw new HttpException(error.message, 401);
+        try {
+            const userToken = await this.prisma.token.findFirst({ where: { userId, type: $Enums.TokenType.REFRESH } });
+            if (!userToken) throw new HttpException('Impossible de renouveller la connexion , identifiez vous ', 403);
+            let refreshTokenValid = await argon2.verify(userToken.token, refreshToken);
+            if (!refreshTokenValid) console.log('refreshTokenValid:', refreshTokenValid);
+            refreshTokenValid = await argon2.verify(userToken.token, refreshToken);
+            if (!refreshTokenValid) {
+                console.log('JWT created at:', new Date(this.jwtService.decode(refreshToken)?.iat * 1000).toISOString(), 'Refresh token:', userToken.createdAt.toISOString());
+                throw new HttpException('Impossible de renouveller la connexion 2 , identifiez vous ', 403);
             }
-        });
+            const accessToken = await this.generateAccessToken(userId);
+            const newRefresh = await this.generateRefreshToken(userId);
+            const updateRefreshToken = await this.prisma.token.update({
+                where: { userId_type: { userId, type: $Enums.TokenType.REFRESH } },
+                data: { userId, token: newRefresh.hashRefreshToken, type: $Enums.TokenType.REFRESH }
+            });
+            console.log('updateRefreshToken:', updateRefreshToken);
+            const verifyRefreshToken = await argon2.verify(updateRefreshToken.token, newRefresh.refreshToken);
+            console.log('verifyRefreshToken: ', verifyRefreshToken + ' - ' + new Date().toLocaleTimeString());
+            if (!verifyRefreshToken) throw new HttpException('Erreur de hashage', 500);
+            await this.setAuthCookies(res, accessToken)
+            return { refreshToken: newRefresh.refreshToken }
+        } catch (error) {
+            console.log('Error refresh:', error);
+            return { message: error.message }
+        }
     }
 
     async logOut(userId: number, res: Response): Promise<{ message: string }> {
