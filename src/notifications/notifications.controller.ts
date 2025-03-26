@@ -16,9 +16,10 @@ export class NotificationsController {
   async findAll(
     @User() userId: number,
     @Query('page', new DefaultValuePipe(0), ParseIntPipe) page?: number,
-    @Query('filter') filter?: $Enums.NotificationType,
+    @Query('filter') filter?: string,
     @Query('map') map?: boolean): Promise<{ notifs: Notification[], count: number }> {
-    return this.notificationsService.findAll(page, userId, filter, map);
+    const result = await this.notificationsService.findAll(page, userId, filter, map);
+    return { notifs: result.notifs, count: result.count };
   }
 
   @Get(':id')
@@ -27,7 +28,11 @@ export class NotificationsController {
     @User() userId: number) {
     return this.notificationsService.findOne(id, userId);
   }
-
+  @Put('all')
+  updateAll(
+    @User() userId: number) {
+    return this.notificationsService.updateAll(userId);
+  }
 
   @Put(':id')
   update(
@@ -36,10 +41,6 @@ export class NotificationsController {
     return this.notificationsService.update(id, userId);
   }
 
-  @Put('all')
-  updateAll(
-    @User() userId: number) {
-    return this.notificationsService.updateAll(userId);
-  }
+
 
 }

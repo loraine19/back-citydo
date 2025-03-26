@@ -34,8 +34,8 @@ export class MessagesService {
     const notification = {
       type: $Enums.NotificationType.MESSAGE,
       level: $Enums.NotificationLevel.SUB_2,
-      title: `Nouveau message`,
-      description: `Vous avez reçu un message de ${user.Profile.firstName} ${user.Profile.lastName}`,
+      title: `Nouveau message de ${user.Profile.firstName}`,
+      description: `${user.Profile.firstName} : ${message.message}`,
       link: `/chat?with=${userId}`,
 
     }

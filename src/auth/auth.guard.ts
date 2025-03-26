@@ -44,6 +44,7 @@ export class AuthGuardRefresh implements CanActivate {
             return true;
         }
         catch (error) {
+            console.log(error, token)
             throw new HttpException('Guard :' + error, 401)
         }
     }

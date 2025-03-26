@@ -40,9 +40,14 @@ export class NotificationsService {
     }
   }
 
-  async findAll(page: number, userId: number, filter: $Enums.NotificationType, map: boolean) {
+  async findAll(page: number, userId: number, filter: string, map: boolean) {
     const skip = (page && page !== 0) ? this.skip(page) : 0;
-    const where = filter ? { userId, type: filter, read: false } : { userId, read: false };
+    const convertFilter: $Enums.NotificationType[] = filter ? filter.includes(',')
+      ? filter.split(',').map(f => $Enums.NotificationType[f as keyof typeof $Enums.NotificationType])
+      : [$Enums.NotificationType[filter as keyof typeof $Enums.NotificationType]] : [];
+    const where = filter ?
+      { userId, type: { in: convertFilter }, read: false } :
+      { userId, read: false };
     const mapOption = map ? { addressId: { not: null } } : {}
     const count = await this.prisma.notification.count({ where: { ...where, ...mapOption } });
     const take = (page && page !== 0) ? this.limit : count;
