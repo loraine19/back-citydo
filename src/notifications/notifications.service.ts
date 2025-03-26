@@ -29,7 +29,7 @@ export class NotificationsService {
       this.mailer.sendNotificationEmail([user.email], data);
     }
     const notification = await this.prisma.notification.create({ data: { userId: user.id, ...data } });
-    this.sendinstant && this.notifsGateway.sendNotificationToUser(user.id.toString(), notification);
+    this.sendInstant && this.notifsGateway.sendNotificationToUser(user.id.toString(), notification);
     return notification
   }
 
@@ -40,7 +40,7 @@ export class NotificationsService {
       }
 
       const notification = await this.prisma.notification.create({ data: { userId: user.id, ...data } });
-      this.sendinstant && this.notifsGateway.sendNotificationToUser(user.id.toString(), notification);
+      this.sendInstant && this.notifsGateway.sendNotificationToUser(user.id.toString(), notification);
     }
   }
 
