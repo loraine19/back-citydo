@@ -68,7 +68,7 @@ const customLocale: LocaleDefinition = {
   location: {
     city_pattern: ['Marseille'],
     street_pattern: ['boulevard de la corderie', 'rue de la république', 'rue de la canebière', 'traverse du moulin de la villette', "Rue Désirée Clary", "Boulevard de Paris", "Rue de Lyon", "Rue Jean Cristofol", "Rue Félix Pyat", "Rue Loubon",
-      "Boulvard Roger Salengro", "Rue Odette Jasse", "Rue de Ruffi", "Rue Ibrahim Ali"],
+      "Boulvard Roger Salengro", "Rue Odette Jasse", "Rue de Ruffi", "Rue Ibrahim Ali", "rue sainte ", "Rue Caisserie", "rue Chevalier Paul", "Rue Colbert"],
     PhoneModule: ['+33'],
     postcode: ['13001', '13002', '13003'],
     latitude: { min: 43.303, max: 43.318 },
@@ -179,13 +179,13 @@ const CreateRandomEvent = async (): Promise<CreateEventDto> => {
     userId: newFaker.number.int({ min: 1, max: max / 3 }),
     Address,
     addressId: Address.id,
-    title: 'Evenement ' + newFaker.lorem.words({ min: 3, max: 8 }),
+    title: 'Événement ' + newFaker.lorem.words({ min: 3, max: 8 }),
     description: newFaker.lorem.lines({ min: 1, max: 2 }),
     start,
     end,
     category: newFaker.helpers.arrayElement(Object.values($Enums.EventCategory)),
     participantsMin: newFaker.number.int({ min: 1, max: 20 }),
-    image: (newFaker.image.urlPicsumPhotos({ width: 600, height: 400, blur: 0, grayscale: false })),
+    image: newFaker.image.urlPicsumPhotos({ width: 600, height: 400, blur: 0, grayscale: false }),
   }
 }
 

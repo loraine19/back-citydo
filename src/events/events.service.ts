@@ -110,7 +110,7 @@ export class EventsService {
 
   //// ACTIONS
   async create(data: CreateEventDto): Promise<Event> {
-    const { userId, addressId, Address, image, ...event } = data
+    const { userId, addressId, Address, ...event } = data
     const addressIdVerified = await this.addressService.verifyAddress(Address);
     const createdEvent = await this.prisma.event.create({
       data: { ...event, Address: { connect: { id: addressIdVerified } }, User: { connect: { id: userId } } }
