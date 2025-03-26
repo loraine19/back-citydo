@@ -119,22 +119,18 @@ export class AuthService {
             const userToken = await this.prisma.token.findFirst({ where: { userId, type: $Enums.TokenType.REFRESH } });
             if (!userToken) throw new HttpException('Impossible de renouveller la connexion , identifiez vous ', 403);
             let refreshTokenValid = await argon2.verify(userToken.token, refreshToken);
-            if (!refreshTokenValid) console.log('refreshTokenValid:', refreshTokenValid);
-            refreshTokenValid = await argon2.verify(userToken.token, refreshToken);
             if (!refreshTokenValid) {
                 console.log('JWT created at:', new Date(this.jwtService.decode(refreshToken)?.iat * 1000).toISOString(), 'Refresh token:', userToken.createdAt.toISOString());
                 throw new HttpException('Impossible de renouveller la connexion 2 , identifiez vous ', 403);
             }
             const accessToken = await this.generateAccessToken(userId);
             const newRefresh = await this.generateRefreshToken(userId);
+            console.log('New refresh token:', newRefresh)
             const updateRefreshToken = await this.prisma.token.update({
                 where: { userId_type: { userId, type: $Enums.TokenType.REFRESH } },
                 data: { userId, token: newRefresh.hashRefreshToken, type: $Enums.TokenType.REFRESH }
             });
-            console.log('updateRefreshToken:', updateRefreshToken);
-            const verifyRefreshToken = await argon2.verify(updateRefreshToken.token, newRefresh.refreshToken);
-            console.log('verifyRefreshToken: ', verifyRefreshToken + ' - ' + new Date().toLocaleTimeString());
-            if (!verifyRefreshToken) throw new HttpException('Erreur de hashage', 500);
+            if (!updateRefreshToken) throw new HttpException('probleme de mise a jour du token', 500)
             await this.setAuthCookies(res, accessToken)
             return { refreshToken: newRefresh.refreshToken }
         } catch (error) {

@@ -12,21 +12,21 @@ export class CronTaskService {
     createdOneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
     createdOneMonthAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
 
-    @Cron(CronExpression.EVERY_DAY_AT_NOON)
+    @Cron(CronExpression.EVERY_WEEK)
     deleteReadNotifs() {
         this.prisma.notification.deleteMany({
             where: { read: true, updatedAt: { lt: this.createdOneWeekAgo } },
         })
     }
 
-    @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+    @Cron(CronExpression.EVERY_WEEK)
     deleteOldNotifs() {
         this.prisma.notification.deleteMany({
             where: { createdAt: { lt: this.createdOneMonthAgo } }
         })
     }
 
-    @Cron(CronExpression.EVERY_DAY_AT_NOON)
+    @Cron(CronExpression.EVERY_WEEK)
     async deleteOldPhotos() {
         const rootPath = path.join(__dirname, '..', '..', 'public')
 
