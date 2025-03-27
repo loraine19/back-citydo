@@ -151,17 +151,13 @@ export class PoolsSurveysService {
     return surveyCreated
   }
 
-
-
-
   async updateSurvey(id: number, data: any): Promise<Survey> {
     const { userId, userIdResp, ...service } = data
     return await this.prisma.survey.update({
       where: { id, userId },
       include: this.surveyIncludeConfig(userId),
       data: {
-        ...service, User: { connect: { id: userId } },
-        UserResp: { connect: { id: userIdResp } }
+        ...service, User: { connect: { id: userId } }
       }
     });
   }

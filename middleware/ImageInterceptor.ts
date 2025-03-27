@@ -23,7 +23,11 @@ export class ImageInterceptor {
 
     static deleteImage(filePath: string) {
         const fullPath = path.resolve(filePath.replace(process.env.STORAGE, 'dist'))
-        console.log(fullPath)
+        const dirName = path.basename(path.dirname(fullPath));
+        const rootPath = path.join(__dirname, '..', '..', 'public')
+        const dir = path.join(rootPath, 'images', dirName);
+        const files = fs.readdirSync(dir);
+        if (!files) return;
 
         fs.unlink(fullPath, (err) => {
             if (err) {
