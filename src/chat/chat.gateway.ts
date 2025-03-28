@@ -31,7 +31,6 @@ export class ChatGateway {
   private users: number[] = [];
   constructor(private readonly messagesService: MessagesService) { }
 
-
   @SubscribeMessage(`${WS}-message`)
   async handleMessage(
     @MessageBody() data: any,
@@ -41,6 +40,7 @@ export class ChatGateway {
     const { userIdRec, message } = data;
 
     if (!this.users.includes(userId)) {
+      console.log(userId, this.users)
       this.users.push(userId);
       this.server.emit(`${WS}-message`, { users: this.users });
     }
