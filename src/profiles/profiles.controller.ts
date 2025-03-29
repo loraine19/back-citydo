@@ -49,10 +49,8 @@ export class ProfilesController {
     @UploadedFile() image: Express.Multer.File,
     @User() userId: number): Promise<Profile> {
     const profileVerify = await this.profilesService.findOneByUserId(userId)
-    if (profileVerify.image && image) {
-      ImageInterceptor.deleteImage(profileVerify.image)
-    }
-    // data.userId = userId
+    if (profileVerify.image && image) { ImageInterceptor.deleteImage(profileVerify.image, 'profiles') }
+    data.userId = userId
     data = await parseData(data, image)
     console.log(data, userId)
     return this.profilesService.update(data, userId);

@@ -21,20 +21,20 @@ export class ImageInterceptor {
         });
     }
 
-    static deleteImage(filePath: string) {
+    static deleteImage(filePath: string, directory?: string) {
         const fullPath = path.resolve(filePath.replace(process.env.STORAGE, 'dist'))
-        const dirName = path.basename(path.dirname(fullPath));
-        const rootPath = path.join(__dirname, '..', '..', 'public')
+        const dirName = directory ?? path.dirname(fullPath).split(path.sep).pop();
+        const rootPath = path.join(__dirname, '..', 'public')
         const dir = path.join(rootPath, 'images', dirName);
         const files = fs.readdirSync(dir);
-        if (!files) return;
-
-        fs.unlink(fullPath, (err) => {
+        if (!files) return true;
+        else fs.unlink(fullPath, (err) => {
             if (err) {
                 console.error('Error deleting file:', err);
             } else {
                 console.log('File deleted:', fullPath);
             }
         });
+        return true;
     }
 }
