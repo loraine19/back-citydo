@@ -1,9 +1,13 @@
-import { Injectable, CanActivate, ExecutionContext, HttpException } from "@nestjs/common";
+import { Injectable, CanActivate, ExecutionContext, HttpException, UnauthorizedException } from "@nestjs/common";
 import { Request } from 'express';
 import { JwtService } from "@nestjs/jwt";
 import { Socket } from "socket.io";
 import { WsException } from "@nestjs/websockets";
 import * as cookie from 'cookie';
+import { PassportStrategy } from "@nestjs/passport";
+import { $Enums } from "@prisma/client";
+import { Strategy, VerifyCallback } from "passport-jwt";
+import { PrismaService } from "src/prisma/prisma.service";
 
 declare module 'socket.io' {
     interface Socket {
@@ -78,3 +82,10 @@ export class WsAuthGuard implements CanActivate {
         }
     }
 }
+@Injectable()
+export class AuthGuardGoogle extends AuthGuard {
+    async canActivate(context: ExecutionContext): Promise<boolean> {
+        return super.canActivate(context);
+    }
+}
+

@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, HttpException, Post, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpException, Post, Req, Res, UseGuards } from '@nestjs/common';
 import { Response } from 'express';
 import { AuthService } from './auth.service';
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
@@ -6,7 +6,7 @@ import { AuthEntity, RefreshEntity } from './auth.entities/auth.entity';
 import { UsersService } from '../../src/users/users.service';
 import { SignInDto, SignInVerifyDto } from './dto/signIn.dto';
 import { SignUpDto } from './dto/signUp.dto';
-import { AuthGuard, AuthGuardRefresh } from '../auth/auth.guard';
+import { AuthGuard, AuthGuardGoogle, AuthGuardRefresh } from '../auth/auth.guard';
 import { GetRefreshToken, User } from 'middleware/decorators';
 import { DeleteAccountDto } from './dto/deleteAccount.dto';
 
@@ -94,5 +94,19 @@ export class AuthController {
     return await this.authService.deleteTester()
   }
 
+
+  @UseGuards(AuthGuardGoogle)
+  @Get('google')
+  async googleSignUp() {
+    return await this.authService.googleSignUp()
+  }
+
+  @UseGuards(AuthGuardGoogle)
+  @Get('google/redirect')
+  async googleSignIn(@Req() req: Request, @Res() res: Response) {
+    const { user } = req;
+
+    return await this.authService.googleSignIn(user)
+  }
 
 }

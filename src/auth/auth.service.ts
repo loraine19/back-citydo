@@ -7,6 +7,8 @@ import * as argon2 from 'argon2';
 import { SignInDto } from './dto/signIn.dto';
 import { $Enums, User } from '@prisma/client';
 import { MailerService } from 'src/mailer/mailer.service';
+import { AuthUser } from './dto/authUser.dto';
+import { profile } from 'console';
 
 
 @Injectable()
@@ -168,5 +170,26 @@ export class AuthService {
         return { message: 'Les utilisateurs de test ont été supprimés' }
     }
 
+    async validateUser(email: string): Promise<any> {
+        const user = await this.prisma.user.findUnique({ where: { email }, include: this.includeConfigUser });
+        if (!user) return null;
+        return user;
+
+    }
+
+    async googleAuth(authUser: AuthUser) {
+        const { email, ...profile } = authUser
+        const user = await this.prisma.user.findUnique({ where: { email }, include: this.includeConfigUser });
+        const newUser = await this.prisma.user.create({ data: { email, password: '' } });
+        const { refreshToken, hashRefreshToken } = await this.generateRefreshToken(newUser.id);
+        const accessToken = await this.generateAccessToken(newUser.id);
+        
+
+
+    }
+
+    async googleSignIn() { }
+
 
 }
+
