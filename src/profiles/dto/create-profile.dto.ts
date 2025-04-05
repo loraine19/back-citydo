@@ -23,12 +23,13 @@ export class CreateProfileDto {
     userId?: number;
 
     @ApiProperty()
-    @IsNotEmpty({ message: 'Address id is required' })
+    @IsOptional()
     @Type(() => Number)
     @IsNumber({}, { message: 'Address id must be a number' })
     addressId: number;
 
     @ApiProperty({ type: 'string', required: false })
+    @IsOptional()
     @IsString({ message: 'Phone must be a string' })
     @Transform(({ value }) => typeof value === 'string' ? value : String(value))
     phone: string;

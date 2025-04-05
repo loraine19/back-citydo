@@ -55,25 +55,6 @@ services:
     restart: unless-stopped  
 
   
-  #Prisma studio
-  # prisma-studio:
-  #   links:
-  #     - nest
-  #   depends_on:
-  #     - nest
-  #   image: prisma-studio
-  #   container_name: prisma-studio
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile.studio
-  #   env_file:
-  #     - .env
-  #   restart: unless-stopped
-  #   networks:
-  #     - back
-  #   volumes:
-  #     - ./prisma:/app/prisma
-
 networks:
   back:
     external: true 

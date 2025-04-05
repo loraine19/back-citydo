@@ -21,7 +21,8 @@
     "start:migrate:prod": "prisma migrate deploy && npm run start:prod",
     "migrate": "npx prisma migrate dev",
     "prisma-seed": "tsx prisma/seed.ts",
-    "prisma-seed-prod": "node dist/prisma/seed.js"
+    "prisma-seed-prod": "node dist/prisma/seed.js",
+    "create-db-user": "mysql -u root -p${MYSQL_ROOT_PASSWORD} < create_db_user.sql"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.9",
@@ -49,6 +50,7 @@
     "multer": "^1.4.5-lts.1",
     "nodemailer": "^6.10.0",
     "passport": "^0.7.0",
+    "passport-google-oauth20": "^2.0.0",
     "passport-jwt": "^4.0.1",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",

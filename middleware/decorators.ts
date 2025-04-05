@@ -20,18 +20,18 @@ export const User = createParamDecorator(
     },
 );
 
-// const extractTokenFromHeader(request: Request): string | undefined {
-//     const [type, token] = request.headers.authorization?.split(' ') ?? [];
-//     return type === 'Bearer' ? token : undefined;
-// }
+
 
 export const GetRefreshToken = createParamDecorator(
     (data: unknown, ctx: ExecutionContext) => {
         const request = ctx.switchToHttp().getRequest();
-        const [type, token] = request.headers.authorization?.split(' ') ?? [];
-        const refreshToken = type === 'Bearer' ? token : undefined;
+        //  const [type, token] = request.headers.authorization?.split(' ') ?? [];
+        // const refreshToken = type === 'Bearer' ? token : undefined;
+        console.log('request.cookies', request.cookies)
+        const refreshToken = request.cookies[process.env.REFRESH_COOKIE_NAME];
+        // console.log('refreshToken', refreshToken)
         if (!refreshToken) {
-            throw new HttpException('Refresh token not found', 401);
+            throw new HttpException('deco Refresh token not found', 401);
         }
         const jwtService = new JwtService();
         try {

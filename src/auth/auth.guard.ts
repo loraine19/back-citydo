@@ -1,4 +1,4 @@
-import { Injectable, CanActivate, ExecutionContext, HttpException } from "@nestjs/common";
+import { Injectable, CanActivate, ExecutionContext, HttpException, UnauthorizedException } from "@nestjs/common";
 import { Request } from 'express';
 import { JwtService } from "@nestjs/jwt";
 import { Socket } from "socket.io";
@@ -16,7 +16,6 @@ export class AuthGuard implements CanActivate {
     constructor(private jwtService: JwtService) { }
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const request = await context.switchToHttp().getRequest();
-        //  console.log(request.cookies)
         const token = request.cookies[process.env.ACCESS_COOKIE_NAME];
         if (!token) throw new HttpException('Unauthorized access, missing token', 401);
         try {
@@ -36,12 +35,13 @@ export class AuthGuardRefresh implements CanActivate {
     constructor(private jwtService: JwtService) { }
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const request = await context.switchToHttp().getRequest();
-        const token = this.extractTokenFromHeader(request);
+        //  const token = this.extractTokenFromHeader(request);
+        const token = request.cookies[process.env.REFRESH_COOKIE_NAME];
         if (!token) throw new HttpException('Refresh token not found', 403);
         try {
             const payload = await this.jwtService.verifyAsync(token, { secret: process.env.JWT_SECRET_REFRESH });
             request['user'] = payload
-            return true;
+            return true
         }
         catch (error) {
             console.log(error, token)
@@ -64,9 +64,8 @@ export class WsAuthGuard implements CanActivate {
         const client = context.switchToWs().getClient<Socket>();
         const handshake = client.handshake;
         const cookies = cookie.parse(handshake.headers.cookie || '');
-        const token = cookies[process.env.ACCESS_COOKIE_NAME]; // Use the environment variable
+        const token = cookies[process.env.ACCESS_COOKIE_NAME];
         if (!token) { throw new WsException('Unauthorized access to websocket'); }
-        /// playload verification for WS
         try {
             const payload = await this.jwtService.verifyAsync(token, { secret: process.env.JWT_SECRET });
             client.user = payload.sub;
@@ -78,3 +77,10 @@ export class WsAuthGuard implements CanActivate {
         }
     }
 }
+@Injectable()
+export class AuthGuardGoogle extends AuthGuard {
+    async canActivate(context: ExecutionContext): Promise<boolean> {
+        return super.canActivate(context);
+    }
+}
+

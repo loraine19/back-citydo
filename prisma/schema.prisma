@@ -82,11 +82,11 @@ model Address {
 model Profile {
   userId        Int               @id @unique
   userIdSp      Int?
-  addressId     Int
+  addressId     Int?
   firstName     String
   lastName      String
   image         String?
-  phone         String
+  phone         String?
   mailSub       MailSubscriptions @default(SUB_1)
   addressShared Boolean           @default(false)
   assistance    AssistanceLevel   @default(LEVEL_0)
@@ -94,7 +94,7 @@ model Profile {
   skills        String?           @db.MediumText
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt
-  Address       Address           @relation(fields: [addressId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  Address       Address?          @relation(fields: [addressId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   User          User              @relation(fields: [userId], references: [id], name: "Profile", onUpdate: Cascade, onDelete: Cascade)
 }
 
@@ -309,6 +309,7 @@ enum TokenType {
   RESET
   VERIFY
   DELETE
+  REFRESH_GOOGLE
 }
 
 enum Role {
