@@ -4,10 +4,6 @@ import { JwtService } from "@nestjs/jwt";
 import { Socket } from "socket.io";
 import { WsException } from "@nestjs/websockets";
 import * as cookie from 'cookie';
-import { PassportStrategy } from "@nestjs/passport";
-import { $Enums } from "@prisma/client";
-import { Strategy, VerifyCallback } from "passport-jwt";
-import { PrismaService } from "src/prisma/prisma.service";
 
 declare module 'socket.io' {
     interface Socket {
