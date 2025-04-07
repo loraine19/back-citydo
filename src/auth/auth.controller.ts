@@ -1,5 +1,4 @@
 import { Body, Controller, Delete, Get, HttpException, Post, Req, Res, UseGuards } from '@nestjs/common';
-import { Request } from 'express';
 import { Response } from 'express';
 import { AuthService } from './auth.service';
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
@@ -106,9 +105,9 @@ export class AuthController {
   @UseGuards(AuthGuardGoogle)
   @Get('google/redirect')
   async googleSignIn(@Req() req: Request, @Res() res: Response) {
-    //  const { user } = req;
+    const { user } = req;
 
-    return await this.authService.googleSignIn()
+    return await this.authService.googleSignIn(user)
   }
 
 }
