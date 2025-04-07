@@ -49,7 +49,7 @@ export class AuthController {
   }
 
 
-  @UseGuards(AuthGuard)
+  //  @UseGuards(AuthGuard)
   @ApiBearerAuth()
   @Post('logout')
   async logout(

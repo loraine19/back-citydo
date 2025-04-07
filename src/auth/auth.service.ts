@@ -45,19 +45,19 @@ export class AuthService {
         res.setHeader('Expires', '0');
         res.cookie(process.env.ACCESS_COOKIE_NAME, accessToken, {
             httpOnly: true,
-            domain: process.env.DOMAIN,
+            //   domain: process.env.DOMAIN,
             secure: true,
-            // sameSite: process.env.NODE_ENV === 'prod' ? 'strict' : 'none',
+            sameSite: process.env.NODE_ENV === 'prod' ? 'strict' : 'none',
             maxAge: parseInt(process.env.COOKIE_EXPIRES_ACCESS),
-            //path: '/',
+            path: '/',
         });
         res.cookie(process.env.REFRESH_COOKIE_NAME, refreshToken, {
             httpOnly: true,
-            domain: process.env.DOMAIN,
+            //  domain: process.env.DOMAIN,
             secure: true,
-            //  sameSite: process.env.NODE_ENV === 'prod' ? 'strict' : 'none',
+            sameSite: process.env.NODE_ENV === 'prod' ? 'strict' : 'none',
             maxAge: parseInt(process.env.COOKIE_EXPIRES_REFRESH),
-            //  path: '/',
+            path: '/',
         });
 
         console.log('Headers après définition du cookie:', res.getHeaders());
