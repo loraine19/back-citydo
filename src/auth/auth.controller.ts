@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, HttpException, Post, Req, Res, UseGuards } from '@nestjs/common';
-import { Response } from 'express';
+import { Response, Request } from 'express';
 import { AuthService } from './auth.service';
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { AuthEntity, RefreshEntity } from './auth.entities/auth.entity';
@@ -10,6 +10,13 @@ import { AuthGuard, AuthGuardGoogle, AuthGuardRefresh } from '../auth/auth.guard
 import { GetRefreshToken, User } from 'middleware/decorators';
 import { DeleteAccountDto } from './dto/deleteAccount.dto';
 import { $Enums, User as UserObj } from '@prisma/client';
+
+// Extend the Request interface to include the user property
+declare module 'express' {
+  export interface Request {
+    user?: any;
+  }
+}
 
 @Controller('auth')
 @ApiTags('auth')
@@ -107,7 +114,7 @@ export class AuthController {
   async googleSignIn(@Req() req: Request, @Res() res: Response) {
     const { user } = req;
 
-    return await this.authService.googleSignIn(user)
+    return await this.authService.googleSignIn()
   }
 
 }
