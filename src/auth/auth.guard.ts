@@ -41,7 +41,7 @@ export class AuthGuardRefresh implements CanActivate {
         const request = await context.switchToHttp().getRequest();
         //  const token = this.extractTokenFromHeader(request);
         const token = request.cookies[process.env.REFRESH_COOKIE_NAME];
-        if (!token) throw new HttpException('Refresh token not found', 403);
+        if (!token) throw new HttpException('Refresh token not found guard' + process.env.REFRESH_COOKIE_NAME, 403);
         try {
             const payload = await this.jwtService.verifyAsync(token, { secret: process.env.JWT_SECRET_REFRESH });
             request['user'] = payload

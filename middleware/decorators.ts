@@ -31,7 +31,7 @@ export const GetRefreshToken = createParamDecorator(
         const refreshToken = request.cookies[process.env.REFRESH_COOKIE_NAME];
         // console.log('refreshToken', refreshToken)
         if (!refreshToken) {
-            throw new HttpException('deco Refresh token not found', 401);
+            throw new HttpException('deco Refresh token not found ' + process.env.REFRESH_COOKIE_NAME, 401);
         }
         const jwtService = new JwtService();
         try {
