@@ -18,9 +18,10 @@ export class FlagsService {
   }
 
   async create(data: CreateFlagDto): Promise<Flag> {
+
     const { userId, target, targetId, ...flag } = data;
     const exist = await this.prisma.flag.findUnique({ where: { userId_target_targetId: { userId, target, targetId } } });
-    if (exist) throw new HttpException('ce flag existe déja', HttpStatus.CONFLICT);
+    if (exist) throw new HttpException('ce flag existe deja', HttpStatus.CONFLICT);
     const d = { ...flag, User: { connect: { id: userId } }, target }
     let data2: { data: any, include: any };
     if (target === $Enums.FlagTarget.EVENT) {
@@ -45,6 +46,8 @@ export class FlagsService {
     }
     const flagCreated = await this.prisma.flag.create({ data: data2.data, include: data2.include });
     const flagCount = await this.prisma.flag.count({ where: { targetId, target, reason: flag.reason } });
+    const accessKey = FlagTarget[target]; // Ou juste `target` si target est déjà le string ?
+    console.log('--- DEBUG SERVICE --- Clé utilisée pour delete:', accessKey, '| Type de target:', target, this.prisma[accessKey]);
     if (flagCount >= 3) {
       const deleted = await this.prisma[FlagTarget[target]].delete({ where: { id: targetId }, include: { User: { select: this.select } } });
       const userNotif = new UserNotifInfo(deleted.User)
