@@ -31,7 +31,7 @@ COPY --from=build /app/middleware ./middleware
 
 COPY --from=build /app/prisma ./prisma 
 
-#RUN npm prune 
+RUN npm prune 
 
 EXPOSE 3000
 

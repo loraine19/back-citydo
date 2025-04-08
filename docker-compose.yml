@@ -61,9 +61,3 @@ networks:
 
 volumes:
   db_data:
-<<<<<<< HEAD
-=======
-
-
-#test#
->>>>>>> ac51cea (-)
