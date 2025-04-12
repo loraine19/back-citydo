@@ -12,11 +12,6 @@ export class CreateServiceDto {
     @Type(() => Number)
     userId: number;
 
-    @ApiProperty({ required: false })
-    @IsNumber({}, { message: 'user id must be a number' })
-    @IsOptional()
-    @Type(() => Number)
-    userIdResp: number;
 
     @ApiProperty({ enum: $Enums.ServiceType })
     @IsNotEmpty({ message: 'Type is required' })
@@ -58,9 +53,4 @@ export class CreateServiceDto {
     @IsString({ message: 'image must be a link' })
     image: string;
 
-    @ApiProperty({ type: 'number', required: false })
-    @IsOptional()
-    @IsNumber({}, { message: 'points must be a number' })
-    @Type(() => Number)
-    points: number;
 }

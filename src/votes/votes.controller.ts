@@ -23,7 +23,6 @@ export class VotesController {
     @Body() data: CreateVoteDto,
     @User() userId: number): Promise<Vote> {
     data.userId = userId
-    console.log(data)
     return this.votesService.create(data)
   }
 

@@ -19,6 +19,8 @@ export class AuthService {
         parallelism: 1
     }
 
+    private expiredAt = (duration: string) => (new Date(Date.now() + parseInt(duration))).toISOString();
+
     async generateAccessToken(sub: number) {
         return this.jwtService.sign({ sub }, { secret: process.env.JWT_SECRET, expiresIn: process.env.JWT_EXPIRES_ACCESS })
     }
@@ -45,7 +47,6 @@ export class AuthService {
         res.setHeader('Expires', '0');
         res.cookie(process.env.ACCESS_COOKIE_NAME, accessToken, {
             httpOnly: true,
-            //   domain: process.env.DOMAIN,
             secure: true,
             sameSite: process.env.NODE_ENV === 'prod' ? 'strict' : 'none',
             maxAge: parseInt(process.env.COOKIE_EXPIRES_ACCESS),
@@ -53,7 +54,6 @@ export class AuthService {
         });
         res.cookie(process.env.REFRESH_COOKIE_NAME, refreshToken, {
             httpOnly: true,
-            //  domain: process.env.DOMAIN,
             secure: true,
             sameSite: process.env.NODE_ENV === 'prod' ? 'strict' : 'none',
             maxAge: parseInt(process.env.COOKIE_EXPIRES_REFRESH),
@@ -63,7 +63,8 @@ export class AuthService {
         console.log('Headers après définition du cookie:', res.getHeaders());
     }
 
-    includeConfigUser = { Profile: { include: { Address: true } }, GroupUser: true }
+    includeConfigUser = { Profile: { include: { Address: true } }, GroupUser: { include: { Group: true } } }
+
     async signUp(data: SignInDto): Promise<{ message: string }> {
         const { email, password } = data
         const user = await this.prisma.user.findUnique({ where: { email: email } });
@@ -72,7 +73,10 @@ export class AuthService {
         const createdUser = await this.prisma.user.create({ data: { email, password: hashPassword } });
         const verifyToken = await this.generateVerifyToken(createdUser.id);
         await this.prisma.token.create({
-            data: { userId: createdUser.id, token: verifyToken.hashToken, type: $Enums.TokenType.VERIFY }
+            data: {
+                userId: createdUser.id, token: verifyToken.hashToken, type: $Enums.TokenType.VERIFY,
+                expiredAt: this.expiredAt('60000')
+            },
         })
         this.mailerService.sendVerificationEmail(email, verifyToken.token)
         return { message: 'Votre compte à bien été crée, veuillez cliquer sur le lien envoyé par email' }
@@ -95,7 +99,7 @@ export class AuthService {
         const { refreshToken, hashRefreshToken } = await this.generateRefreshToken(user.id);
         const accessToken = await this.generateAccessToken(user.id);
         await this.prisma.token.deleteMany({ where: { userId: user.id, type: $Enums.TokenType.REFRESH } });
-        await this.prisma.token.create({ data: { userId: user.id, token: hashRefreshToken, type: $Enums.TokenType.REFRESH } });
+        await this.prisma.token.create({ data: { userId: user.id, token: hashRefreshToken, type: $Enums.TokenType.REFRESH, expiredAt: this.expiredAt(process.env.COOKIE_EXPIRES_REFRESH) } });
         this.setAuthCookies(res, accessToken, refreshToken);
         user.password = ''
         return { user }
@@ -116,7 +120,7 @@ export class AuthService {
         const { refreshToken, hashRefreshToken } = await this.generateRefreshToken(user.id);
         await this.prisma.user.update({ where: { id: user.id }, data: { status: $Enums.UserStatus.ACTIVE } })
         await this.prisma.token.deleteMany({ where: { userId: user.id, type: $Enums.TokenType.REFRESH } })
-        await this.prisma.token.create({ data: { userId: user.id, token: hashRefreshToken, type: $Enums.TokenType.REFRESH } })
+        await this.prisma.token.create({ data: { userId: user.id, token: hashRefreshToken, type: $Enums.TokenType.REFRESH, expiredAt: this.expiredAt(process.env.COOKIE_EXPIRES_REFRESH) } })
         this.setAuthCookies(res, accessToken, refreshToken);
         user.password = ''
         return { user }
@@ -128,16 +132,13 @@ export class AuthService {
         if (!userToken) throw new HttpException('Impossible de renouveller la connexion , identifiez vous ', 403);
         let refreshTokenValid = await argon2.verify(userToken.token, refreshToken);
         if (!refreshTokenValid) {
-            const jwtCreated = new Date(this.jwtService.decode(refreshToken)?.iat * 1000).toLocaleTimeString();
-            const refreshUpdated = new Date(userToken.updatedAt).toLocaleTimeString();
-            console.log('JWTfront register:', jwtCreated, 'Refresh token:', refreshUpdated);
-            throw new HttpException(`Impossible de renouveller la connexion, JWT created at:', ${jwtCreated}, 'Refresh token:', ${refreshUpdated}, identifiez vous `, 403);
+            throw new HttpException(`Impossible de renouveller la connexion, identifiez vous `, 403);
         }
         const accessToken = await this.generateAccessToken(userId);
         const newRefresh = await this.generateRefreshToken(userId);
         const updateRefreshToken = await this.prisma.token.update({
             where: { userId_type: { userId, type: $Enums.TokenType.REFRESH } },
-            data: { userId, token: newRefresh.hashRefreshToken }
+            data: { userId, token: newRefresh.hashRefreshToken, expiredAt: this.expiredAt(process.env.COOKIE_EXPIRES_REFRESH) }
         });
         if (!updateRefreshToken) throw new HttpException('probleme de mise a jour du token', 500)
         await this.setAuthCookies(res, accessToken, newRefresh.refreshToken);
@@ -146,7 +147,8 @@ export class AuthService {
 
 
     async logOut(userId: number, res: Response): Promise<{ message: string }> {
-        await this.prisma.token.deleteMany({ where: { userId, type: $Enums.TokenType.REFRESH } });
+
+        if (userId) await this.prisma.token.deleteMany({ where: { userId } });
         res.clearCookie(process.env.ACCESS_COOKIE_NAME);
         res.clearCookie(process.env.REFRESH_COOKIE_NAME);
         return { message: 'Vous etes deconnecté' }

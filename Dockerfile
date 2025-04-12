@@ -1,5 +1,5 @@
 
-FROM node:20-alpine as build
+FROM node:slim AS build
 
 WORKDIR /app
 
@@ -15,7 +15,7 @@ RUN npx prisma generate
 
 RUN npm run build
 
-FROM node:20-alpine
+FROM node:slim
 
 WORKDIR /app
 

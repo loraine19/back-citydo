@@ -25,4 +25,10 @@ export class CreatePoolDto {
     @IsNotEmpty()
     @IsString()
     description: string;
+
+    @ApiProperty()
+    @IsNotEmpty()
+    @Transform(({ value }) => parseInt(value))
+    @IsNumber()
+    groupId: number;
 }

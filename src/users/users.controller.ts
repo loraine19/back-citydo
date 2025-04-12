@@ -24,10 +24,12 @@ export class UsersController {
     return await this.usersService.create(data);
   }
 
-  @Get()
+  @Get('inGroup/:groupId')
   @ApiBearerAuth()
-  async findAll(@UserDec() userId: number): Promise<Partial<User>[]> {
-    return await this.usersService.findAll() || []
+  async findAll(
+    @Param('groupId', ParseIntPipe) groupId: number,
+    @UserDec() userId: number): Promise<Partial<User>[]> {
+    return await this.usersService.usersInGroup(userId, [groupId]) || []
   }
 
 

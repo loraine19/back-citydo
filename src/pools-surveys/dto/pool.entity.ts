@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { Pool } from "@prisma/client";
+import { $Enums, Pool } from "@prisma/client";
 import { IsNumber, IsNotEmpty, IsDate, IsString } from "class-validator";
 
 export class PoolEntity implements Pool {
@@ -37,4 +37,11 @@ export class PoolEntity implements Pool {
     @IsString()
     description: string;
 
+    @ApiProperty()
+    status: $Enums.PoolSurveyStatus;
+
+    @ApiProperty()
+    @IsNotEmpty()
+    @IsNumber()
+    groupId: number;
 }

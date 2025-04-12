@@ -44,6 +44,21 @@ export class GroupsService {
     return groups
   }
 
+  async findNearestGroups(userId: number): Promise<Group[]> {
+    const user = await this.prisma.user.findUnique(
+      { where: { id: userId }, include: { Profile: { include: { Address: true } } } })
+    const groups = await this.prisma.group.findMany({
+      where: {
+        Address: {
+          city: user.Profile.Address.city,
+        }
+      }
+    })
+    console.log(groups)
+    return groups
+  }
+
+
 
   async update(id: number, data: UpdateGroupDto): Promise<Group> {
     const { addressId, ...group } = data

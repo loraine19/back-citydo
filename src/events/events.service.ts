@@ -36,7 +36,7 @@ export class EventsService {
   //// CONSULT
   async findAll(userId: number, page?: number, category?: string): Promise<{ events: Event[], count: number }> {
     const skip = page ? this.skip(page) : 0;
-    const where: { category?: $Enums.EventCategory } = category ? { category: $Enums.EventCategory[category] } : {}
+    const where: { category?: $Enums.EventCategory; status?: $Enums.EventStatus } = category ? { category: $Enums.EventCategory[category] } : {}
     const count = await this.prisma.event.count({ where });
     const take = page ? this.limit : count;
     const events = await this.prisma.event.findMany({
@@ -84,19 +84,19 @@ export class EventsService {
   }
 
   async findAllValidated(userId: number, page?: number, category?: string): Promise<{ events: Event[], count: number }> {
-    const where: { category?: $Enums.EventCategory } = category ? { category: $Enums.EventCategory[category] } : {}
-    const events = await this.prisma.event.findMany({
-      where,
-      include: this.eventIncludeConfig(userId),
-      orderBy: { start: 'asc' }
-    });
-    const eventsValidated = events.filter(event => event.Participants.length >= event.participantsMin)
-    const count = eventsValidated.length;
+    const where = category ? { category: $Enums.EventCategory[category], status: $Enums.EventStatus.VALIDATED } : { status: $Enums.EventStatus.VALIDATED }
+    const count = await this.prisma.event.count({ where });
     const skip = page ? this.skip(page) : 0;
     const take = page ? this.limit : count;
-    const paginatedEvents = eventsValidated.slice(skip, skip + take);
-    if (page) return { events: paginatedEvents, count };
-    return { events: eventsValidated, count }
+    const events = await this.prisma.event.findMany({
+      skip,
+      take,
+      where,
+      include: this.eventIncludeConfig(userId),
+      orderBy: { start: 'asc' },
+    });
+
+    return { events, count }
   }
 
 

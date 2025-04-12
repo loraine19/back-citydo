@@ -4,7 +4,6 @@ import { $Enums, Profile, Service } from '@prisma/client';
 import { CreateServiceDto } from './dto/create-service.dto';
 import { GetPoints } from '../../middleware/GetPoints';
 import { ImageInterceptor } from 'middleware/ImageInterceptor';
-import { MailerService } from 'src/mailer/mailer.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { UserNotifInfo } from 'src/notifications/entities/notification.entity';
 
@@ -86,7 +85,7 @@ export class ServicesService {
 
 
   async create(data: CreateServiceDto): Promise<Service> {
-    const { userId, userIdResp, ...service } = data;
+    const { userId, ...service } = data;
     const users = await this.prisma.user.findMany({ select: this.userSelectConfig });
     const createdService = await this.prisma.service.create({ data: { ...service, User: { connect: { id: userId } } }, include: this.serviceIncludeConfig(userId) });
     const addressId = createdService.User.Profile.addressShared ? createdService.User.Profile.addressId : null;

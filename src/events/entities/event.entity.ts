@@ -65,4 +65,8 @@ export class EventEntity implements Event {
 
     @ApiProperty()
     Address: Address
+
+
+    @ApiProperty()
+    status: $Enums.EventStatus;
 }

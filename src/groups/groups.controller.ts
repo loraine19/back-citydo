@@ -8,6 +8,7 @@ import { AddressService } from '../addresses/address.service';
 import { AuthGuard } from '../../src/auth/auth.guard';
 import { RequestWithUser } from '../../src/auth/auth.entities/auth.entity';
 import { Group } from '@prisma/client';
+import { User } from 'middleware/decorators';
 
 //// CONTROLLER DO ROUTE 
 const route = 'groups'
@@ -32,6 +33,15 @@ export class GroupsController {
     if (!groups.length) throw new HttpException(`No ${route} found.`, HttpStatus.NO_CONTENT);
     return groups;
   }
+
+  @Get('nearest')
+  @ApiBearerAuth()
+  @ApiOkResponse({ type: GroupEntity, isArray: true })
+  async findNearestGroups(
+    @User() userId: number): Promise<Group[]> {
+    return this.groupsService.findNearestGroups(userId)
+  }
+
 
   @Get(':id')
   @ApiBearerAuth()

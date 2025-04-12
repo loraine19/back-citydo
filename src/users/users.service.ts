@@ -4,6 +4,7 @@ import { $Enums, User } from '@prisma/client';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import * as argon2 from 'argon2';
+import { UserNotifInfo } from 'src/notifications/entities/notification.entity';
 
 
 //// SERVICE MAKE ACTION
@@ -59,7 +60,7 @@ export class UsersService {
         lastConnection: true,
         status: true,
         Profile: { include: { Address: true } },
-        GroupUser: { where: { groupId: this.goupId } }
+        GroupUser: { where: { groupId: this.goupId }, include: { Group: true } }
       },
     });
   }
@@ -70,6 +71,24 @@ export class UsersService {
 
   async count(userId: number): Promise<number> {
     return await this.prisma.user.count()
+  }
+
+  async usersInGroup(userId: number, groupId: number[]): Promise<UserNotifInfo[]> {
+    const user = await this.prisma.user.findUnique({ where: { id: userId }, include: { GroupUser: true } });
+    if (!user || !user.GroupUser.some(g => g.groupId in groupId)) throw new HttpException('Vous n\'avez pas le droit de voir ces utilisateurs', 403);
+
+    return await this.prisma.user.findMany({
+      where: {
+        GroupUser: {
+          some: { groupId: { in: groupId } }
+        }
+      },
+      select: {
+        id: true,
+        email: true,
+        Profile: { select: { mailSub: true } }
+      },
+    });
   }
 
   async update(id: number, user: UpdateUserDto): Promise<User> {

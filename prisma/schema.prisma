@@ -60,6 +60,8 @@ model Group {
   updatedAt DateTime    @updatedAt
   Address   Address     @relation(fields: [addressId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   GroupUser GroupUser[]
+  Surveys   Survey[]
+  Pools     Pool[]
 }
 
 model Address {
@@ -81,7 +83,6 @@ model Address {
 
 model Profile {
   userId        Int               @id @unique
-  userIdSp      Int?
   addressId     Int?
   firstName     String
   lastName      String
@@ -128,6 +129,7 @@ model Event {
   Address         Address       @relation(fields: [addressId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   Participants    Participant[]
   Flags           Flag[]        @relation(name: "EventFlag", map: "EventFlag")
+  status          EventStatus   @default(PENDING)
 }
 
 ////// PARTICIPANT
@@ -184,30 +186,36 @@ model Issue {
 
 ///// SURVEY POOL 
 model Survey {
-  id          Int            @id @default(autoincrement())
+  id          Int              @id @default(autoincrement())
   userId      Int
   title       String
-  description String         @db.MediumText
+  description String           @db.MediumText
   category    SurveyCategory
   image       String?
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
-  User        User           @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Cascade)
-  Votes       Vote[]         @relation(name: "SurveyVote", map: "surveyVote")
-  Flags       Flag[]         @relation(name: "SurveyFlag", map: "SurveyFlag")
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  User        User             @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  Votes       Vote[]           @relation(name: "SurveyVote", map: "surveyVote")
+  Flags       Flag[]           @relation(name: "SurveyFlag", map: "SurveyFlag")
+  status      PoolSurveyStatus @default(PENDING)
+  groupId     Int
+  Group       Group?           @relation(fields: [groupId], references: [id], onUpdate: Cascade, onDelete: Cascade)
 }
 
 model Pool {
-  id          Int      @id @default(autoincrement())
+  id          Int              @id @default(autoincrement())
   userId      Int
   userIdBenef Int
   title       String
-  description String   @db.MediumText
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  User        User     @relation(fields: [userId], references: [id], name: "Pool", onUpdate: Cascade, onDelete: Cascade)
-  UserBenef   User     @relation(fields: [userIdBenef], references: [id], name: "PoolBenef")
-  Votes       Vote[]   @relation(name: "PoolVote", map: "poolVote")
+  description String           @db.MediumText
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  User        User             @relation(fields: [userId], references: [id], name: "Pool", onUpdate: Cascade, onDelete: Cascade)
+  UserBenef   User             @relation(fields: [userIdBenef], references: [id], name: "PoolBenef")
+  Votes       Vote[]           @relation(name: "PoolVote", map: "poolVote")
+  status      PoolSurveyStatus @default(PENDING)
+  groupId     Int
+  Group       Group?           @relation(fields: [groupId], references: [id], onUpdate: Cascade, onDelete: Cascade)
 }
 
 model Vote {
@@ -456,4 +464,16 @@ enum NotificationLevel {
   SUB_3
   SUB_4
   ONLY_APP
+}
+
+enum PoolSurveyStatus {
+  PENDING
+  VALIDATED
+  REJECTED
+}
+
+enum EventStatus {
+  PENDING
+  VALIDATED
+  REJECTED
 }

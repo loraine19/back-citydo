@@ -14,8 +14,8 @@ export class IssuesService {
 
   private issueIncludeConfig = {
     User: { select: { id: true, email: true, Profile: { include: { Address: true } } } },
-    UserModo: { select: { email: true, Profile: { include: { Address: true } } } },
-    UserModoOn: { select: { email: true, Profile: { include: { Address: true } } } },
+    UserModo: { select: { id: true, email: true, Profile: { include: { Address: true } } } },
+    UserModoOn: { select: { id: true, email: true, Profile: { include: { Address: true } } } },
     Service: {
       include: {
         User: { select: { id: true, email: true, Profile: { include: { Address: true } } } },
@@ -35,6 +35,7 @@ export class IssuesService {
 
 
   async create(data: CreateIssueDto): Promise<Issue> {
+    console.log('create issue', data);
     const { userId, userIdModo, serviceId, userIdModoOn, ...issue } = data;
     const service = await this.prisma.service.findUnique({
       where: {
@@ -57,7 +58,7 @@ export class IssuesService {
 
     const notification = {
       title: 'Nouvelle conciliation',
-      description: `Une conciliation a été créée sur leservice ${service.title}`,
+      description: `Une conciliation a été créée sur le service ${service.title}`,
       type: $Enums.NotificationType.ISSUE,
       level: $Enums.NotificationLevel.SUB_1,
       link: `conciliation/${createdIssue.serviceId}`
@@ -73,11 +74,11 @@ export class IssuesService {
         case (filter === IssueFilter.WAITING):
           return { in: [IssueStep.STEP_0, IssueStep.STEP_1, IssueStep.STEP_2] }
         case (filter === IssueFilter.PENDING):
-          return { in: [IssueStep.STEP_3] }
+          return { in: [IssueStep.STEP_3, IssueStep.STEP_4] }
         case (filter === IssueFilter.FINISH):
-          return { in: [IssueStep.STEP_4] }
+          return { in: [IssueStep.STEP_5] }
         default:
-          return { in: [IssueStep.STEP_0, IssueStep.STEP_1, IssueStep.STEP_2, IssueStep.STEP_3, IssueStep.STEP_4] }
+          return { in: [IssueStep.STEP_0, IssueStep.STEP_1, IssueStep.STEP_2, IssueStep.STEP_3, IssueStep.STEP_4, IssueStep.STEP_5] }
       }
     }
     const where = {

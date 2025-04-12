@@ -29,4 +29,10 @@ export class CreateSurveyDto {
     @ApiProperty({ type: 'string', format: 'binary', required: false, })
     @IsOptional()
     image: string;
+
+    @ApiProperty()
+    @IsNotEmpty()
+    @Transform(({ value }) => parseInt(value))
+    @IsNumber()
+    groupId: number;
 }

@@ -1,16 +1,79 @@
 import { Injectable } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import { $Enums } from '@prisma/client';
+import { UserNotifInfo } from 'src/notifications/entities/notification.entity';
+import { NotificationsService } from 'src/notifications/notifications.service';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { JwtService } from "@nestjs/jwt";
 const fs = require('fs');
 const path = require('path');
 
 @Injectable()
 export class CronTaskService {
 
-    constructor(private prisma: PrismaService) { }
+    constructor(private prisma: PrismaService, private notificationsService: NotificationsService, private jwtService: JwtService) { }
 
     createdOneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+    createdTwoWeeksAgo = new Date(Date.now() - 15 * 24 * 60 * 60 * 1000)
     createdOneMonthAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+    userSelectConfig = { User: { select: { email: true, Profile: { select: { mailSub: true } } } } }
+
+    @Cron(CronExpression.EVERY_DAY_AT_9AM)
+    async checkExpiredElement() {
+        const surveys = await this.prisma.survey.findMany({
+            where: { createdAt: { lt: this.createdTwoWeeksAgo }, status: $Enums.PoolSurveyStatus.PENDING },
+            include: this.userSelectConfig
+        })
+        const pools = await this.prisma.pool.findMany({
+            where: { createdAt: { lt: this.createdTwoWeeksAgo }, status: $Enums.PoolSurveyStatus.PENDING },
+            include: this.userSelectConfig
+        })
+        const events = await this.prisma.event.findMany({
+            where: { createdAt: { lt: this.createdTwoWeeksAgo }, status: $Enums.EventStatus.PENDING },
+            include: this.userSelectConfig
+        })
+
+        const notification = (typeEnum: $Enums.NotificationType, type: string, title: string, id: number) => ({
+            type: typeEnum,
+            level: $Enums.NotificationLevel.SUB_3,
+            title: `${type} est expiré`,
+            description: `votre ${type} ${title} n'a pas pu atteindre la majorité en 2 semaines. Il est donc maintenant rejeté`,
+            link: `/${type}/${id}`
+        });
+        for (const survey of surveys) {
+            await this.prisma.survey.update({
+                where: { id: survey.id },
+                data: { status: $Enums.PoolSurveyStatus.REJECTED }
+            })
+
+            await this.notificationsService.create(new UserNotifInfo(survey.User), notification($Enums.NotificationType.SURVEY, 'sondage', survey.title, survey.id))
+        }
+
+        for (const pool of pools) {
+            await this.prisma.pool.update({
+                where: { id: pool.id },
+                data: { status: $Enums.PoolSurveyStatus.REJECTED }
+            })
+            await this.notificationsService.create(new UserNotifInfo(pool.User), notification($Enums.NotificationType.POOL, 'cagnotte', pool.title, pool.id))
+        }
+        for (const event of events) {
+            await this.prisma.event.update({
+                where: { id: event.id },
+                data: { status: $Enums.EventStatus.REJECTED }
+            })
+            await this.notificationsService.create(new UserNotifInfo(event.User), notification($Enums.NotificationType.EVENT, 'événement', event.title, event.id))
+        }
+    }
+
+    @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+    deleteExpiredTokens() {
+        this.prisma.token.deleteMany({
+            where: {
+                expiredAt: { lt: new Date(Date.now()) }
+            }
+        })
+    }
+
 
     @Cron(CronExpression.EVERY_WEEK)
     deleteReadNotifs() {

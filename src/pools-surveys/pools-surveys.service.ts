@@ -45,10 +45,8 @@ export class PoolsSurveysService {
     let OR = []
     if (step.includes(PoolSurveyStep.NEW)) OR.push({ createdAt: { lt: getDate(0) } })
     if (step.includes(PoolSurveyStep.PENDING)) OR.push({ createdAt: { lt: getDate(7) } })
-    if (step.includes(PoolSurveyStep.FINISHED)) {
-      const userCount = await this.prisma.user.count()
-      OR.push({ createdAt: { lt: getDate(15) } })
-    }
+    if (step.includes(PoolSurveyStep.VALIDATED)) { OR.push({ status: $Enums.PoolSurveyStatus.VALIDATED }) }
+    if (step.includes(PoolSurveyStep.REJECTED)) { OR.push({ status: $Enums.PoolSurveyStatus.REJECTED }) }
     where = { ...where, OR }
     const count = await this.prisma.pool.count({ where }) + await this.prisma.survey.count({ where });
     const take = page ? this.limit : count;
@@ -80,12 +78,13 @@ export class PoolsSurveysService {
   }
 
   async createPool(data: CreatePoolDto): Promise<Pool> {
-    const { userId, userIdBenef, ...pool } = data;
+    const { userId, userIdBenef, groupId, ...pool } = data;
     const users = await this.prisma.user.findMany({ select: this.userSelectConfig })
     const poolCreated = await this.prisma.pool.create({
       data: {
         User: { connect: { id: userId } },
         UserBenef: { connect: { id: userIdBenef } },
+        Group: { connect: { id: groupId } },
         ...pool,
       },
       include: this.poolIncludeConfig(userId)
@@ -102,13 +101,14 @@ export class PoolsSurveysService {
   }
 
   async updatePool(id: number, data: UpdatePoolDto): Promise<Pool> {
-    const { userId, userIdBenef, ...pool } = data;
+    const { userId, userIdBenef, groupId, ...pool } = data;
     return await this.prisma.pool.update({
       where: { id },
       include: this.poolIncludeConfig(userId),
       data: {
         User: { connect: { id: userId } },
         UserBenef: { connect: { id: userIdBenef } },
+        Group: { connect: { id: groupId } },
         ...pool,
       },
     })
@@ -133,12 +133,12 @@ export class PoolsSurveysService {
   }
 
   async createSurvey(data: CreateSurveyDto): Promise<Survey> {
-    const { userId, ...survey } = data;
+    const { userId, groupId, ...survey } = data;
     const users = await this.prisma.user.findMany({ select: this.userSelectConfig })
     const surveyCreated = await this.prisma.survey.create(
       {
         include: this.surveyIncludeConfig(userId),
-        data: { ...survey, User: { connect: { id: userId } } }
+        data: { ...survey, User: { connect: { id: userId } }, Group: { connect: { id: groupId } } }
       })
     const notification = {
       title: 'Nouvelle enquête',

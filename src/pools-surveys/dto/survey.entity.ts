@@ -45,5 +45,13 @@ export class SurveyEntity implements Survey {
     @ApiProperty({ type: 'string', format: 'binary', required: false, })
     @IsOptional()
     image: string;
+
+    @ApiProperty()
+    status: $Enums.PoolSurveyStatus;
+
+    @ApiProperty()
+    @IsNotEmpty()
+    @IsNumber()
+    groupId: number;
 }
 

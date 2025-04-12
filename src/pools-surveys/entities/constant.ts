@@ -8,6 +8,7 @@ export enum PoolSurveyFilter {
 export enum PoolSurveyStep {
     NEW = 'NEW',
     PENDING = 'PENDING',
-    FINISHED = 'FINISHED',
+    VALIDATED = 'VALIDATED',
+    REJECTED = 'REJECTED',
 }
 
