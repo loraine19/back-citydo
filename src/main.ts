@@ -24,7 +24,7 @@ async function bootstrap() {
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('apiSwagger', app, document);
-  app.setGlobalPrefix('api');
+  app.setGlobalPrefix('data');
   app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
   app.use(cookieParser());
   const { httpAdapter } = app.get(HttpAdapterHost);
