@@ -1,7 +1,7 @@
 {
-  "name": "colllectif",
+  "name": "citydo",
   "version": "0.0.1",
-  "description": "back api for colllectif",
+  "description": "back api for CityDO",
   "author": "Loraine P",
   "private": true,
   "license": "Personal use",

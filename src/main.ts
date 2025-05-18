@@ -17,7 +17,7 @@ async function bootstrap() {
   });
 
   const config = new DocumentBuilder()
-    .setTitle('Collectif API ')
+    .setTitle('City\'Do API ')
     .setDescription('Please first login to use the API {"email":"test@mail.com","password":"passwordtest"} to get the token and use the token in Authorize button')
     .setVersion('test')
     .addBearerAuth()
