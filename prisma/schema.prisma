@@ -220,7 +220,7 @@ model Pool {
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
   User        User             @relation(fields: [userId], references: [id], name: "Pool", onUpdate: Cascade, onDelete: Cascade)
-  UserBenef   User             @relation(fields: [userIdBenef], references: [id], name: "PoolBenef")
+  UserBenef   User             @relation(fields: [userIdBenef], references: [id], name: "PoolBenef", onUpdate: Cascade, onDelete: Cascade)
   Votes       Vote[]           @relation(name: "PoolVote", map: "poolVote")
   status      PoolSurveyStatus @default(PENDING)
   groupId     Int
