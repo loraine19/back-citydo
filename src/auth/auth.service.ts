@@ -130,10 +130,10 @@ export class AuthService {
 
     async refresh(refreshToken: string, userId: number, res: Response): Promise<{ message: string }> {
         const userToken = await this.prisma.token.findFirst({ where: { userId, type: $Enums.TokenType.REFRESH } });
-        if (!userToken) throw new HttpException('Impossible de renouveller la connexion , identifiez vous ', 403);
+        if (!userToken) throw new HttpException('Impossible de renouveller la, identifiez vous ', 401);
         let refreshTokenValid = await argon2.verify(userToken.token, refreshToken);
         if (!refreshTokenValid) {
-            throw new HttpException(`Impossible de renouveller la connexion, identifiez vous `, 403);
+            throw new HttpException(`Impossible de renouveller la connexion, identifiez vous `, 401);
         }
         const accessToken = await this.generateAccessToken(userId);
         const newRefresh = await this.generateRefreshToken(userId);

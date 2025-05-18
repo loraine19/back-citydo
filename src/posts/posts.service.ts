@@ -1,7 +1,7 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { CreatePostDto } from './dto/create-post.dto';
 import { PrismaService } from '../../src/prisma/prisma.service';
-import { $Enums, Post } from '@prisma/client';
+import { $Enums, Post, PostCategory } from '@prisma/client';
 import { ImageInterceptor } from 'middleware/ImageInterceptor';
 import { NotificationsService } from 'src/notifications/notifications.service';
 
@@ -89,7 +89,7 @@ export class PostsService {
 
   async findAllILike(userId: number, page?: number, category?: string,): Promise<{ posts: Post[], count: number }> {
     const skip = page ? this.skip(page) : 0;
-    const where = category ? { Likes: { some: { userId } }, category: $Enums.PostCategory[category], User: this.groupSelectConfig(userId) } : { Likes: { some: { userId }, User: this.groupSelectConfig(userId) } }
+    const where = { Likes: { some: { userId } }, category: $Enums.PostCategory[category], User: this.groupSelectConfig(userId) }
     const count = await this.prisma.post.count({ where });
     const take = page ? this.limit : count;
     const posts = await this.prisma.post.findMany({

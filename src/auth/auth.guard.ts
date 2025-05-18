@@ -39,7 +39,7 @@ export class AuthGuardRefresh implements CanActivate {
         //  const token = this.extractTokenFromHeader(request);
         const token = request.cookies[process.env.REFRESH_COOKIE_NAME];
         console.log('token', token, request.cookies)
-        if (!token) throw new HttpException('Refresh token not found guard ' + process.env.REFRESH_COOKIE_NAME, 403);
+        if (!token) throw new HttpException('Refresh token not found guard ' + process.env.REFRESH_COOKIE_NAME, 401);
         try {
             const payload = await this.jwtService.verifyAsync(token, { secret: process.env.JWT_SECRET_REFRESH });
             request['user'] = payload
@@ -79,18 +79,13 @@ export class WsAuthGuard implements CanActivate {
         }
     }
 }
-// @Injectable()
-// export class AuthGuardGoogle extends AuthGuard {
-//     async canActivate(context: ExecutionContext): Promise<boolean> {
-//         return super.canActivate(context);
-//     }
-// }
+
 
 @Injectable()
-export class AuthGuardGoogle extends NestAuthGuard('google') { // Elle UTILISE la stratégie nommée 'google'
+export class AuthGuardGoogle extends NestAuthGuard('google') { //UTILISE la stratégie nommée 'google'
 
     constructor() {
-        super(); // Appelle le constructeur de AuthGuard
+        super();
         console.log('AuthGuardGoogle instanciée.');
     }
 

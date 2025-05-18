@@ -105,18 +105,15 @@ export class AuthController {
   @Get('google')
   @UseGuards(AuthGuardGoogle) // Cette garde utilise votre GoogleAuthStrategy
   async googleAuth(@Req() req: Request) {
-    console.log('Google Auth called', req.user)
+    console.log('Google Auth called')
   }
 
   @Get('google/redirect')
   @UseGuards(AuthGuardGoogle) // La stratégie traite le callback de Google et appelle `validate`
   async googleAuthRedirect(@Req() req: Request, @Res() res: Response, @Ip() ip: string) {
-    console.log('Google Auth called', req.user)
     const appUser = req.user as UserObj
 
     if (!appUser) {
-      // Ce cas ne devrait pas arriver si la stratégie gère bien les erreurs avec `done(err)`.
-      // Mais par sécurité, rediriger vers une page d'erreur sur le frontend à coder ou modif FRONT.
       const frontendErrorUrl = `${process.env.FRONT_URL}/signin?msg=Google%20Login%20Failed`;
       return res.redirect(frontendErrorUrl);
     }
