@@ -30,7 +30,7 @@ export class MailerService {
                 {
                     filename: 'logo.png',
                     path: 'middleware/logo.png',
-                    cid: 'cityzen@images.com'
+                    cid: 'citydo@images.com'
                 }
             ],
         };
@@ -58,14 +58,14 @@ export class MailerService {
 
 
     public async sendVerificationEmail(to: string, token: string) {
-        const subject = 'Activation de votre compte City\'Zen';
-        const html = this.generateEmailHtml('Bienvenue sur City\'Zen, cliquez sur le lien ci-dessous pour activer votre compte :',
+        const subject = 'Activation de votre compte City\'Do';
+        const html = this.generateEmailHtml('Bienvenue sur City\'Do, cliquez sur le lien ci-dessous pour activer votre compte :',
             `<a style="text-decoration: none; color: #fff" id="activation-link" href="${process.env.FRONT_URL}/signin?email=${to}&token=${token}">Activer mon compte</a>`);
         await this.sendEmail(to, subject, html);
     }
 
     public async sendDeleteAccountEmail(to: string, token: string) {
-        const subject = 'Suppression de votre compte City\'Zen';
+        const subject = 'Suppression de votre compte City\'Do';
         const html = this.generateEmailHtml('Bonjour, vous avez demande de supprimer votre compte. cliquez sur le lien ci-dessous pour supprimer votre compte, vous ne pouvez plus revenir en arriere :',
             `<a style="text-decoration: none; color: #fff"  href="${process.env.FRONT_URL}/delete_account?email=${to}&token=${token}">Supprimer mon compte</a>`);
         await this.sendEmail(to, subject, html);

@@ -219,7 +219,7 @@ export class AuthService {
         const userByEmail = await this.prisma.user.findUnique({ where: { email }, include: { Profile: true } })
         //----
         if (userByEmail) {
-            user = await this.prisma.user.update({ // Réassignation à 'user'
+            user = await this.prisma.user.update({
                 where: { id: userByEmail.id },
                 data: {
                     provider,
@@ -260,13 +260,7 @@ export class AuthService {
             include: { Profile: true },
         });
     }
-    // ----- FIN DE LA METHODE VALIDATEANDPROCESSUSER -----
 
-    // PAS UTILE ??? 
-    // Assurez-vous que votre méthode `login` existante (utilisée après l'authentification locale)
-    // est compatible pour être appelée après l'authentification OIDC.
-    // Elle doit prendre un objet User (de votre application) et retourner les jetons.
-    // Votre méthode `setAuthCookies` sera appelée dans le contrôleur après cela.
     async login(user: User): Promise<{ accessToken: string; refreshToken: string, user: User }> {
         const accessToken = await this.generateAccessToken(user.id);
         const refreshToken = await this.generateRefreshToken(user.id);
