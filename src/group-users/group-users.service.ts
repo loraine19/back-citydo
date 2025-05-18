@@ -1,8 +1,7 @@
-import { Body, Injectable, NotFoundException, ParseIntPipe } from '@nestjs/common';
-import { $Enums, GroupUser, Profile } from '@prisma/client';
+import { Injectable } from '@nestjs/common';
+import { $Enums, GroupUser } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateGroupUserDto } from './dto/create-group-user.dto';
-import { UpdateGroupUserDto } from './dto/update-group-user.dto';
 
 //// SERVICE MAKE ACTION
 @Injectable()
@@ -33,12 +32,9 @@ export class GroupUsersService {
 
     const groupsToUpdate = user.GroupUser.filter((groupUser: GroupUser) => groups.find((g) => g.groupId === groupUser.groupId && g.role !== groupUser.role))
 
-    console.log(data)
     const groupsToCreate = groups.filter((group: CreateGroupUserDto) => {
       return !user.GroupUser.find((groupUser: GroupUser) => group.groupId === groupUser.groupId)
     })
-
-    console.log('groupsToCreate', groupsToCreate)
 
     for (const group of groupToDelete) {
       await this.prisma.groupUser.delete({ where: { userId_groupId: { groupId: group.groupId, userId } } });

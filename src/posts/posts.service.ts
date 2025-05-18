@@ -12,7 +12,7 @@ export class PostsService {
 
   private postIncludeConfig(userId?: number) {
     return {
-      User: { select: { email: true, Profile: { include: { Address: true } } } },
+      User: { select: { id: true, GroupUser: { include: { Group: { select: { name: true, id: true } } } }, email: true, Profile: { include: { Address: true } } } },
       Flags: { where: { target: $Enums.FlagTarget.EVENT, userId } },
       Likes: true,
     };
@@ -21,8 +21,19 @@ export class PostsService {
   private userSelectConfig = {
     id: true,
     email: true,
+    GroupUser: { include: { Group: { select: { name: true, id: true } } } },
     Profile: { select: { mailSub: true } }
   }
+
+  private groupSelectConfig = (userId: number) => ({
+    GroupUser: {
+      some:
+      {
+        Group:
+          { GroupUser: { some: { userId } } }
+      }
+    }
+  })
 
   limit = parseInt(process.env.LIMIT)
   skip(page: number) { return (page - 1) * this.limit }
@@ -47,7 +58,7 @@ export class PostsService {
 
   async findAll(userId: number, page?: number, category?: string): Promise<{ posts: Post[], count: number }> {
     const skip = page ? this.skip(page) : 0;
-    const where = category ? { category: $Enums.PostCategory[category] } : {}
+    const where = category ? { category: $Enums.PostCategory[category], User: this.groupSelectConfig(userId) } : { User: this.groupSelectConfig(userId) }
     const count = await this.prisma.post.count({ where });
     const take = page ? this.limit : count;
     const posts = await this.prisma.post.findMany({
@@ -78,7 +89,7 @@ export class PostsService {
 
   async findAllILike(userId: number, page?: number, category?: string,): Promise<{ posts: Post[], count: number }> {
     const skip = page ? this.skip(page) : 0;
-    const where = category ? { Likes: { some: { userId } }, category: $Enums.PostCategory[category] } : { Likes: { some: { userId } } }
+    const where = category ? { Likes: { some: { userId } }, category: $Enums.PostCategory[category], User: this.groupSelectConfig(userId) } : { Likes: { some: { userId }, User: this.groupSelectConfig(userId) } }
     const count = await this.prisma.post.count({ where });
     const take = page ? this.limit : count;
     const posts = await this.prisma.post.findMany({
@@ -94,7 +105,7 @@ export class PostsService {
 
   async findOne(id: number, userId: number): Promise<Post> {
     return await this.prisma.post.findUniqueOrThrow({
-      where: { id },
+      where: { id, User: this.groupSelectConfig(userId) },
       include: this.postIncludeConfig(userId)
     });
   }

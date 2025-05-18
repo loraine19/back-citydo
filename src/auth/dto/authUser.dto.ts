@@ -5,6 +5,8 @@ export type AuthUser = {
     lastName: string;
     phone?: string;
     address?: string;
-    sub : string
+    sub: string
 
 }
+
+

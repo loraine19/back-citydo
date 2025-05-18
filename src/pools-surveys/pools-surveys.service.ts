@@ -17,7 +17,7 @@ export class PoolsSurveysService {
     return {
       User: { select: { email: true, Profile: { include: { Address: true } } } },
       Votes: { where: { target: $Enums.VoteTarget.POOL } },
-      UserBenef: { select: { id: true, email: true, Profile: true } }
+      UserBenef: { select: { id: true, GroupUser: { include: { Group: { select: { name: true, id: true } } } }, email: true, Profile: { include: { Address: true } } } }
     }
   }
 
@@ -34,6 +34,15 @@ export class PoolsSurveysService {
     email: true,
     Profile: { select: { mailSub: true } }
   }
+  private groupSelectConfig = (userId: number) => ({
+    GroupUser: {
+      some:
+      {
+        Group:
+          { GroupUser: { some: { userId } } }
+      }
+    }
+  })
 
   limit = parseInt(process.env.LIMIT)
   skip(page: number) { return (page - 1) * this.limit }
@@ -41,7 +50,7 @@ export class PoolsSurveysService {
   async findAll(userId: number, page?: number, filter?: string, step?: string): Promise<{ poolsSurveys: (Pool | Survey)[], count: number }> {
     if (!step) return { poolsSurveys: [], count: 0 }
     const skip = page ? this.skip(page) : 0;
-    let where: any = filter === PoolSurveyFilter.MINE ? { userId } : {}
+    let where: any = filter === PoolSurveyFilter.MINE ? { userId } : { User: this.groupSelectConfig(userId) }
     let OR = []
     if (step.includes(PoolSurveyStep.NEW)) OR.push({ createdAt: { lt: getDate(0) } })
     if (step.includes(PoolSurveyStep.PENDING)) OR.push({ createdAt: { lt: getDate(7) } })
@@ -72,7 +81,7 @@ export class PoolsSurveysService {
   ////POOLS 
   async findOnePool(id: number, userId: number): Promise<Pool> {
     return await this.prisma.pool.findUniqueOrThrow({
-      where: { id },
+      where: { id, User: this.groupSelectConfig(userId) },
       include: this.poolIncludeConfig(userId)
     })
   }
@@ -127,7 +136,7 @@ export class PoolsSurveysService {
   ////SURVEYS
   async findOneSurvey(id: number, userId: number): Promise<Survey> {
     return await this.prisma.survey.findUniqueOrThrow({
-      where: { id },
+      where: { id, User: this.groupSelectConfig(userId) },
       include: this.surveyIncludeConfig(userId)
     });
   }

@@ -22,9 +22,9 @@ import { MailerModule } from './mailer/mailer.module';
 import { LoggerModule } from './logger/logger.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { MessagesModule } from './messages/messages.module';
-import { NotifsGateway } from './notifs/notifs.gateway';
 import { CronTaskModule } from './cron-task/cron-task.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { ConfigModule } from '@nestjs/config';
 
 
 @Module({
@@ -34,6 +34,10 @@ import { ScheduleModule } from '@nestjs/schedule';
     }),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'public'),
+    }),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: '.env',
     }),
     ScheduleModule.forRoot(),
     AuthModule,

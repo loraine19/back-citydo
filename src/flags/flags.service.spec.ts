@@ -148,13 +148,11 @@ describe('FlagsService', () => {
       mockPrismaService.event.findUnique.mockResolvedValue(mockEvent);
       mockPrismaService.flag.create.mockResolvedValue(mockCreatedFlag);
       mockPrismaService.flag.count.mockResolvedValue(3); // Third report triggers deletion
-
       const mockDeletedEventWithUser = {
         ...mockEvent,
         User: { id: mockEvent.userId, email: 'owner@example.com', Profile: { mailSub: true } }
       };
       mockPrismaService.Event.delete.mockResolvedValue(mockDeletedEventWithUser);
-
       mockNotificationsService.create.mockResolvedValue(undefined); // Simulate notification creation
 
       // Act

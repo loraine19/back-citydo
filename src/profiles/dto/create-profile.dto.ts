@@ -20,7 +20,7 @@ export class CreateProfileDto {
     @IsOptional()
     @Type(() => Number)
     @IsNumber({}, { message: 'User id must be a number' })
-    userId?: number;
+    userId: number;
 
     @ApiProperty()
     @IsOptional()

@@ -3,7 +3,6 @@ import { CreateMessageDto } from './dto/create-message.dto';
 import { UpdateMessageDto } from './dto/update-message.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { NotificationsService } from 'src/notifications/notifications.service';
-import { first } from 'rxjs';
 import { $Enums } from '@prisma/client';
 import { UserNotifInfo } from 'src/notifications/entities/notification.entity';
 import { Message } from './entities/message.entity';

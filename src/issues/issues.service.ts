@@ -13,6 +13,7 @@ export class IssuesService {
   constructor(private prisma: PrismaService, private notificationsService: NotificationsService) { }
 
   private issueIncludeConfig = {
+
     User: { select: { id: true, email: true, Profile: { include: { Address: true } } } },
     UserModo: { select: { id: true, email: true, Profile: { include: { Address: true } } } },
     UserModoOn: { select: { id: true, email: true, Profile: { include: { Address: true } } } },
@@ -29,13 +30,21 @@ export class IssuesService {
     email: true,
     Profile: { select: { mailSub: true } }
   }
+  private groupSelectConfig = (userId: number) => ({
+    GroupUser: {
+      some:
+      {
+        Group:
+          { GroupUser: { some: { userId } } }
+      }
+    }
+  })
 
   limit = parseInt(process.env.LIMIT)
   skip(page: number) { return (page - 1) * this.limit }
 
 
   async create(data: CreateIssueDto): Promise<Issue> {
-    console.log('create issue', data);
     const { userId, userIdModo, serviceId, userIdModoOn, ...issue } = data;
     const service = await this.prisma.service.findUnique({
       where: {
@@ -88,7 +97,8 @@ export class IssuesService {
         { Service: { is: { userId } } },
         { Service: { is: { userIdResp: userId } } },
       ],
-      status: status()
+      status: status(),
+      User: this.groupSelectConfig(userId)
     };
     const skip = page ? this.skip(page) : 0;
     const count = await this.prisma.issue.count({ where });
@@ -100,7 +110,7 @@ export class IssuesService {
   async findAllByUserId(userId: number): Promise<Issue[]> {
     return await this.prisma.issue.findMany({
       where: {
-        OR: [{ Service: { is: { userId } } }, { Service: { is: { userIdResp: userId } } }]
+        OR: [{ Service: { is: { userId } } }, { Service: { is: { userIdResp: userId } } }],
       },
       include: this.issueIncludeConfig
     })

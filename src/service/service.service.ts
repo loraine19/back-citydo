@@ -25,6 +25,15 @@ export class ServicesService {
     email: true,
     Profile: { select: { mailSub: true } }
   }
+  private groupSelectConfig = (userId: number) => ({
+    GroupUser: {
+      some:
+      {
+        Group:
+          { GroupUser: { some: { userId } } }
+      }
+    }
+  })
 
   limit = parseInt(process.env.LIMIT)
   skip(page: number) { return (page - 1) * this.limit }
@@ -33,7 +42,8 @@ export class ServicesService {
   async findAll(userId: number, page?: number, type?: $Enums.ServiceType, step?: $Enums.ServiceStep, category?: $Enums.ServiceCategory,): Promise<{ services: Service[], count: number }> {
     const skip = page ? this.skip(page) : 0;
     const status = step ? $Enums.ServiceStep[step] : { in: [$Enums.ServiceStep.STEP_0, $Enums.ServiceStep.STEP_1] }
-    const where = { type, status, category }
+    const User = this.groupSelectConfig(userId)
+    const where = { type, status, category, User }
     const count = await this.prisma.service.count({ where });
     const take = page ? this.limit : count
     const services = await this.prisma.service.findMany({
@@ -78,7 +88,7 @@ export class ServicesService {
 
   async findOne(id: number, userId: number): Promise<Service> {
     return await this.prisma.service.findUniqueOrThrow({
-      where: { id },
+      where: { id, User: this.groupSelectConfig(userId) },
       include: this.serviceIncludeConfig(userId),
     });
   }

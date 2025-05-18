@@ -15,7 +15,7 @@ export class EventsService {
   private eventIncludeConfig(userId?: number) {
     return {
       User: { select: { email: true, Profile: { include: { Address: true } } } },
-      Participants: { include: { User: { select: { email: true, Profile: { include: { Address: true } }, id: true, } } } },
+      Participants: { include: { User: { select: { email: true, Profile: { include: { Address: true } }, id: true, GroupUser: { include: { Group: { select: { name: true, id: true } } } } } } } },
       Address: true,
       Flags: { where: { target: $Enums.FlagTarget.EVENT, userId } }
     };
@@ -27,6 +27,15 @@ export class EventsService {
     Profile: { select: { mailSub: true } }
   }
 
+  private groupSelectConfig = (userId: number) => ({
+    GroupUser: {
+      some: {
+        Group:
+          { GroupUser: { some: { userId } } }
+      }
+    }
+  })
+
   limit = parseInt(process.env.LIMIT)
   skip(page: number) { return (page - 1) * this.limit }
   updateNotif = $Enums.NotificationLevel.SUB_2
@@ -36,7 +45,7 @@ export class EventsService {
   //// CONSULT
   async findAll(userId: number, page?: number, category?: string): Promise<{ events: Event[], count: number }> {
     const skip = page ? this.skip(page) : 0;
-    const where: { category?: $Enums.EventCategory; status?: $Enums.EventStatus } = category ? { category: $Enums.EventCategory[category] } : {}
+    const where = category ? { category: $Enums.EventCategory[category], User: this.groupSelectConfig(userId) } : { User: this.groupSelectConfig(userId) }
     const count = await this.prisma.event.count({ where });
     const take = page ? this.limit : count;
     const events = await this.prisma.event.findMany({
@@ -70,7 +79,7 @@ export class EventsService {
   async findAllByParticipantId(userId: number, page?: number, category?: string): Promise<{ events: Event[], count: number }> {
     const skip = page ? this.skip(page) : 0;
     const where = category ?
-      { category: $Enums.EventCategory[category], Participants: { some: { userId } } } : { Participants: { some: { userId } } }
+      { User: this.groupSelectConfig(userId), category: $Enums.EventCategory[category], Participants: { some: { userId } } } : { User: this.groupSelectConfig(userId), Participants: { some: { userId } } }
     const count = await this.prisma.event.count({ where });
     const take = page ? this.limit : count;
     const events = await this.prisma.event.findMany({
@@ -84,7 +93,7 @@ export class EventsService {
   }
 
   async findAllValidated(userId: number, page?: number, category?: string): Promise<{ events: Event[], count: number }> {
-    const where = category ? { category: $Enums.EventCategory[category], status: $Enums.EventStatus.VALIDATED } : { status: $Enums.EventStatus.VALIDATED }
+    const where = category ? { User: this.groupSelectConfig(userId), category: $Enums.EventCategory[category], status: $Enums.EventStatus.VALIDATED } : { User: this.groupSelectConfig(userId), status: $Enums.EventStatus.VALIDATED }
     const count = await this.prisma.event.count({ where });
     const skip = page ? this.skip(page) : 0;
     const take = page ? this.limit : count;
@@ -102,7 +111,7 @@ export class EventsService {
 
   async findOne(id: number, userId: number): Promise<Event> {
     return await this.prisma.event.findUniqueOrThrow({
-      where: { id },
+      where: { id, User: this.groupSelectConfig(userId) },
       include: this.eventIncludeConfig(userId),
     });
   }

@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpException, Post, Req, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpException, Ip, Post, Req, Res, UseGuards } from '@nestjs/common';
 import { Response, Request } from 'express';
 import { AuthService } from './auth.service';
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
@@ -23,7 +23,6 @@ declare module 'express' {
 export class AuthController {
   constructor(private readonly authService: AuthService, readonly usersService: UsersService) { }
 
-
   @Post('signinVerify')
   @ApiOkResponse({ type: AuthEntity })
   async signinVerify(
@@ -31,7 +30,6 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response): Promise<{ user: Partial<UserObj> } | { message: string }> {
     return this.authService.signInVerify(data, res);
   }
-
 
   @Post('signin')
   @ApiOkResponse({ type: AuthEntity })
@@ -47,7 +45,6 @@ export class AuthController {
     @Body() data: SignUpDto): Promise<AuthEntity | { message: string }> {
     return this.authService.signUp(data);
   }
-
 
   //  @UseGuards(AuthGuard)
   @ApiBearerAuth()
@@ -103,18 +100,38 @@ export class AuthController {
   }
 
 
-  @UseGuards(AuthGuardGoogle)
+  // --- ROUTES POUR GOOGLE OIDC ---
+
   @Get('google')
-  async googleSignUp() {
-    return await this.authService.googleSignUp()
+  @UseGuards(AuthGuardGoogle) // Cette garde utilise votre GoogleAuthStrategy
+  async googleAuth(@Req() req: Request) {
+    console.log('Google Auth called', req.user)
   }
 
-  @UseGuards(AuthGuardGoogle)
   @Get('google/redirect')
-  async googleSignIn(@Req() req: Request, @Res() res: Response) {
-    const { user } = req;
+  @UseGuards(AuthGuardGoogle) // La stratégie traite le callback de Google et appelle `validate`
+  async googleAuthRedirect(@Req() req: Request, @Res() res: Response, @Ip() ip: string) {
+    console.log('Google Auth called', req.user)
+    const appUser = req.user as UserObj
 
-    return await this.authService.googleSignIn()
+    if (!appUser) {
+      // Ce cas ne devrait pas arriver si la stratégie gère bien les erreurs avec `done(err)`.
+      // Mais par sécurité, rediriger vers une page d'erreur sur le frontend à coder ou modif FRONT.
+      const frontendErrorUrl = `${process.env.FRONT_URL}/signin?msg=Google%20Login%20Failed`;
+      return res.redirect(frontendErrorUrl);
+    }
+
+    try {
+      // Étape 1: Générer les JWT de VOTRE application pour cet utilisateur.
+      const { accessToken, refreshToken } = await this.authService.login(appUser);
+      this.authService.setAuthCookies(res, accessToken, refreshToken)
+      res.redirect(process.env.FRONT_URL);
+    } catch (error) {
+      console.error('Erreur lors de la création de la session:', error);
+      const frontendErrorUrl = `${process.env.FRONT_URL}/signin?msg=Google%20Session%20Creation%20Error`;
+      res.redirect(frontendErrorUrl);
+    }
   }
+
 
 }

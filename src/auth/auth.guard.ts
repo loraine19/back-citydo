@@ -4,6 +4,7 @@ import { JwtService } from "@nestjs/jwt";
 import { Socket } from "socket.io";
 import { WsException } from "@nestjs/websockets";
 import * as cookie from 'cookie';
+import { AuthGuard as NestAuthGuard } from "@nestjs/passport";
 
 declare module 'socket.io' {
     interface Socket {
@@ -78,10 +79,38 @@ export class WsAuthGuard implements CanActivate {
         }
     }
 }
-@Injectable()
-export class AuthGuardGoogle extends AuthGuard {
-    async canActivate(context: ExecutionContext): Promise<boolean> {
-        return super.canActivate(context);
-    }
-}
+// @Injectable()
+// export class AuthGuardGoogle extends AuthGuard {
+//     async canActivate(context: ExecutionContext): Promise<boolean> {
+//         return super.canActivate(context);
+//     }
+// }
 
+@Injectable()
+export class AuthGuardGoogle extends NestAuthGuard('google') { // Elle UTILISE la stratégie nommée 'google'
+
+    constructor() {
+        super(); // Appelle le constructeur de AuthGuard
+        console.log('AuthGuardGoogle instanciée.');
+    }
+
+    // Optionnel: Pour le débogage, voir si la garde s'active
+    // canActivate(context: ExecutionContext) {
+    //   this.logger.log('AuthGuardGoogle canActivate() appelée.');
+    //   // La redirection devrait se produire avant que la promesse de super.canActivate() ne se résolve à true
+    //   // pour la première étape du flux OAuth (initiation).
+    //   // Pour le callback, elle se résoudra après l'exécution de la méthode validate de la stratégie.
+    //   return super.canActivate(context);
+    // }
+
+    // Optionnel: Pour voir ce que Passport retourne (ou les erreurs)
+    // handleRequest(err, user, info, context, status) {
+    //   this.logger.log(`AuthGuardGoogle handleRequest - err: ${err}, user: ${JSON.stringify(user)}, info: ${info}, status: ${status}`);
+    //   if (err || !user) {
+    //     // Vous pouvez choisir de lancer une exception spécifique ici si nécessaire,
+    //     // ou laisser Passport gérer l'erreur (ce qui conduit souvent à un 401 ou 500).
+    //     throw err || new UnauthorizedException("Erreur dans handleRequest de AuthGuardGoogle");
+    //   }
+    //   return user;
+    // }
+}

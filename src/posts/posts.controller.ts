@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, UploadedFile, UseInterceptors, HttpException, NotFoundException, UseGuards, Req, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, UploadedFile, UseInterceptors, UseGuards, Query } from '@nestjs/common';
 import { PostsService } from './posts.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
@@ -7,7 +7,6 @@ import { parseData } from '../../middleware/BodyParser';
 import { ImageInterceptor } from '../../middleware/ImageInterceptor';
 import { PostEntity } from './entities/post.entity';
 import { AuthGuard } from '../auth/auth.guard';
-import { RequestWithUser } from 'src/auth/auth.entities/auth.entity';
 import { User } from 'middleware/decorators';
 import { PostFilter } from './entities/constant';
 import { Post as PostI } from '@prisma/client'
@@ -37,7 +36,6 @@ export class PostsController {
     catch (error) {
       console.log(error)
     }
-
   }
 
   @Patch(':id')
@@ -66,20 +64,15 @@ export class PostsController {
     @Query('page', ParseIntPipe) page?: number,
     @Query('filter') filter?: string,
     @Query('category') category?: string): Promise<{ posts: PostI[], count: number }> {
-    console.log(category, page)
     switch (filter) {
       case PostFilter.MINE:
-        console.log('MINE')
         return this.postsService.findAllByUserId(userId, page, category);
       case PostFilter.ILIKE:
-        console.log('ILIKE')
         return this.postsService.findAllILike(userId, page, category);
       default:
-        console.log('ALL')
         return this.postsService.findAll(userId, page, category);
     }
   }
-
 
   @Get(':id')
   @ApiBearerAuth()

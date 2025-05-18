@@ -7,7 +7,7 @@ import { PrismaModule } from 'src/prisma/prisma.module';
 import { UsersModule } from 'src/users/users.module';
 import { UsersService } from 'src/users/users.service';
 import { MailerService } from 'src/mailer/mailer.service';
-
+import { GoogleAuthStrategy } from './authGoogle.strategy';
 
 @Module({
   imports: [
@@ -18,9 +18,8 @@ import { MailerService } from 'src/mailer/mailer.service';
       secret: process.env.JWT_SECRET,
       global: true,
     }),
-
   ],
   controllers: [AuthController],
-  providers: [AuthService, UsersService, MailerService],
+  providers: [AuthService, UsersService, MailerService, GoogleAuthStrategy],
 })
 export class AuthModule { }

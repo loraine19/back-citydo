@@ -1,17 +1,21 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import { HttpException, Injectable, Logger } from '@nestjs/common';
 import { Response } from 'express';
 import { PrismaService } from '../prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import * as argon2 from 'argon2';
 import { SignInDto } from './dto/signIn.dto';
-import { $Enums, User } from '@prisma/client';
+import { $Enums, Profile, User, UserStatus } from '@prisma/client';
 import { MailerService } from 'src/mailer/mailer.service';
-import { AuthUser } from './dto/authUser.dto';
+import { AuthUserGoogle } from './dto/authUserGoogle.dto';
 
 
 @Injectable()
 export class AuthService {
-    constructor(private prisma: PrismaService, private jwtService: JwtService, private mailerService: MailerService) { }
+    private readonly logger = new Logger(AuthService.name); // Pour le logging
+    constructor(
+        private prisma: PrismaService,
+        private jwtService: JwtService,
+        private mailerService: MailerService) { }
 
     private memoryOptions = {
         memoryCost: 1 * 64 * 16, // 64 mebibytes
@@ -35,11 +39,9 @@ export class AuthService {
         const token = this.jwtService.sign({ sub }, { secret: process.env.JWT_SECRET, expiresIn: process.env.JWT_EXPIRES_VERIFY })
         const hashToken = await argon2.hash(token, this.memoryOptions);
         return { token, hashToken }
-
     }
 
     errorCredentials = { message: 'Identifiants incorrect' }
-
 
     async setAuthCookies(res: Response, accessToken: string, refreshToken: string) {
         res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
@@ -59,12 +61,12 @@ export class AuthService {
             maxAge: parseInt(process.env.COOKIE_EXPIRES_REFRESH),
             path: '/',
         });
-
         console.log('Headers après définition du cookie:', res.getHeaders());
     }
 
     includeConfigUser = { Profile: { include: { Address: true } }, GroupUser: { include: { Group: true } } }
 
+    /// SIGN UP
     async signUp(data: SignInDto): Promise<{ message: string }> {
         const { email, password } = data
         const user = await this.prisma.user.findUnique({ where: { email: email } });
@@ -85,7 +87,6 @@ export class AuthService {
     //// SIGN IN
     async signIn(data: SignInDto, res: Response): Promise<{ user: Partial<User> } | { message: string }> {
         const { email, password } = data
-        console.log('Data:', data);
         const user = await this.prisma.user.findUnique({ where: { email }, include: this.includeConfigUser });
         if (!user) return this.errorCredentials
         const isPasswordValid = await argon2.verify(user.password, password)
@@ -145,9 +146,8 @@ export class AuthService {
         return { message: 'Token rafraichi' }
     }
 
-
+    ////LOGOUT
     async logOut(userId: number, res: Response): Promise<{ message: string }> {
-
         if (userId) await this.prisma.token.deleteMany({ where: { userId } });
         res.clearCookie(process.env.ACCESS_COOKIE_NAME);
         res.clearCookie(process.env.REFRESH_COOKIE_NAME);
@@ -183,23 +183,104 @@ export class AuthService {
         const user = await this.prisma.user.findUnique({ where: { email }, include: this.includeConfigUser });
         if (!user) return null;
         return user;
-
     }
 
-    async googleAuth(authUser: AuthUser) {
-        const { email, ...profile } = authUser
-        const user = await this.prisma.user.findUnique({ where: { email }, include: this.includeConfigUser });
-        const newUser = await this.prisma.user.create({ data: { email, password: '' } });
-        const { refreshToken, hashRefreshToken } = await this.generateRefreshToken(newUser.id);
-        const accessToken = await this.generateAccessToken(newUser.id);
+    /// GEMINI OPENID CORRECTION - Version ajustée de VOTRE code
+    async validateAndProcessOidcUser(oidcUserDto: AuthUserGoogle): Promise<User & { Profile: Profile | null }> {
+        const { provider, providerId, email, firstName, lastName, image } = oidcUserDto;
+        this.logger.log(`[OIDC-${provider}] Validation pour: ${email}, ProviderID: ${providerId}`);
+        if (!email) throw new HttpException('Email is required', 400);
 
+        // 1. Rechercher l'utilisateur par provider et providerId
+        let user = await this.prisma.user.findUnique({ where: { provider_providerId: { provider, providerId } }, include: { Profile: true } });
 
+        if (user) { // CAS 1: Utilisateur trouvé par providerId
+            if (user.status !== UserStatus.ACTIVE)
+                await this.prisma.user.update({ where: { id: user.id }, data: { status: UserStatus.ACTIVE } })
 
+            if (user.Profile) {
+                const data: Partial<Profile> = {
+                    ...(firstName && user.Profile.firstName !== firstName && { firstName }),
+                    ...(lastName && user.Profile.lastName !== lastName && { lastName }),
+                    ...(image && user.Profile.image !== image && { image }),
+                }
+                Object.keys(data).length > 0 && await this.prisma.profile.update({ where: { userId: user.id }, data })
+
+            } else {
+                if (!firstName || !lastName) throw new HttpException('Prénom et nom sont requis', 400)
+                await this.prisma.profile.create({ data: { userId: user.id, firstName, lastName, image } })
+            }
+            // Recharger pour s'assurer que toutes les infos sont à jour unucessary requete using 
+            return this.prisma.user.findUniqueOrThrow({ where: { id: user.id }, include: { Profile: true } });
+        }
+
+        // 2. Utilisateur NON trouvé par providerId. Rechercher par email pour LIAISON.
+        this.logger.log(`[OIDC-${provider}] Non trouvé par providerId. Recherche par email: ${email}`);
+        const userByEmail = await this.prisma.user.findUnique({ where: { email }, include: { Profile: true } })
+        //----
+        if (userByEmail) {
+            user = await this.prisma.user.update({ // Réassignation à 'user'
+                where: { id: userByEmail.id },
+                data: {
+                    provider,
+                    providerId,
+                    status: UserStatus.ACTIVE,
+                    lastConnection: new Date(),
+                },
+                include: { Profile: true },
+            });
+
+            // Mettre à jour ou créer le profil pour cet utilisateur lié
+            if (user.Profile) {
+                const data: Partial<Profile> = {
+                    ...(firstName && user.Profile.firstName !== firstName && { firstName }),
+                    ...(lastName && user.Profile.lastName !== lastName && { lastName }),
+                    ...(image && user.Profile.image !== image && { image }),
+                }
+                Object.keys(data).length > 0 && await this.prisma.profile.update({ where: { userId: user.id }, data })
+            }
+            else await this.prisma.profile.create({
+                data: { userId: user.id, firstName, lastName, image }
+            });
+            return this.prisma.user.findUniqueOrThrow({ where: { id: user.id }, include: { Profile: true } });
+        }
+
+        // 3. Aucun utilisateur existant (ni par providerId, ni par email). Créer un nouvel utilisateur.
+        this.logger.log(`[OIDC-${provider}] Aucun utilisateur. Création pour: ${email}`);
+        if (!firstName || !lastName) throw new HttpException('Prénom et nom sont requis du fournisseur OIDC pour créer un profil.', 400)
+        return this.prisma.user.create({
+            data: {
+                email,
+                provider,
+                providerId,
+                status: UserStatus.ACTIVE,
+                lastConnection: new Date(),
+                Profile: { create: { firstName, lastName, image } },
+            },
+            include: { Profile: true },
+        });
     }
+    // ----- FIN DE LA METHODE VALIDATEANDPROCESSUSER -----
 
-    async googleSignIn() { }
-    async googleSignUp() { }
-
+    // PAS UTILE ??? 
+    // Assurez-vous que votre méthode `login` existante (utilisée après l'authentification locale)
+    // est compatible pour être appelée après l'authentification OIDC.
+    // Elle doit prendre un objet User (de votre application) et retourner les jetons.
+    // Votre méthode `setAuthCookies` sera appelée dans le contrôleur après cela.
+    async login(user: User): Promise<{ accessToken: string; refreshToken: string, user: User }> {
+        const accessToken = await this.generateAccessToken(user.id);
+        const refreshToken = await this.generateRefreshToken(user.id);
+        await this.prisma.token.deleteMany({ where: { userId: user.id, type: $Enums.TokenType.REFRESH } });
+        await this.prisma.token.create({
+            data: {
+                userId: user.id,
+                token: refreshToken.hashRefreshToken,
+                type: $Enums.TokenType.REFRESH,
+                expiredAt: this.expiredAt(process.env.COOKIE_EXPIRES_REFRESH),
+            }
+        });
+        return { accessToken, refreshToken: refreshToken.refreshToken, user };
+    }
 
 }
 

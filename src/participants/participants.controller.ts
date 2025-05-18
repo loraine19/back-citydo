@@ -1,10 +1,7 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, BadRequestException, NotFoundException, ParseIntPipe, HttpException, HttpStatus, UseGuards, Req } from '@nestjs/common';
+import { Controller,  Post, Body,  Param, Delete,  ParseIntPipe,  UseGuards, Req } from '@nestjs/common';
 import { ParticipantsService } from './participants.service';
 import { CreateParticipantDto } from './dto/create-participant.dto';
-import { UpdateParticipantDto } from './dto/update-participant.dto';
 import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { UsersService } from '../users/users.service';
-import { EventsService } from '../events/events.service';
 import { AuthGuard } from '../auth/auth.guard';
 import { Participant } from '@prisma/client'
 import { ParticpantEntity } from './entities/participant.entity';

@@ -23,11 +23,13 @@ model GroupUser {
 model User {
   id             Int            @id @default(autoincrement())
   email          String         @unique
-  password       String
+  password       String?
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
   lastConnection DateTime       @default(now())
   status         UserStatus     @default(INACTIVE)
+  provider       UserProvider   @default(LOCAL)
+  providerId     String? // ID unique de l'utilisateur chez le fournisseur
   Token          Token[]
   GroupUser      GroupUser[]
   Event          Event[]
@@ -48,6 +50,13 @@ model User {
   Notifications  Notification[]
   Messages       Message[]      @relation("MessageUser")
   MessagesDest   Message[]      @relation("MessageUserRec")
+
+  @@unique([provider, providerId])
+}
+
+enum UserProvider {
+  LOCAL
+  GOOGLE
 }
 
 model Group {

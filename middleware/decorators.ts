@@ -29,7 +29,6 @@ export const GetRefreshToken = createParamDecorator(
         // const refreshToken = type === 'Bearer' ? token : undefined;
         console.log('request.cookies', request.cookies)
         const refreshToken = request.cookies[process.env.REFRESH_COOKIE_NAME];
-        // console.log('refreshToken', refreshToken)
         if (!refreshToken) {
             throw new HttpException('deco Refresh token not found ' + process.env.REFRESH_COOKIE_NAME, 401);
         }

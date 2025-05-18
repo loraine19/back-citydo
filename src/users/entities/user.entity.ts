@@ -1,6 +1,6 @@
 import { ApiProperty, PartialType } from '@nestjs/swagger';
 import { $Enums, UserStatus } from '@prisma/client';
-import { IsBoolean, IsDate, isDate, IsEmail, IsNotEmpty, IsNumber, isNumber, IsString, MinLength } from 'class-validator';
+import { IsBoolean, IsDate, isDate, IsEmail, isEnum, IsNotEmpty, IsNumber, isNumber, IsOptional, IsString, MinLength } from 'class-validator';
 import { User } from '@prisma/client';
 
 export class UserEntity implements User {
@@ -37,6 +37,16 @@ export class UserEntity implements User {
     @IsString()
     @MinLength(6)
     password: string;
+
+    @ApiProperty()
+    @IsOptional()
+
+    @IsString()
+    providerId: string;
+
+    @ApiProperty({ enum: $Enums.UserProvider, default: $Enums.UserProvider.LOCAL })
+    @IsOptional()
+    provider: $Enums.UserProvider;
 
 
 

@@ -13,12 +13,21 @@ export class ParticipantsService {
   constructor(private prisma: PrismaService, private notificationsService: NotificationsService, private usersService: UsersService) { }
 
   userIncludeConfig = { id: true, email: true, GroupUser: true, Profile: { select: { mailSub: true, firstName: true } } }
+  private groupSelectConfig = (userId: number) => ({
+    GroupUser: {
+      some:
+      {
+        Group:
+          { GroupUser: { some: { userId } } }
+      }
+    }
+  })
 
   async create(data: CreateParticipantDto): Promise<any> {
     const { userId, eventId } = data;
     const user = await this.prisma.user.findUnique({ where: { id: userId }, select: this.userIncludeConfig });
-    const event = await this.prisma.event.findUnique({ where: { id: eventId }, select: { title: true, start: true, Address: true, Participants: true, participantsMin: true, User: { select: this.userIncludeConfig } } });
-    if (!event) throw new HttpException('L\'événement n\'existe pas', 404);
+    const event = await this.prisma.event.findUnique({ where: { id: eventId, User: this.groupSelectConfig(userId) }, select: { title: true, start: true, Address: true, Participants: true, participantsMin: true, User: { select: this.userIncludeConfig } } });
+    if (!event) throw new HttpException('L\'événement n\'existe pas, ou n\'est pas dans votre groupe', 404);
     const participantsCount = event.Participants.length
     const groupIds = event.User.GroupUser.map(g => g.groupId)
     const users = await this.usersService.usersInGroup(event.User.id, groupIds)
