@@ -21,7 +21,7 @@ export class CronTaskService {
     createdOneMonthAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
     userSelectConfig = { User: { select: { id: true, email: true, Profile: { select: { mailSub: true } } } } }
 
-    @Cron(CronExpression.EVERY_30_SECONDS)
+    @Cron(CronExpression.EVERY_2_HOURS)
     async checkExpiredElement() {
         const surveys = await this.prisma.survey.findMany({
             where: { createdAt: { lt: this.createdTwoWeeksAgo }, status: $Enums.PoolSurveyStatus.PENDING },
