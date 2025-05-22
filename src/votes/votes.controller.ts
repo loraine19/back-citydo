@@ -1,12 +1,11 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, HttpException, HttpStatus, UseGuards, Req } from '@nestjs/common';
+import { Controller, Post, Body, Patch, UseGuards } from '@nestjs/common';
 import { VotesService } from './votes.service';
 import { CreateVoteDto } from './dto/create-vote.dto';
 import { UpdateVoteDto } from './dto/update-vote.dto';
 import { ApiTags, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { VoteEntity } from './entities/vote.entity';
-import { $Enums, Vote } from '@prisma/client';
+import { Vote } from '@prisma/client';
 import { AuthGuard } from '../auth/auth.guard';
-import { RequestWithUser } from 'src/auth/auth.entities/auth.entity';
 import { User } from 'middleware/decorators';
 
 const route = "votes"
@@ -25,8 +24,6 @@ export class VotesController {
     data.userId = userId
     return this.votesService.create(data)
   }
-
-
 
   @Patch()
   @ApiBearerAuth()

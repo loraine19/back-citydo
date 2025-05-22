@@ -22,7 +22,6 @@ export class Notification {
     @IsString()
     title: string;
 
-
     @ApiProperty()
     @IsNotEmpty()
     @IsString()
@@ -32,7 +31,6 @@ export class Notification {
     @IsOptional()
     @IsString()
     link?: string;
-
 
     @ApiProperty()
     @IsNotEmpty()

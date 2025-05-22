@@ -11,14 +11,17 @@ const path = require('path');
 @Injectable()
 export class CronTaskService {
 
-    constructor(private prisma: PrismaService, private notificationsService: NotificationsService, private jwtService: JwtService) { }
+    constructor(
+        private prisma: PrismaService,
+        private notificationsService: NotificationsService,
+        private jwtService: JwtService) { }
 
     createdOneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
     createdTwoWeeksAgo = new Date(Date.now() - 15 * 24 * 60 * 60 * 1000)
     createdOneMonthAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
-    userSelectConfig = { User: { select: { email: true, Profile: { select: { mailSub: true } } } } }
+    userSelectConfig = { User: { select: { id: true, email: true, Profile: { select: { mailSub: true } } } } }
 
-    @Cron(CronExpression.EVERY_DAY_AT_9AM)
+    @Cron(CronExpression.EVERY_30_SECONDS)
     async checkExpiredElement() {
         const surveys = await this.prisma.survey.findMany({
             where: { createdAt: { lt: this.createdTwoWeeksAgo }, status: $Enums.PoolSurveyStatus.PENDING },
@@ -39,7 +42,8 @@ export class CronTaskService {
             title: `${type} est expiré`,
             description: `votre ${type} ${title} n'a pas pu atteindre la majorité en 2 semaines. Il est donc maintenant rejeté`,
             link: `/${type}/${id}`
-        });
+        })
+
         for (const survey of surveys) {
             await this.prisma.survey.update({
                 where: { id: survey.id },
@@ -56,6 +60,7 @@ export class CronTaskService {
             })
             await this.notificationsService.create(new UserNotifInfo(pool.User), notification($Enums.NotificationType.POOL, 'cagnotte', pool.title, pool.id))
         }
+
         for (const event of events) {
             await this.prisma.event.update({
                 where: { id: event.id },
@@ -65,6 +70,7 @@ export class CronTaskService {
         }
     }
 
+    /// DELETE EXPIRED TOKENS
     @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
     deleteExpiredTokens() {
         this.prisma.token.deleteMany({
@@ -74,7 +80,7 @@ export class CronTaskService {
         })
     }
 
-
+    /// READ OLD NOTIFICATIONS
     @Cron(CronExpression.EVERY_WEEK)
     deleteReadNotifs() {
         this.prisma.notification.deleteMany({
@@ -98,7 +104,6 @@ export class CronTaskService {
             const files = fs.readdirSync(dir);
             if (!files) return;
             for (const file of files) {
-
                 const isInDb = await genericPrisma(file);
                 if (!isInDb) {
                     console.log('file not in db', file);
@@ -113,7 +118,5 @@ export class CronTaskService {
         await clean('posts', (file: string) => this.prisma.post.findFirst({ where: { image: file } }));
         await clean('surveys', (file: string) => this.prisma.survey.findFirst({ where: { image: file } }));
     }
-
-
 
 }

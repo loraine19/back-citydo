@@ -20,6 +20,7 @@ export class VotesService {
       await this.prisma.survey.findUnique({ where: { id: targetId }, select: { User: { select: this.userSelectConfig }, title: true, status: true, Votes: true } });
     if (!find) throw new HttpException(`${target} n'existe pas`, HttpStatus.NOT_FOUND);
     if (find.status === $Enums.PoolSurveyStatus.REJECTED) throw new HttpException('Vous ne pouvez pas voter sur cette cagnotte/sondage car il est cloturé', 403);
+    if (find.status === $Enums.PoolSurveyStatus.VALIDATED) throw new HttpException('Vous ne pouvez pas voter sur cette cagnotte/sondage car il est validé', 403);
     const title = target === $Enums.VoteTarget.SURVEY && 'title' in find ? find.title : find.User.Profile.firstName
     const vote = await this.prisma.vote.findUnique({ where: { userId_target_targetId: { userId, targetId, target } } });
     if (vote) throw new HttpException('Vous avez déjà voté', 403)
