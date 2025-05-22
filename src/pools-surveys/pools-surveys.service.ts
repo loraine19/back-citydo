@@ -54,10 +54,12 @@ export class PoolsSurveysService {
     let OR = []
     if (step.includes(PoolSurveyStep.NEW)) OR.push({ createdAt: { lt: getDate(0) } })
     if (step.includes(PoolSurveyStep.PENDING)) OR.push({ createdAt: { lt: getDate(7) } })
-    if (step.includes(PoolSurveyStep.VALIDATED)) { OR.push({ status: $Enums.PoolSurveyStatus.VALIDATED }) }
-    if (step.includes(PoolSurveyStep.REJECTED)) { OR.push({ status: $Enums.PoolSurveyStatus.REJECTED }) }
+    if (step.includes(PoolSurveyStep.VALIDATED)) OR.push({ status: $Enums.PoolSurveyStatus.VALIDATED })
+    if (step.includes(PoolSurveyStep.REJECTED)) OR.push({ status: $Enums.PoolSurveyStatus.REJECTED })
     where = { ...where, OR }
-    const count = await this.prisma.pool.count({ where }) + await this.prisma.survey.count({ where });
+
+    const count = filter === PoolSurveyFilter.SURVEY ? await this.prisma.survey.count({ where }) :
+      filter === PoolSurveyFilter.POOL ? await this.prisma.pool.count({ where }) : await this.prisma.pool.count({ where }) + await this.prisma.survey.count({ where })
     const take = page ? this.limit : count;
     const pools = filter === PoolSurveyFilter.SURVEY ? [] : await this.prisma.pool.findMany(
       {
