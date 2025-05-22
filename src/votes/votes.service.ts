@@ -78,14 +78,14 @@ export class VotesService {
 
 
   async update(userId: number, data: UpdateVoteDto): Promise<Vote> {
-    const { targetId, target } = data
+    const { targetId, target, opinion } = data
     const vote = await this.prisma.vote.findUnique({ where: { userId_target_targetId: { userId, targetId: data.targetId, target: data.target } } });
     if (!vote) throw new HttpException('Votre vote n\'existe pas', 404)
     if (vote.createdAt.getTime() + 24 * 60 * 60 * 1000 < new Date().getTime()) throw new HttpException('Vous ne pouvez pas modifier ce vote, il est trop vieux', 403)
-    return await this.prisma.vote.update({
+    return this.prisma.vote.update({
       where: { userId_target_targetId: { userId, targetId, target } },
-      data: { ...data },
-    });
+      data: { opinion },
+    })
   }
 
   async remove(userId: number, targetId: number, target: $Enums.VoteTarget,): Promise<Vote> {

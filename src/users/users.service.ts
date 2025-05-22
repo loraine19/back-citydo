@@ -75,7 +75,9 @@ export class UsersService {
 
   async usersInGroup(userId: number, groupId: number[]): Promise<UserNotifInfo[]> {
     const user = await this.prisma.user.findUnique({ where: { id: userId }, include: { GroupUser: true } });
-    if (!user || !user.GroupUser.some(g => g.groupId in groupId)) throw new HttpException('Vous ne faites pas partie de ce groupe', 403);
+    if (!user) throw new NotFoundException('cette utilisateur n\'existe pas');
+    console.log(user.GroupUser, groupId);
+    if (!user.GroupUser.some(g => g.groupId in groupId)) throw new HttpException('Vous ne faites pas partie de ce groupe', 403);
 
     return await this.prisma.user.findMany({
       where: {
