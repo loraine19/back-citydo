@@ -29,8 +29,8 @@ services:
 
   #Nest 
   nest:
-    container_name: cityzen-back
-    image: lorainep/cityzen-back:latest
+    container_name: citydo-back
+    image: lorainep/citydo-back:latest
     build:
       dockerfile: Dockerfile.nest
       context: .
