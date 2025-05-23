@@ -17,8 +17,9 @@ export class EventsService {
       User: { select: { email: true, Profile: { include: { Address: true } } } },
       Participants: { include: { User: { select: { email: true, Profile: { include: { Address: true } }, id: true, GroupUser: { include: { Group: { select: { name: true, id: true } } } } } } } },
       Address: true,
-      Flags: { where: { target: $Enums.FlagTarget.EVENT, userId } }
-    };
+      Flags: { where: { target: $Enums.FlagTarget.EVENT, userId } },
+      Group: { include: { GroupUser: true, Address: true } }
+    }
   }
 
   private userSelectConfig = {
@@ -28,12 +29,7 @@ export class EventsService {
   }
 
   private groupSelectConfig = (userId: number) => ({
-    GroupUser: {
-      some: {
-        Group:
-          { GroupUser: { some: { userId } } }
-      }
-    }
+    GroupUser: { some: { userId } }
   })
 
   limit = parseInt(process.env.LIMIT)
@@ -45,7 +41,7 @@ export class EventsService {
   //// CONSULT
   async findAll(userId: number, page?: number, category?: string): Promise<{ events: Event[], count: number }> {
     const skip = page ? this.skip(page) : 0;
-    const where = category ? { category: $Enums.EventCategory[category], User: this.groupSelectConfig(userId) } : { User: this.groupSelectConfig(userId) }
+    const where = category ? { category: $Enums.EventCategory[category], Group: this.groupSelectConfig(userId) } : { Group: this.groupSelectConfig(userId) }
     const count = await this.prisma.event.count({ where });
     const take = page ? this.limit : count;
     const events = await this.prisma.event.findMany({
@@ -79,7 +75,7 @@ export class EventsService {
   async findAllByParticipantId(userId: number, page?: number, category?: string): Promise<{ events: Event[], count: number }> {
     const skip = page ? this.skip(page) : 0;
     const where = category ?
-      { User: this.groupSelectConfig(userId), category: $Enums.EventCategory[category], Participants: { some: { userId } } } : { User: this.groupSelectConfig(userId), Participants: { some: { userId } } }
+      { Group: this.groupSelectConfig(userId), category: $Enums.EventCategory[category], Participants: { some: { userId } } } : { Group: this.groupSelectConfig(userId), Participants: { some: { userId } } }
     const count = await this.prisma.event.count({ where });
     const take = page ? this.limit : count;
     const events = await this.prisma.event.findMany({
@@ -93,7 +89,7 @@ export class EventsService {
   }
 
   async findAllValidated(userId: number, page?: number, category?: string): Promise<{ events: Event[], count: number }> {
-    const where = category ? { User: this.groupSelectConfig(userId), category: $Enums.EventCategory[category], status: $Enums.EventStatus.VALIDATED } : { User: this.groupSelectConfig(userId), status: $Enums.EventStatus.VALIDATED }
+    const where = category ? { Group: this.groupSelectConfig(userId), category: $Enums.EventCategory[category], status: $Enums.EventStatus.VALIDATED } : { Group: this.groupSelectConfig(userId), status: $Enums.EventStatus.VALIDATED }
     const count = await this.prisma.event.count({ where });
     const skip = page ? this.skip(page) : 0;
     const take = page ? this.limit : count;
@@ -111,7 +107,7 @@ export class EventsService {
 
   async findOne(id: number, userId: number): Promise<Event> {
     return await this.prisma.event.findUniqueOrThrow({
-      where: { id, User: this.groupSelectConfig(userId) },
+      where: { id, Group: this.groupSelectConfig(userId) },
       include: this.eventIncludeConfig(userId),
     });
   }
@@ -119,10 +115,15 @@ export class EventsService {
 
   //// ACTIONS
   async create(data: CreateEventDto): Promise<Event> {
-    const { userId, addressId, Address, ...event } = data
+    const { userId, addressId, Address, groupId, ...event } = data
     const addressIdVerified = await this.addressService.verifyAddress(Address);
     const createdEvent = await this.prisma.event.create({
-      data: { ...event, Address: { connect: { id: addressIdVerified } }, User: { connect: { id: userId } } }
+      data: {
+        ...event,
+        Address: { connect: { id: addressIdVerified } },
+        User: { connect: { id: userId } },
+        Group: { connect: { id: groupId } }
+      }
     });
     const usersNotif = await this.prisma.user.findMany({ select: this.userSelectConfig })
     const notification = {
@@ -138,14 +139,17 @@ export class EventsService {
   }
 
   async update(updateId: number, data: UpdateEventDto, userIdC: number): Promise<Event> {
-    const { userId, addressId, Address, ...event } = data;
+    const { userId, addressId, Address, groupId, ...event } = data;
     if (userIdC !== userId) throw new HttpException('Vous n\'avez pas les droits de modifier cet évènement', 403)
     const addressIdVerified = await this.addressService.verifyAddress(Address);
     const eventUpdated = await this.prisma.event.update({
       where: { id: updateId },
       include: this.eventIncludeConfig(userId),
       data: {
-        ...event, Address: { connect: { id: addressIdVerified } }, User: { connect: { id: userId } },
+        ...event,
+        Address: { connect: { id: addressIdVerified } },
+        User: { connect: { id: userId } },
+        Group: { connect: { id: groupId } }
       }
     });
     if (eventUpdated) {

@@ -1,4 +1,4 @@
-import { $Enums, AssistanceLevel, PrismaClient, Address, Service } from '@prisma/client';
+import { $Enums, PrismaClient, Service } from '@prisma/client';
 import { CreateServiceDto } from 'src/service/dto/create-service.dto';
 import { fr, base, Faker, } from '@faker-js/faker';
 import type { LocaleDefinition } from '@faker-js/faker';
@@ -12,10 +12,9 @@ import { CreateParticipantDto } from 'src/participants/dto/create-participant.dt
 import { CreatePostDto } from 'src/posts/dto/create-post.dto';
 import { CreateLikeDto } from 'src/likes/dto/create-like.dto';
 import { CreateVoteDto } from 'src/votes/dto/create-vote.dto';
-import { Decimal, } from '@prisma/client/runtime/library';
+import { Decimal } from '@prisma/client/runtime/library';
 import { CreateFlagDto } from 'src/flags/dto/create-flag.dto';
 import { CreateIssueDto } from 'src/issues/dto/create-issue.dto';
-import { getEnumVal } from 'middleware/GetPoints';
 import { UsersService } from 'src/users/users.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { EventsService } from 'src/events/events.service';
@@ -193,6 +192,7 @@ const CreateRandomEvent = async (): Promise<CreateEventDto> => {
     category: newFaker.helpers.arrayElement(Object.values($Enums.EventCategory)),
     participantsMin: newFaker.number.int({ min: 1, max: 20 }),
     image: newFaker.image.urlPicsumPhotos({ width: 600, height: 400, blur: 0, grayscale: false }),
+    groupId: newFaker.number.int({ min: 1, max: 2 }),
   }
 }
 
@@ -207,7 +207,6 @@ const CreateRandomService = async (): Promise<CreateServiceDto> => {
   const status = newFaker.helpers.arrayElement(Object.values($Enums.ServiceStep))
   const skill = newFaker.helpers.arrayElement(Object.values($Enums.SkillLevel))
   const hard = newFaker.helpers.arrayElement(Object.values($Enums.HardLevel))
-  const base = Number(((getEnumVal(hard, $Enums.HardLevel) / 2 + getEnumVal(skill, $Enums.SkillLevel) / 2) + 1).toFixed(1))
   return {
     userId: newFaker.number.int({ min: 1, max: max / 3 }),
     type: newFaker.helpers.arrayElement(Object.values($Enums.ServiceType)),
@@ -217,7 +216,8 @@ const CreateRandomService = async (): Promise<CreateServiceDto> => {
     skill,
     hard,
     status,
-    image: (newFaker.image.urlPicsumPhotos({ width: 600, height: 400, blur: 0, grayscale: false }))
+    image: (newFaker.image.urlPicsumPhotos({ width: 600, height: 400, blur: 0, grayscale: false })),
+    groupId: newFaker.number.int({ min: 1, max: 2 }),
   }
 }
 
@@ -260,6 +260,7 @@ const CreateRandomPost = async (): Promise<CreatePostDto> => {
     category: newFaker.helpers.arrayElement(Object.values($Enums.PostCategory)),
     image: (newFaker.image.urlPicsumPhotos({ width: 600, height: 400, blur: 0, grayscale: false })),
     share: newFaker.helpers.arrayElement(Object.values($Enums.Share)),
+    groupId: newFaker.number.int({ min: 1, max: 2 }),
   }
 }
 
@@ -582,9 +583,6 @@ const seed = async () => {
   }
   await flag();
   console.log('flags created ✅ ')
-
-
-
 }
 
 

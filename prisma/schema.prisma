@@ -71,6 +71,9 @@ model Group {
   GroupUser GroupUser[]
   Surveys   Survey[]
   Pools     Pool[]
+  Services  Service[]
+  Events    Event[]
+  Posts     Post[]
 }
 
 model Address {
@@ -95,7 +98,7 @@ model Profile {
   addressId     Int?
   firstName     String
   lastName      String
-  image         String?
+  image         String?           @db.MediumText
   phone         String?
   mailSub       MailSubscriptions @default(SUB_1)
   addressShared Boolean           @default(false)
@@ -139,6 +142,8 @@ model Event {
   Participants    Participant[]
   Flags           Flag[]        @relation(name: "EventFlag", map: "EventFlag")
   status          EventStatus   @default(PENDING)
+  groupId         Int
+  Group           Group?        @relation(fields: [groupId], references: [id], onUpdate: Cascade, onDelete: Cascade)
 }
 
 ////// PARTICIPANT
@@ -173,6 +178,8 @@ model Service {
   Issue       Issue[]
   Flags       Flag[]          @relation(name: "ServiceFlag", map: "ServiceFlag")
   points      Int?            @default(0)
+  groupId     Int
+  Group       Group?          @relation(fields: [groupId], references: [id], onUpdate: Cascade, onDelete: Cascade)
 }
 
 ////// ISSUE
@@ -255,6 +262,8 @@ model Post {
   Likes       Like[]
   share       Share        @default(EMAIL)
   Flags       Flag[]       @relation(name: "PostFlag", map: "PostFlag")
+  groupId     Int
+  Group       Group?       @relation(fields: [groupId], references: [id], onUpdate: Cascade, onDelete: Cascade)
 }
 
 model Like {

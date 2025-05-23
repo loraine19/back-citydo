@@ -69,4 +69,9 @@ export class EventEntity implements Event {
 
     @ApiProperty()
     status: $Enums.EventStatus;
+
+    @ApiProperty()
+    @IsNumber()
+    @IsNotEmpty({ message: 'Group id is required' })
+    groupId: number
 }

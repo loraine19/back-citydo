@@ -63,4 +63,10 @@ export class CreateEventDto {
     @IsOptional()
     Address: Address
 
+    @ApiProperty()
+    @IsNotEmpty()
+    @Transform(({ value }) => parseInt(value))
+    @IsNumber()
+    groupId: number;
+
 }

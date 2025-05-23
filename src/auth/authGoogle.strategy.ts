@@ -45,7 +45,7 @@ export class GoogleAuthStrategy extends PassportStrategy(Strategy, 'google') {
             const user = await this.authService.validateAndProcessOidcUser(googleUserDto);
             if (!user) {
                 // Normalement, validateAndProcessOidcUser devrait lancer une erreur si échec
-                return done(new HttpException('Impossible de valider ou traiter l\'utilisateur OIDC via AuthService.', HttpStatus.INTERNAL_SERVER_ERROR), false);
+                return done(new HttpException('Impossible de valider ou traiter l\'utilisateur OIDC via AuthService.', 403), false);
             }
             done(null, user); // user est l'utilisateur de votre BDD, incluant Profile
         } catch (err) {

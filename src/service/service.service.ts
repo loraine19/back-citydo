@@ -17,7 +17,8 @@ export class ServicesService {
     return {
       User: { select: { id: true, email: true, Profile: { include: { Address: true } } } },
       UserResp: { select: { id: true, email: true, Profile: { include: { Address: true } } } },
-      Flags: { where: { target: $Enums.FlagTarget.SERVICE, userId } }
+      Flags: { where: { target: $Enums.FlagTarget.SERVICE, userId } },
+      Group: { include: { GroupUser: true, Address: true } }
     }
   }
   private userSelectConfig = {
@@ -25,15 +26,8 @@ export class ServicesService {
     email: true,
     Profile: { select: { mailSub: true } }
   }
-  private groupSelectConfig = (userId: number) => ({
-    GroupUser: {
-      some:
-      {
-        Group:
-          { GroupUser: { some: { userId } } }
-      }
-    }
-  })
+
+  private groupSelectConfig = (userId: number) => ({ GroupUser: { some: { userId } } })
 
   limit = parseInt(process.env.LIMIT)
   skip(page: number) { return (page - 1) * this.limit }
@@ -42,8 +36,8 @@ export class ServicesService {
   async findAll(userId: number, page?: number, type?: $Enums.ServiceType, step?: $Enums.ServiceStep, category?: $Enums.ServiceCategory,): Promise<{ services: Service[], count: number }> {
     const skip = page ? this.skip(page) : 0;
     const status = step ? $Enums.ServiceStep[step] : { in: [$Enums.ServiceStep.STEP_0, $Enums.ServiceStep.STEP_1] }
-    const User = this.groupSelectConfig(userId)
-    const where = { type, status, category, User }
+    const Group = this.groupSelectConfig(userId);
+    const where = { type, status, category, Group }
     const count = await this.prisma.service.count({ where });
     const take = page ? this.limit : count
     const services = await this.prisma.service.findMany({
@@ -88,16 +82,22 @@ export class ServicesService {
 
   async findOne(id: number, userId: number): Promise<Service> {
     return await this.prisma.service.findUniqueOrThrow({
-      where: { id, User: this.groupSelectConfig(userId) },
+      where: { id, Group: this.groupSelectConfig(userId) },
       include: this.serviceIncludeConfig(userId),
     });
   }
 
 
   async create(data: CreateServiceDto): Promise<Service> {
-    const { userId, ...service } = data;
+    const { userId, groupId, ...service } = data;
     const users = await this.prisma.user.findMany({ select: this.userSelectConfig });
-    const createdService = await this.prisma.service.create({ data: { ...service, User: { connect: { id: userId } } }, include: this.serviceIncludeConfig(userId) });
+    const createdService = await this.prisma.service.create({
+      data: {
+        ...service,
+        User: { connect: { id: userId } },
+        Group: { connect: { id: groupId } },
+      }, include: this.serviceIncludeConfig(userId)
+    });
     const addressId = createdService.User.Profile.addressShared ? createdService.User.Profile.addressId : null;
     const notification = {
       title: 'Nouveau service',
@@ -112,8 +112,8 @@ export class ServicesService {
   }
 
   async update(id: number, data: any,): Promise<Service> {
-    const { userId, userIdResp, ...service } = data;
-    const updateData: any = { ...service };
+    const { userId, userIdResp, groupId, ...service } = data;
+    const updateData: any = { ...service, Group: { connect: { id: groupId } } };
     if (userId) {
       updateData.User = { connect: { id: userId } };
     }

@@ -15,6 +15,7 @@ export class PostsService {
       User: { select: { id: true, GroupUser: { include: { Group: { select: { name: true, id: true } } } }, email: true, Profile: { include: { Address: true } } } },
       Flags: { where: { target: $Enums.FlagTarget.EVENT, userId } },
       Likes: true,
+      Group: { include: { GroupUser: true, Address: true } }
     };
   }
 
@@ -25,22 +26,20 @@ export class PostsService {
     Profile: { select: { mailSub: true } }
   }
 
-  private groupSelectConfig = (userId: number) => ({
-    GroupUser: {
-      some:
-      {
-        Group:
-          { GroupUser: { some: { userId } } }
-      }
-    }
-  })
+  private groupSelectConfig = (userId: number) => ({ GroupUser: { some: { userId } } })
 
   limit = parseInt(process.env.LIMIT)
   skip(page: number) { return (page - 1) * this.limit }
 
   async create(data: CreatePostDto): Promise<Post> {
-    const { userId, ...post } = data
-    const postCreated = await this.prisma.post.create({ data: { ...post, User: { connect: { id: userId } } } })
+    const { userId, groupId, ...post } = data
+    const postCreated = await this.prisma.post.create({
+      data: {
+        ...post,
+        User: { connect: { id: userId } },
+        Group: { connect: { id: groupId } }
+      }
+    })
     const user = await this.prisma.user.findUnique({ where: { id: userId, Profile: { addressShared: true } }, select: { id: true, email: true, Profile: { select: { addressId: true } } } });
     const addressId = user ? user.Profile.addressId : null;
     const users = await this.prisma.user.findMany({ select: this.userSelectConfig });
@@ -58,7 +57,7 @@ export class PostsService {
 
   async findAll(userId: number, page?: number, category?: string): Promise<{ posts: Post[], count: number }> {
     const skip = page ? this.skip(page) : 0;
-    const where = category ? { category: $Enums.PostCategory[category], User: this.groupSelectConfig(userId) } : { User: this.groupSelectConfig(userId) }
+    const where = category ? { category: $Enums.PostCategory[category], Group: this.groupSelectConfig(userId) } : { Group: this.groupSelectConfig(userId) }
     const count = await this.prisma.post.count({ where });
     const take = page ? this.limit : count;
     const posts = await this.prisma.post.findMany({
@@ -89,7 +88,7 @@ export class PostsService {
 
   async findAllILike(userId: number, page?: number, category?: string,): Promise<{ posts: Post[], count: number }> {
     const skip = page ? this.skip(page) : 0;
-    const where = { Likes: { some: { userId } }, category: $Enums.PostCategory[category], User: this.groupSelectConfig(userId) }
+    const where = { Likes: { some: { userId } }, category: $Enums.PostCategory[category], Group: this.groupSelectConfig(userId) }
     const count = await this.prisma.post.count({ where });
     const take = page ? this.limit : count;
     const posts = await this.prisma.post.findMany({
@@ -105,18 +104,22 @@ export class PostsService {
 
   async findOne(id: number, userId: number): Promise<Post> {
     return await this.prisma.post.findUniqueOrThrow({
-      where: { id, User: this.groupSelectConfig(userId) },
+      where: { id, Group: this.groupSelectConfig(userId) },
       include: this.postIncludeConfig(userId)
     });
   }
 
 
   async update(id: number, data: any): Promise<Post> {
-    const { userId, ...post } = data
+    const { userId, groupId, ...post } = data
     return await this.prisma.post.update({
       include: this.postIncludeConfig(userId),
       where: { id },
-      data: { ...post, User: { connect: { id: userId } } }
+      data: {
+        ...post,
+        User: { connect: { id: userId } },
+        Group: { connect: { id: groupId } }
+      }
     });
   }
 

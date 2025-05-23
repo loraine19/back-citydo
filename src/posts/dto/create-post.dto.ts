@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { $Enums } from "@prisma/client";
-import { Type } from "class-transformer";
+import { Transform, Type } from "class-transformer";
 import { IsNotEmpty, IsNumber, IsString, IsEnum, IsOptional } from "class-validator";
 
 export class CreatePostDto {
@@ -35,4 +35,10 @@ export class CreatePostDto {
     @IsNotEmpty({ message: 'share is required' })
     @IsEnum($Enums.Share, { message: 'share must be part of ' + Object.values($Enums.Share).join(', ') })
     share: $Enums.Share;
+
+    @ApiProperty()
+    @IsNotEmpty()
+    @Transform(({ value }) => parseInt(value))
+    @IsNumber()
+    groupId: number;
 }

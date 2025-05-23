@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { $Enums } from "@prisma/client";
-import { Type } from "class-transformer";
+import { Transform, Type } from "class-transformer";
 import { IsNotEmpty, IsNumber, IsEnum, IsString, IsOptional } from "class-validator";
 
 export class CreateServiceDto {
@@ -52,5 +52,11 @@ export class CreateServiceDto {
     @IsOptional()
     @IsString({ message: 'image must be a link' })
     image: string;
+
+    @ApiProperty()
+    @IsNotEmpty()
+    @Transform(({ value }) => parseInt(value))
+    @IsNumber()
+    groupId: number;
 
 }

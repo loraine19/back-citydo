@@ -13,24 +13,16 @@ export class ParticipantsService {
   constructor(private prisma: PrismaService, private notificationsService: NotificationsService, private usersService: UsersService) { }
 
   userIncludeConfig = { id: true, email: true, GroupUser: true, Profile: { select: { mailSub: true, firstName: true } } }
-  private groupSelectConfig = (userId: number) => ({
-    GroupUser: {
-      some:
-      {
-        Group:
-          { GroupUser: { some: { userId } } }
-      }
-    }
-  })
+  private groupSelectConfig = (userId: number) => ({ GroupUser: { some: { userId } } })
 
   async create(data: CreateParticipantDto): Promise<any> {
     const { userId, eventId } = data;
     const user = await this.prisma.user.findUnique({ where: { id: userId }, select: this.userIncludeConfig });
-    const event = await this.prisma.event.findUnique({ where: { id: eventId, User: this.groupSelectConfig(userId) }, select: { title: true, start: true, Address: true, Participants: true, participantsMin: true, User: { select: this.userIncludeConfig } } });
+    const event = await this.prisma.event.findUnique({ where: { id: eventId, Group: this.groupSelectConfig(userId) }, select: { title: true, start: true, Address: true, Participants: true, participantsMin: true, groupId: true, Group: { include: { GroupUser: true } }, User: { select: this.userIncludeConfig } } });
     if (!event) throw new HttpException('L\'événement n\'existe pas, ou n\'est pas dans votre groupe', 404);
     const participantsCount = event.Participants.length
-    const groupIds = event.User.GroupUser.map(g => g.groupId)
-    const users = await this.usersService.usersInGroup(event.User.id, groupIds)
+    const groupIds = event.groupId
+    const users = await this.usersService.usersInGroup(event.User.id, [groupIds])
     const isValided = (participantsCount + 1) >= event.participantsMin
     const participation = await this.prisma.participant.create({
       data: {
@@ -58,7 +50,6 @@ export class ParticipantsService {
     await this.notificationsService.create(new UserNotifInfo(event.User), notification1);
     await this.notificationsService.create(new UserNotifInfo(user), notification2);
     if (isValided) {
-      console.log('VALIDATION EVENT')
       await this.prisma.event.update({ where: { id: eventId }, data: { status: $Enums.EventStatus.VALIDATED } })
       const notification3 = {
         type: $Enums.NotificationType.PARTICIPANT,

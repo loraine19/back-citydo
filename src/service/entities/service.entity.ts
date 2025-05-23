@@ -77,4 +77,9 @@ export class ServiceEntity implements Service {
     @IsNumber({}, { message: 'points must be a number' })
     @Type(() => Number)
     points: number;
+
+    @ApiProperty()
+    @IsNumber()
+    @IsNotEmpty({ message: 'Group id is required' })
+    groupId: number
 }

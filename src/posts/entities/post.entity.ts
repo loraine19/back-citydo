@@ -46,5 +46,9 @@ export class PostEntity implements Post {
     @IsEnum($Enums.Share)
     share: $Enums.Share;
 
+    @ApiProperty()
+    @IsNumber()
+    @IsNotEmpty({ message: 'Group id is required' })
+    groupId: number
 
 }
