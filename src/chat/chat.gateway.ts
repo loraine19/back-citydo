@@ -40,7 +40,6 @@ export class ChatGateway {
     const { userIdRec, message } = data;
 
     if (!this.users.includes(userId)) {
-      console.log(userId, this.users)
       this.users.push(userId);
       this.server.emit(`${WS}-message`, { users: this.users });
     }

@@ -42,7 +42,6 @@ export class PoolsSurveysController {
     @User() userId: number): Promise<Pool> {
     data.userId = userId
     data = parseData(data)
-    console.log(data)
     return this.poolsSurveysService.createPool(data);
   }
 
@@ -108,7 +107,6 @@ export class PoolsSurveysController {
     const survey = await this.poolsSurveysService.findOneSurvey(id, userId)
     survey.image && image && ImageInterceptor.deleteImage(survey.image)
     data = parseData(data, image)
-    console.log(data)
     return this.poolsSurveysService.updateSurvey(id, data);
   }
 

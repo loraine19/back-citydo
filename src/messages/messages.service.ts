@@ -126,7 +126,6 @@ export class MessagesService {
         read: true
       }
     })
-    console.log(132, nov, id)
     return messages
   }
 

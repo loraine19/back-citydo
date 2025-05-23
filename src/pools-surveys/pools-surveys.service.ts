@@ -36,15 +36,7 @@ export class PoolsSurveysService {
     email: true,
     Profile: { select: { mailSub: true } }
   }
-  private groupSelectConfig = (userId: number) => ({
-    GroupUser: {
-      some:
-      {
-        Group:
-          { GroupUser: { some: { userId } } }
-      }
-    }
-  })
+  private groupSelectConfig = (userId: number) => ({ GroupUser: { some: { userId } } })
 
   limit = parseInt(process.env.LIMIT)
   skip(page: number) { return (page - 1) * this.limit }

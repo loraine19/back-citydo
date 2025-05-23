@@ -12,7 +12,7 @@ import { UserNotifInfo } from 'src/notifications/entities/notification.entity';
 export class UsersService {
   constructor(private prisma: PrismaService) { }
 
-  goupId = 1
+
 
   async create(data: CreateUserDto): Promise<User> {
     let user = { ...data };
@@ -33,12 +33,16 @@ export class UsersService {
   }
 
   async findAllModo(id: number): Promise<Partial<User>[]> {
+    /// TODO Pass groupId in params
     const user = await this.prisma.user.findUnique({ where: { id }, include: { GroupUser: true } });
     return await this.prisma.user.findMany({
       where: {
         id: { not: id },
         GroupUser: {
-          some: { groupId: { in: user.GroupUser.map(g => g.groupId) }, role: { equals: $Enums.Role.MODO } }
+          some: {
+            groupId: { in: user.GroupUser.map(g => g.groupId) },
+            role: { equals: $Enums.Role.MODO }
+          }
         }
       },
       select: {
@@ -52,6 +56,7 @@ export class UsersService {
 
 
   async findOne(id: number): Promise<Partial<User>> {
+    /// TODO: check if user is in group
     return await this.prisma.user.findUniqueOrThrow({
       where: { id },
       select: {
@@ -60,7 +65,7 @@ export class UsersService {
         lastConnection: true,
         status: true,
         Profile: { include: { Address: true } },
-        GroupUser: { where: { groupId: this.goupId }, include: { Group: true } }
+        GroupUser: { include: { Group: true } }
       },
     });
   }
@@ -81,9 +86,7 @@ export class UsersService {
 
     return await this.prisma.user.findMany({
       where: {
-        GroupUser: {
-          some: { groupId: { in: groupId } }
-        }
+        GroupUser: { some: { groupId: { in: groupId } } }
       },
       select: {
         id: true,

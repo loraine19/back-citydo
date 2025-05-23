@@ -31,10 +31,8 @@ export class ProfilesController {
     @Body() data: any,
     @UploadedFile() image: Express.Multer.File,
     @User() userId: number): Promise<Profile> {
-    console.log(data)
     data.userId = userId
     data = await parseData(data, image)
-    console.log(34, data)
     return await this.profilesService.create(data)
   }
 

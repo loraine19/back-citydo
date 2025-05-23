@@ -40,8 +40,7 @@ export class NotifsGateway {
 
     if (!this.users.includes(userId)) {
       this.users.push(userId);
-      this.server.emit(`${WS}-message`, { users: this.users });
-      // console.log('users connected' + WS, this.users)
+      this.server.emit(`${WS}-message`, { users: this.users })
     }
 
     client.on('disconnect', () => {

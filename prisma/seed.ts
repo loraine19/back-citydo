@@ -543,7 +543,15 @@ const seed = async () => {
     while (await prisma.vote.count() < max * 8) {
       const { userId, targetId, target, ...vote } = await CreateRandomVote();
       const cond = await prisma.vote.findUnique({ where: { userId_target_targetId: { userId, target, targetId } } });
-      if (!cond && targetId) await votesService.create({ ...vote, userId, targetId, target })
+      const targetFind = await (async () => {
+        switch (target) {
+          case $Enums.VoteTarget.POOL:
+            return prisma.pool.findUnique({ where: { id: targetId, status: $Enums.PoolSurveyStatus.PENDING } });
+          case $Enums.VoteTarget.SURVEY:
+            return prisma.survey.findUnique({ where: { id: targetId, status: $Enums.PoolSurveyStatus.PENDING } });
+        }
+      })
+      if (!cond && targetFind) await votesService.create({ ...vote, userId, targetId, target })
     }
   }
   await vote();

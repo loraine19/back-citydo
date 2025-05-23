@@ -112,6 +112,7 @@ describe('FlagsService', () => {
       category: $Enums.EventCategory.CATEGORY_1,
       image: null,
       status: $Enums.EventStatus.PENDING,
+      groupId: 1,
     }
 
     it('should create a flag successfully (first flag for target/reason)', async () => {
