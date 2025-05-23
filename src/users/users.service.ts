@@ -12,8 +12,6 @@ import { UserNotifInfo } from 'src/notifications/entities/notification.entity';
 export class UsersService {
   constructor(private prisma: PrismaService) { }
 
-
-
   async create(data: CreateUserDto): Promise<User> {
     let user = { ...data };
     const userFind = await this.prisma.user.findUnique({ where: { email: user.email } });

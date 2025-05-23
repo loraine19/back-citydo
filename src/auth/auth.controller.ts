@@ -102,16 +102,17 @@ export class AuthController {
 
   // --- ROUTES POUR GOOGLE OIDC ---
 
-  @Post('google')
+  @Get('google')
   @UseGuards(AuthGuardGoogle) // Cette garde utilise votre GoogleAuthStrategy
   async googleAuth(@Req() req: Request) {
     console.log('Google Auth called')
   }
 
-  @Post('google/redirect')
+  @Get('google/redirect')
   @UseGuards(AuthGuardGoogle) // La stratégie traite le callback de Google et appelle `validate`
   async googleAuthRedirect(@Req() req: Request, @Res() res: Response, @Ip() ip: string) {
     const appUser = req.user as UserObj
+    console.log('Google Auth Redirect called', appUser)
 
     if (!appUser) {
       const frontendErrorUrl = `${process.env.FRONT_URL}/signin?msg=Google%20Login%20Failed`;
@@ -122,7 +123,9 @@ export class AuthController {
       // Étape 1: Générer les JWT de VOTRE application pour cet utilisateur.
       const { accessToken, refreshToken } = await this.authService.login(appUser);
       this.authService.setAuthCookies(res, accessToken, refreshToken)
+
       res.redirect(process.env.FRONT_URL)
+
     } catch (error) {
       console.error('Erreur lors de la création de la session:', error);
       const frontendErrorUrl = `${process.env.FRONT_URL}/signin?msg=Google%20Session%20Creation%20Error`;

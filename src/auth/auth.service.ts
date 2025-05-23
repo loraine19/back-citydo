@@ -187,7 +187,8 @@ export class AuthService {
 
     /// GEMINI OPENID CORRECTION - Version ajustée de VOTRE code
     async validateAndProcessOidcUser(oidcUserDto: AuthUserGoogle): Promise<User & { Profile: Profile | null }> {
-        const { provider, providerId, email, firstName, lastName, image } = oidcUserDto;
+        let { provider, providerId, email, firstName, lastName, image } = oidcUserDto;
+        //image = image.split('=')[0];
         this.logger.log(`[OIDC-${provider}] Validation pour: ${email}, ProviderID: ${providerId}`);
         if (!email) throw new HttpException('Email is required', 400);
 
@@ -200,9 +201,9 @@ export class AuthService {
 
             if (user.Profile) {
                 const data: Partial<Profile> = {
-                    ...(firstName && user.Profile.firstName !== firstName && { firstName }),
-                    ...(lastName && user.Profile.lastName !== lastName && { lastName }),
-                    ...(image && user.Profile.image !== image && { image }),
+                    ...(firstName && !user.Profile.firstName && { firstName }),
+                    ...(lastName && !user.Profile.lastName && { lastName }),
+                    ...(image && !user.Profile.image && { image }),
                 }
                 Object.keys(data).length > 0 && await this.prisma.profile.update({ where: { userId: user.id }, data })
 
