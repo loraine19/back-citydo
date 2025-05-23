@@ -102,13 +102,13 @@ export class AuthController {
 
   // --- ROUTES POUR GOOGLE OIDC ---
 
-  @Get('google')
+  @Post('google')
   @UseGuards(AuthGuardGoogle) // Cette garde utilise votre GoogleAuthStrategy
   async googleAuth(@Req() req: Request) {
     console.log('Google Auth called')
   }
 
-  @Get('google/redirect')
+  @Post('google/redirect')
   @UseGuards(AuthGuardGoogle) // La stratégie traite le callback de Google et appelle `validate`
   async googleAuthRedirect(@Req() req: Request, @Res() res: Response, @Ip() ip: string) {
     const appUser = req.user as UserObj
