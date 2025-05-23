@@ -60,14 +60,15 @@ enum UserProvider {
 }
 
 model Group {
-  id        Int         @id @default(autoincrement())
+  id        Int           @id @default(autoincrement())
   addressId Int
   area      Int
-  rules     String      @db.LongText
+  rules     String        @db.LongText
   name      String
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
-  Address   Address     @relation(fields: [addressId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  category  GroupCategory @default(CATEGORY_1)
+  Address   Address       @relation(fields: [addressId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   GroupUser GroupUser[]
   Surveys   Survey[]
   Pools     Pool[]
@@ -423,6 +424,14 @@ enum ServiceCategory {
 }
 
 enum SurveyCategory {
+  CATEGORY_1
+  CATEGORY_2
+  CATEGORY_3
+  CATEGORY_4
+  CATEGORY_5
+}
+
+enum GroupCategory {
   CATEGORY_1
   CATEGORY_2
   CATEGORY_3

@@ -88,7 +88,6 @@ export class PoolsSurveysController {
     @Body() data: any,
     @UploadedFile() image: Express.Multer.File,
     @User() userId: number): Promise<Survey> {
-    console.log(data)
     data.userId = userId
     data = await parseData(data, image)
     return this.poolsSurveysService.createSurvey(data)

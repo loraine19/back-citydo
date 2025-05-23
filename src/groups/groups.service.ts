@@ -58,7 +58,6 @@ export class GroupsService {
     const count = await this.prisma.group.count({ where })
     const take = (page && page !== 0) ? this.limit : count;
     const groups = await this.prisma.group.findMany({ where, skip, take, include: this.groupIncludeConfig }) || []
-    console.log(count, groups, ' count')
     return { groups, count }
   }
 

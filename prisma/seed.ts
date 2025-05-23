@@ -126,7 +126,7 @@ const CreateRandomGroup = async (): Promise<CreateGroupDto> => {
   }
   return {
     addressId,
-    area: newFaker.number.int({ min: 1, max }),
+    area: newFaker.number.int({ min: 100, max: 700 }),
     rules: newFaker.lorem.lines({ min: 1, max: 10 }),
     name: 'Quartier ' + newFaker.lorem.words({ min: 1, max: 1 }),
   }
