@@ -129,6 +129,7 @@ const CreateRandomGroup = async (): Promise<CreateGroupDto> => {
     area: newFaker.number.int({ min: 100, max: 700 }),
     rules: newFaker.lorem.lines({ min: 1, max: 10 }),
     name: 'Quartier ' + newFaker.lorem.words({ min: 1, max: 1 }),
+    category: newFaker.helpers.arrayElement(Object.values($Enums.GroupCategory)),
   }
 }
 
