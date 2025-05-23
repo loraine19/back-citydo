@@ -13,7 +13,6 @@ export class IssuesService {
   constructor(private prisma: PrismaService, private notificationsService: NotificationsService) { }
 
   private issueIncludeConfig = {
-
     User: { select: { id: true, email: true, Profile: { include: { Address: true } } } },
     UserModo: { select: { id: true, email: true, Profile: { include: { Address: true } } } },
     UserModoOn: { select: { id: true, email: true, Profile: { include: { Address: true } } } },

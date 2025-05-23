@@ -53,18 +53,21 @@ export class VotesService {
       })
       await this.notificationsService.create(new UserNotifInfo(find.User), notification($Enums.NotificationType.VOTE, 'cagnotte', targetId))
       if (isValided) {
-
         await this.prisma.pool.update({ where: { id: targetId }, data: { status: $Enums.PoolSurveyStatus.VALIDATED } })
         if ('userIdBenef' in find && typeof find.userIdBenef === 'number' && find.userIdBenef) {
           await this.prisma.profile.update({ where: { userId: find.userIdBenef }, data: { points: { increment: 10 } } });
         }
-
       }
       return vote
     }
     else if (target === $Enums.VoteTarget.SURVEY) {
+
       const vote = await this.prisma.vote.create({
-        data: { opinion, target, Survey: { connect: { id: targetId } }, User: { connect: { id: userId } } },
+        data: {
+          opinion, target,
+          Survey: { connect: { id: targetId } },
+          User: { connect: { id: userId } }
+        },
         include: { Survey: true }
       })
       await this.notificationsService.create(new UserNotifInfo(find.User), notification($Enums.NotificationType.VOTE, 'sondage', targetId))

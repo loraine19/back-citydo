@@ -138,6 +138,7 @@ export class PoolsSurveysService {
   }
 
   async createSurvey(data: CreateSurveyDto): Promise<Survey> {
+    console.log('data', data)
     const { userId, groupId, ...survey } = data;
     const users = await this.prisma.user.findMany({ select: this.userSelectConfig })
     const surveyCreated = await this.prisma.survey.create(

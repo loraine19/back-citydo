@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpException, HttpStatus, ValidationPipe, NotFoundException, ParseIntPipe, UseGuards, Req, } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpException, HttpStatus, ValidationPipe, NotFoundException, ParseIntPipe, UseGuards, Req, Query, DefaultValuePipe, } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { CreateGroupDto } from './dto/create-group.dto';
 import { UpdateGroupDto } from './dto/update-group.dto';
@@ -38,8 +38,10 @@ export class GroupsController {
   @ApiBearerAuth()
   @ApiOkResponse({ type: GroupEntity, isArray: true })
   async findNearestGroups(
-    @User() userId: number): Promise<Group[]> {
-    return this.groupsService.findNearestGroups(userId)
+    @User() userId: number,
+    @Query('page', new DefaultValuePipe(0), ParseIntPipe) page?: number):
+    Promise<{ groups: Group[]; count: number }> {
+    return this.groupsService.findNearestGroups(userId, page)
   }
 
 
