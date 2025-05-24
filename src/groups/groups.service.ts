@@ -1,8 +1,9 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { PrismaService } from '../../src/prisma/prisma.service';
-import { Group } from '@prisma/client';
+import { Group, GroupCategory } from '@prisma/client';
 import { UpdateGroupDto } from './dto/update-group.dto';
 import { CreateGroupDto } from './dto/create-group.dto';
+import { GroupFilter } from './constant';
 
 
 
@@ -12,11 +13,14 @@ export class GroupsService {
 
 
   private groupIncludeConfig = {
-
-    GroupUser: {
-      include: { User: { select: { id: true, email: true, Profile: true } } }
-    },
+    GroupUser: { include: { User: { select: { id: true, email: true, Profile: true } } } },
     Address: true
+  }
+
+  private userSelectConfig = {
+    id: true,
+    email: true,
+    Profile: { select: { mailSub: true, Address: true } }
   }
 
 
@@ -50,11 +54,21 @@ export class GroupsService {
     return groups
   }
 
-  async findNearestGroups(userId: number, page?: number): Promise<{ groups: Group[], count: number }> {
+  async findNearestGroups(userId: number, page?: number, filter?: string, category?: string): Promise<{ groups: Group[], count: number }> {
     const skip = (page && page !== 0) ? this.skip(page) : 0;
-    const user = await this.prisma.user.findUnique(
-      { where: { id: userId }, include: { Profile: { include: { Address: true } } } })
-    const where = user.Profile.Address.city ? { Address: { city: user.Profile.Address.city } } : {}
+    const user = await this.prisma.user.findUnique({ where: { id: userId }, select: this.userSelectConfig })
+    const Address = { city: user.Profile.Address.city }
+    let where: any = { Address }
+    category ? where = { ...where, category: GroupCategory[category] } : null
+    switch (filter) {
+      case GroupFilter.IMIN:
+        where = { ...where, GroupUser: { some: { userId: userId } } }; break;
+      case GroupFilter.IMODO:
+        where = { ...where, GroupUser: { some: { userId: userId, role: 'MODO' } } }; break;
+      default:
+        where = { ...where }
+    }
+    console.log(where)
     const count = await this.prisma.group.count({ where })
     const take = (page && page !== 0) ? this.limit : count;
     const groups = await this.prisma.group.findMany({ where, skip, take, include: this.groupIncludeConfig }) || []

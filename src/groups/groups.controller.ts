@@ -38,10 +38,11 @@ export class GroupsController {
   @ApiBearerAuth()
   @ApiOkResponse({ type: GroupEntity, isArray: true })
   async findNearestGroups(
-    @User() userId: number,
-    @Query('page', new DefaultValuePipe(0), ParseIntPipe) page?: number):
+    @User() userId: number, @Query('page', ParseIntPipe) page?: number,
+    @Query('filter') filter?: string,
+    @Query('category') category?: string):
     Promise<{ groups: Group[]; count: number }> {
-    return this.groupsService.findNearestGroups(userId, page)
+    return this.groupsService.findNearestGroups(userId, page, filter, category)
   }
 
 
