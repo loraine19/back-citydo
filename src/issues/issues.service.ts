@@ -78,6 +78,16 @@ export class IssuesService {
   }
 
   async findAll(userId: number, page: number, filter?: string): Promise<{ issues: Issue[], count: number }> {
+    let OR = [];
+    filter === IssueFilter.MINE ?
+      OR = [{ Service: { is: { userId } } },
+      { Service: { is: { userIdResp: userId } } }] :
+      OR = [
+        { UserModo: { is: { id: userId } } },
+        { UserModoOn: { is: { id: userId } } },
+        { Service: { is: { userId } } },
+        { Service: { is: { userIdResp: userId } } },
+      ]
     const status = () => {
       switch (true) {
         case (filter === IssueFilter.WAITING):
@@ -90,16 +100,12 @@ export class IssuesService {
           return { in: [IssueStep.STEP_0, IssueStep.STEP_1, IssueStep.STEP_2, IssueStep.STEP_3, IssueStep.STEP_4, IssueStep.STEP_5] }
       }
     }
-    const where = {
-      OR: [
-        { UserModo: { is: { id: userId } } },
-        { UserModoOn: { is: { id: userId } } },
-        { Service: { is: { userId } } },
-        { Service: { is: { userIdResp: userId } } },
-      ],
+    let where = {
+      OR,
       status: status(),
       User: this.groupSelectConfig(userId)
     };
+
     const skip = page ? this.skip(page) : 0;
     const count = await this.prisma.issue.count({ where });
     const take = page ? this.limit : count;

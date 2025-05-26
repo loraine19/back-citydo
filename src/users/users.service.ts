@@ -33,7 +33,7 @@ export class UsersService {
   async findAllModo(id: number, groupId: number): Promise<Partial<User>[]> {
     const user = await this.prisma.user.findUnique({ where: { id }, include: { GroupUser: true } });
     if (user.GroupUser.every(g => g.groupId !== groupId)) throw new HttpException('Vous ne faites pas partie de ce groupe', HttpStatus.FORBIDDEN);
-    return await this.prisma.user.findMany({
+    const modos = await this.prisma.user.findMany({
       where: {
         id: { not: id },
         GroupUser: {
@@ -50,6 +50,8 @@ export class UsersService {
         Profile: { include: { Address: true } }
       },
     });
+    console.log('findAllModo', modos);
+    return modos || [];
   }
 
 
