@@ -2,25 +2,30 @@ import { Injectable } from '@nestjs/common';
 import { $Enums, GroupUser } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateGroupUserDto } from './dto/create-group-user.dto';
+import { UpdateGroupUserDto } from './dto/update-group-user.dto';
 
 //// SERVICE MAKE ACTION
 @Injectable()
 export class GroupUsersService {
   constructor(private prisma: PrismaService) { }
 
+  async create(userId: number, data: CreateGroupUserDto): Promise<GroupUser> {
+    const { groupId, role } = data
+    const user = await this.prisma.user.findUniqueOrThrow({ where: { id: userId }, include: { GroupUser: true } });
+    if (user.GroupUser.some((groupUser: GroupUser) => groupUser.groupId === groupId)) {
+      throw new Error('User already in this group');
+    }
 
-  async create(userId: number, groupId: number, modo: boolean): Promise<GroupUser> {
-    const groupUser = modo ? $Enums.Role.MODO : $Enums.Role.MEMBER;
     return await this.prisma.groupUser.create({
-      data: { role: groupUser, User: { connect: { id: userId } }, Group: { connect: { id: groupId } } }
+      data: { role, User: { connect: { id: userId } }, Group: { connect: { id: groupId } } }
     });
   }
 
-  async update(userId: number, groupId: number, modo: boolean): Promise<GroupUser> {
-    const groupUser = modo ? $Enums.Role.MODO : $Enums.Role.MEMBER;
+  async update(userId: number, data: UpdateGroupUserDto): Promise<GroupUser> {
+    const { groupId, role } = data
     return await this.prisma.groupUser.update({
       where: { userId_groupId: { groupId, userId } },
-      data: { role: groupUser, User: { connect: { id: userId } }, Group: { connect: { id: groupId } } }
+      data: { role, User: { connect: { id: userId } }, Group: { connect: { id: groupId } } }
     });
   }
 
@@ -66,6 +71,11 @@ export class GroupUsersService {
   }
 
 
+  async delete(userId: number, groupId: number): Promise<GroupUser> {
+    const groupUser = await this.prisma.groupUser.findUniqueOrThrow({ where: { userId_groupId: { groupId, userId } } });
+    if (!groupUser) throw new Error('User not in this group');
+    return await this.prisma.groupUser.delete({ where: { userId_groupId: { groupId, userId } } });
+  }
 
 
 }

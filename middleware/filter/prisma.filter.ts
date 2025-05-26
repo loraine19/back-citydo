@@ -56,7 +56,7 @@ export class PrismaFilter extends BaseExceptionFilter {
       timestamp: ` ${new Date().toLocaleDateString('fr-FR')} ${new Date().toLocaleTimeString('fr-FR')}`,
       path: request.url,
       method: request.method,
-      message: `${exception.code}: ${message}`,
+      message: `PRISMA ERROR ${exception.code}: ${message}`,
     });
   }
 }

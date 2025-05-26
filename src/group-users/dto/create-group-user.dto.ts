@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { $Enums } from "@prisma/client";
-import { IsNumber, IsNotEmpty, IsEnum } from "class-validator";
+import { IsNumber, IsNotEmpty, IsEnum, IsOptional } from "class-validator";
 
 export class CreateGroupUserDto {
     @ApiProperty()
@@ -10,7 +10,7 @@ export class CreateGroupUserDto {
 
     @ApiProperty()
     @IsNumber()
-    @IsNotEmpty()
+    @IsOptional()
     userId: number;
 
     @ApiProperty()
