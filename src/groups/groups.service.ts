@@ -5,8 +5,6 @@ import { UpdateGroupDto } from './dto/update-group.dto';
 import { CreateGroupDto } from './dto/create-group.dto';
 import { GroupFilter } from './constant';
 
-
-
 @Injectable()
 export class GroupsService {
   constructor(private prisma: PrismaService) { }
@@ -68,7 +66,6 @@ export class GroupsService {
       default:
         where = { ...where }
     }
-    console.log(where)
     const count = await this.prisma.group.count({ where })
     const take = (page && page !== 0) ? this.limit : count;
     const groups = await this.prisma.group.findMany({ where, skip, take, include: this.groupIncludeConfig }) || []

@@ -20,6 +20,7 @@ export class IssuesService {
       include: {
         User: { select: { id: true, email: true, Profile: { include: { Address: true } } } },
         UserResp: { select: { id: true, email: true, Profile: { include: { Address: true } } } },
+        Group: { include: { GroupUser: true, Address: true } }
       }
     }
   }

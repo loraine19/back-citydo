@@ -30,15 +30,15 @@ export class UsersService {
     });
   }
 
-  async findAllModo(id: number): Promise<Partial<User>[]> {
-    /// TODO Pass groupId in params
+  async findAllModo(id: number, groupId: number): Promise<Partial<User>[]> {
     const user = await this.prisma.user.findUnique({ where: { id }, include: { GroupUser: true } });
+    if (user.GroupUser.every(g => g.groupId !== groupId)) throw new HttpException('Vous ne faites pas partie de ce groupe', HttpStatus.FORBIDDEN);
     return await this.prisma.user.findMany({
       where: {
         id: { not: id },
         GroupUser: {
           some: {
-            groupId: { in: user.GroupUser.map(g => g.groupId) },
+            groupId,
             role: { equals: $Enums.Role.MODO }
           }
         }
@@ -81,7 +81,6 @@ export class UsersService {
     if (!user) throw new NotFoundException('cette utilisateur n\'existe pas');
     // console.log(user.GroupUser, groupId);
     // if (!user.GroupUser.some(g => g.groupId in groupId)) throw new HttpException('Vous ne faites pas partie de ce groupe', 403);
-
     return await this.prisma.user.findMany({
       where: {
         GroupUser: { some: { groupId: { in: groupId } } }
