@@ -28,9 +28,6 @@ export class NotifsGateway {
     EventEmitter.defaultMaxListeners = 90; // Increase the limit
   }
 
-
-
-
   @SubscribeMessage(`${WS}-message`)
   async handleMessage(
     @MessageBody() data: any,
@@ -60,6 +57,7 @@ export class NotifsGateway {
 
   sendNotificationToUser(userId: string, notification: any) {
     const room = this.getRoomName(userId.toString());
+    console.log('sendNotificationToUser', room, notification);
     this.server.to(room).emit(`${WS}-message`, notification);
   }
 }

@@ -13,7 +13,6 @@ export class NotificationsService {
   limit = parseInt(process.env.LIMIT)
   skip(page: number) { return (page - 1) * this.limit }
   sendMail = process.env.SEND_MAIL === 'true'
-  // TO DISABLE INSTANT NOTIFICATIONS
   sendInstant = process.env.SEND_WS === 'true'
 
 
