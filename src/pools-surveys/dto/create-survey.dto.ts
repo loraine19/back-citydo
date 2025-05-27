@@ -35,4 +35,10 @@ export class CreateSurveyDto {
     @Transform(({ value }) => parseInt(value))
     @IsNumber()
     groupId: number;
+
+    @ApiProperty()
+    @IsOptional()
+    @Transform(({ value }) => parseInt(value))
+    @IsNumber()
+    neededVotes: number;
 }

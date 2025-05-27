@@ -44,4 +44,10 @@ export class PoolEntity implements Pool {
     @IsNotEmpty()
     @IsNumber()
     groupId: number;
+
+
+    @ApiProperty()
+    @IsNotEmpty()
+    @IsNumber()
+    neededVotes: number;
 }

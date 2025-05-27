@@ -53,5 +53,10 @@ export class SurveyEntity implements Survey {
     @IsNotEmpty()
     @IsNumber()
     groupId: number;
+
+    @ApiProperty()
+    @IsNotEmpty()
+    @IsNumber()
+    neededVotes: number;
 }
 

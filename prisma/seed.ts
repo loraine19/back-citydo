@@ -34,6 +34,8 @@ import { FlagsService } from 'src/flags/flags.service';
 import { MessagesService } from 'src/messages/messages.service';
 import { CreateMessageDto } from 'src/messages/dto/create-message.dto';
 import { NotifsGateway } from 'src/notifs/notifs.gateway';
+import { CreatePoolDto } from 'src/pools-surveys/dto/create-pool.dto';
+import { CreateSurveyDto } from 'src/pools-surveys/dto/create-survey.dto';
 
 const prisma = new PrismaClient();
 const prismaService = new PrismaService();
@@ -182,8 +184,10 @@ const CreateRandomEvent = async (): Promise<CreateEventDto> => {
     Address = await prisma.address.create({ data: await CreateRandomAddress() })
     addressId = Address.id
   }
+  let user = await prisma.user.findUnique({ where: { id: newFaker.number.int({ min: 1, max: max / 3 }) }, include: { GroupUser: true } });
+  let groupIds = user ? user.GroupUser.map(g => g.groupId) : [];
   return {
-    userId: newFaker.number.int({ min: 1, max: max / 3 }),
+    userId: user.id,
     Address,
     addressId,
     title: 'Événement ' + newFaker.lorem.words({ min: 3, max: 8 }),
@@ -193,7 +197,7 @@ const CreateRandomEvent = async (): Promise<CreateEventDto> => {
     category: newFaker.helpers.arrayElement(Object.values($Enums.EventCategory)),
     participantsMin: newFaker.number.int({ min: 1, max: 20 }),
     image: newFaker.image.urlPicsumPhotos({ width: 600, height: 400, blur: 0, grayscale: false }),
-    groupId: newFaker.number.int({ min: 1, max: 2 }),
+    groupId: newFaker.helpers.arrayElement(groupIds),
   }
 }
 
@@ -208,8 +212,10 @@ const CreateRandomService = async (): Promise<CreateServiceDto> => {
   const status = newFaker.helpers.arrayElement(Object.values($Enums.ServiceStep))
   const skill = newFaker.helpers.arrayElement(Object.values($Enums.SkillLevel))
   const hard = newFaker.helpers.arrayElement(Object.values($Enums.HardLevel))
+  let user = await prisma.user.findUnique({ where: { id: newFaker.number.int({ min: 1, max: max / 3 }) }, include: { GroupUser: true } });
+  let groupIds = user ? user.GroupUser.map(g => g.groupId) : [];
   return {
-    userId: newFaker.number.int({ min: 1, max: max / 3 }),
+    userId: user.id,
     type: newFaker.helpers.arrayElement(Object.values($Enums.ServiceType)),
     title: 'Service ' + newFaker.lorem.words({ min: 2, max: 3 }),
     description: newFaker.lorem.lines({ min: 1, max: 2 }),
@@ -218,7 +224,7 @@ const CreateRandomService = async (): Promise<CreateServiceDto> => {
     hard,
     status,
     image: (newFaker.image.urlPicsumPhotos({ width: 600, height: 400, blur: 0, grayscale: false })),
-    groupId: newFaker.number.int({ min: 1, max: 2 }),
+    groupId: newFaker.helpers.arrayElement(groupIds),
   }
 }
 
@@ -254,14 +260,16 @@ const CreateRandomIssue = async (service: Service): Promise<CreateIssueDto> => {
 }
 
 const CreateRandomPost = async (): Promise<CreatePostDto> => {
+  let user = await prisma.user.findUnique({ where: { id: newFaker.number.int({ min: 1, max: max / 3 }) }, include: { GroupUser: true } });
+  let groupIds = user ? user.GroupUser.map(g => g.groupId) : [];
   return {
-    userId: newFaker.number.int({ min: 1, max: max / 3 }),
+    userId: user.id,
     title: 'Announce ' + newFaker.lorem.words({ min: 3, max: 3 }),
     description: newFaker.lorem.lines({ min: 1, max: 2 }),
     category: newFaker.helpers.arrayElement(Object.values($Enums.PostCategory)),
     image: (newFaker.image.urlPicsumPhotos({ width: 600, height: 400, blur: 0, grayscale: false })),
     share: newFaker.helpers.arrayElement(Object.values($Enums.Share)),
-    groupId: newFaker.number.int({ min: 1, max: 2 }),
+    groupId: newFaker.helpers.arrayElement(groupIds),
   }
 }
 
@@ -272,25 +280,37 @@ const CreateRandomLike = (): CreateLikeDto => {
   }
 }
 
-const CreateRandomPool = (): any => {
+const CreateRandomPool = async (): Promise<CreatePoolDto> => {
+  let user = await prisma.user.findUnique({ where: { id: newFaker.number.int({ min: 1, max: max / 3 }) }, include: { GroupUser: true } });
+  let groupIds = user ? user.GroupUser.map(g => g.groupId) : [];
+  let groupId = newFaker.helpers.arrayElement(groupIds);
+  const count = await prisma.user.count({ where: { GroupUser: { some: { groupId } } } })
+  const neededVotes = Math.ceil(count / 2);
   return {
-    userId: newFaker.number.int({ min: 1, max: max / 3 }),
+    userId: user.id,
     userIdBenef: newFaker.number.int({ min: 1, max: max / 3 }),
-    groupId: newFaker.number.int({ min: 1, max: 2 }),
-    title: 'Cagnotte ' + newFaker.lorem.words({ min: 3, max: 3 }),
+    title: 'Cagnotte ' + newFaker.lorem.words({ min: 1, max: 2 }),
     description: newFaker.lorem.lines({ min: 1, max: 2 }),
+    groupId,
+    neededVotes,
   }
 }
 
-const CreateRandomSurvey = (): any => {
+const CreateRandomSurvey = async (): Promise<CreateSurveyDto> => {
+  let user = await prisma.user.findUnique({ where: { id: newFaker.number.int({ min: 1, max: max / 3 }) }, include: { GroupUser: true } });
+  let groupIds = user ? user.GroupUser.map(g => g.groupId) : [];
+  let groupId = newFaker.helpers.arrayElement(groupIds);
+  const count = await prisma.user.count({ where: { GroupUser: { some: { groupId } } } })
+  const neededVotes = Math.ceil(count / 2);
   const category = newFaker.helpers.arrayElement(Object.values($Enums.SurveyCategory));
   return {
-    userId: newFaker.number.int({ min: 1, max: max / 3 }),
+    userId: user.id,
     title: `Sondage ${newFaker.lorem.words({ min: 1, max: 2 })}`,
     description: newFaker.lorem.lines({ min: 1, max: 2 }),
     category,
-    groupId: newFaker.number.int({ min: 1, max: 2 }),
+    groupId,
     image: newFaker.image.urlPicsumPhotos({ width: 600, height: 400, blur: 0, grayscale: false }),
+    neededVotes,
   }
 }
 
@@ -506,14 +526,14 @@ const seed = async () => {
   // POOL fk user fk userBenef 
   const pool = async () => {
     while (await prisma.pool.count() < max) {
-      const { userId, userIdBenef, groupId, ...pool } = CreateRandomPool();
+      const { userId, userIdBenef, groupId, ...poolData } = await CreateRandomPool();
       const cond = await prisma.pool.findFirst({ where: { userId: userId, userIdBenef: userIdBenef } })
       if (!cond && (userId !== userIdBenef)) await prisma.pool.create({
         data: {
-          ...pool,
           User: { connect: { id: userId } },
           UserBenef: { connect: { id: userIdBenef } },
-          Group: { connect: { id: groupId } }
+          Group: { connect: { id: groupId } },
+          ...poolData,
         }
       })
     }

@@ -42,10 +42,12 @@ export class UsersController {
     return await this.usersService.findAllModo(userId, groupId) || []
   }
 
-  @Get('count')
+  @Get('count/:groupId')
   @ApiBearerAuth()
-  async count(@UserDec() userId: number): Promise<number> {
-    return await this.usersService.count(userId)
+  async count(
+    @Param('groupId', ParseIntPipe) groupId: number,
+    @UserDec() userId: number): Promise<number> {
+    return await this.usersService.count(groupId, userId)
   }
 
   @Get('me')

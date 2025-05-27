@@ -70,10 +70,34 @@ export class CronTaskService {
         }
     }
 
+    @Cron(CronExpression.EVERY_10_MINUTES)
+    async updateUserCount() {
+        const data = async (groupId: number) => await this.prisma.user.count(
+            { where: { GroupUser: { some: { groupId } } } })
+        const pools = await this.prisma.pool.findMany({ where: { status: $Enums.PoolSurveyStatus.PENDING } })
+        pools.forEach(async (pool) => {
+            const count = await data(pool.groupId);
+            const neededVotes = Math.ceil(count / 2)
+            await this.prisma.pool.update({
+                where: { id: pool.id },
+                data: { neededVotes }
+            })
+        })
+        const surveys = await this.prisma.survey.findMany({ where: { status: $Enums.PoolSurveyStatus.PENDING } })
+        surveys.forEach(async (survey) => {
+            const count = await data(survey.groupId)
+            const neededVotes = Math.ceil(count / 2)
+            await this.prisma.survey.update({
+                where: { id: survey.id },
+                data: { neededVotes }
+            })
+        })
+    }
+
     /// DELETE EXPIRED TOKENS
     @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
-    deleteExpiredTokens() {
-        this.prisma.token.deleteMany({
+    async deleteExpiredTokens() {
+        await this.prisma.token.deleteMany({
             where: {
                 expiredAt: { lt: new Date(Date.now()) }
             }
@@ -82,15 +106,15 @@ export class CronTaskService {
 
     /// READ OLD NOTIFICATIONS
     @Cron(CronExpression.EVERY_WEEK)
-    deleteReadNotifs() {
-        this.prisma.notification.deleteMany({
+    async deleteReadNotifs() {
+        await this.prisma.notification.deleteMany({
             where: { read: true, updatedAt: { lt: this.createdOneWeekAgo } },
         })
     }
 
     @Cron(CronExpression.EVERY_WEEK)
-    deleteOldNotifs() {
-        this.prisma.notification.deleteMany({
+    async deleteOldNotifs() {
+        await this.prisma.notification.deleteMany({
             where: { createdAt: { lt: this.createdOneMonthAgo } }
         })
     }
@@ -98,7 +122,6 @@ export class CronTaskService {
     @Cron(CronExpression.EVERY_WEEK)
     async deleteOldPhotos() {
         const rootPath = path.join(__dirname, '..', '..', 'public')
-
         const clean = async (dirName: string, genericPrisma: any) => {
             const dir = path.join(rootPath, 'images', dirName);
             const files = fs.readdirSync(dir);
@@ -111,7 +134,6 @@ export class CronTaskService {
                 }
             }
         }
-
         await clean('issues', (file: string) => this.prisma.issue.findFirst({ where: { image: file } }));
         await clean('profiles', (file: string) => this.prisma.profile.findFirst({ where: { image: file } }));
         await clean('events', (file: string) => this.prisma.event.findFirst({ where: { image: file } }));

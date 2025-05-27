@@ -84,12 +84,15 @@ export class PoolsSurveysService {
 
   async createPool(data: CreatePoolDto): Promise<Pool> {
     const { userId, userIdBenef, groupId, ...pool } = data;
+    const count = await this.prisma.user.count({ where: { GroupUser: { some: { groupId } } } })
+    const neededVotes = Math.ceil(count / 2)
     const users = await this.prisma.user.findMany({ select: this.userSelectConfig })
     const poolCreated = await this.prisma.pool.create({
       data: {
         User: { connect: { id: userId } },
         UserBenef: { connect: { id: userIdBenef } },
         Group: { connect: { id: groupId } },
+        neededVotes,
         ...pool,
       },
       include: this.poolIncludeConfig(userId)
@@ -138,13 +141,19 @@ export class PoolsSurveysService {
   }
 
   async createSurvey(data: CreateSurveyDto): Promise<Survey> {
-    console.log('data', data)
     const { userId, groupId, ...survey } = data;
+    const count = await this.prisma.user.count({ where: { GroupUser: { some: { groupId } } } })
+    const neededVotes = Math.ceil(count / 2)
     const users = await this.prisma.user.findMany({ select: this.userSelectConfig })
     const surveyCreated = await this.prisma.survey.create(
       {
         include: this.surveyIncludeConfig(userId),
-        data: { ...survey, User: { connect: { id: userId } }, Group: { connect: { id: groupId } } }
+        data: {
+          ...survey,
+          User: { connect: { id: userId } },
+          Group: { connect: { id: groupId } },
+          neededVotes
+        }
       })
     const notification = {
       title: 'Nouvelle enquête',

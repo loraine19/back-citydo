@@ -12,22 +12,24 @@ import { UserNotifInfo } from 'src/notifications/entities/notification.entity';
 export class UsersService {
   constructor(private prisma: PrismaService) { }
 
+  private userSelectConfig = {
+    id: true,
+    email: true,
+    GroupUser: { include: { Group: { select: { name: true, id: true } } } },
+    Profile: true
+  }
+
   async create(data: CreateUserDto): Promise<User> {
     let user = { ...data };
     const userFind = await this.prisma.user.findUnique({ where: { email: user.email } });
     if (userFind) throw new HttpException('User already exists', HttpStatus.CONFLICT);
     user.password = await argon2.hash(user.password);
-    const createdUser = await this.prisma.user.create({ data: user });
+    const createdUser = await this.prisma.user.create({ data: user, include: this.userSelectConfig });
     return { ...createdUser, password: undefined }
   }
 
   async findAll(): Promise<Partial<User>[]> {
-    return await this.prisma.user.findMany({
-      select: {
-        id: true,
-        Profile: { include: { Address: true } }
-      }
-    });
+    return await this.prisma.user.findMany({ include: this.userSelectConfig });
   }
 
   async findAllModo(id: number, groupId: number): Promise<Partial<User>[]> {
@@ -50,7 +52,6 @@ export class UsersService {
         Profile: { include: { Address: true } }
       },
     });
-    console.log('findAllModo', modos);
     return modos || [];
   }
 
@@ -74,12 +75,18 @@ export class UsersService {
     return await this.prisma.user.findUniqueOrThrow({ where: { email } });
   }
 
-  async count(userId: number): Promise<number> {
-    return await this.prisma.user.count()
+  async count(userId: number, groupId: number): Promise<number> {
+    return await this.prisma.user.count(
+      { where: { GroupUser: { some: { groupId } } } }
+    )
   }
 
+
+
+
+
   async usersInGroup(userId: number, groupId: number[]): Promise<UserNotifInfo[]> {
-    const user = await this.prisma.user.findUnique({ where: { id: userId }, include: { GroupUser: true } });
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new NotFoundException('cette utilisateur n\'existe pas');
     // console.log(user.GroupUser, groupId);
     // if (!user.GroupUser.some(g => g.groupId in groupId)) throw new HttpException('Vous ne faites pas partie de ce groupe', 403);
@@ -87,11 +94,7 @@ export class UsersService {
       where: {
         GroupUser: { some: { groupId: { in: groupId } } }
       },
-      select: {
-        id: true,
-        email: true,
-        Profile: { select: { mailSub: true } }
-      },
+      select: this.userSelectConfig,
     });
   }
 

@@ -218,6 +218,7 @@ model Survey {
   status      PoolSurveyStatus @default(PENDING)
   groupId     Int
   Group       Group?           @relation(fields: [groupId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  neededVotes Int?             @default(0)
 }
 
 model Pool {
@@ -234,6 +235,7 @@ model Pool {
   status      PoolSurveyStatus @default(PENDING)
   groupId     Int
   Group       Group?           @relation(fields: [groupId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  neededVotes Int?             @default(0)
 }
 
 model Vote {
