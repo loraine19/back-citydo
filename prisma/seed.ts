@@ -592,8 +592,7 @@ const CreateRandomGroup = async (): Promise<CreateGroupDto> => {
     addressId = Address.id
   }
   const category = newFaker.helpers.arrayElement(Object.values($Enums.GroupCategory));
-  const name = genererTitle(FakerSubjects.GROUP, GroupCategory[category]);
-  console.log(name)
+  const name = genererTitle(FakerSubjects.GROUP, GroupCategory[category])
   return {
     addressId,
     name,
@@ -648,6 +647,7 @@ const CreateRandomEvent = async (): Promise<CreateEventDto> => {
   let createdAt = newFaker.date.past({ refDate: now, years: 0.1 });
   const start = newFaker.date.future({ refDate: createdAt, years: 0.5 });
   const days = newFaker.number.int({ min: 1, max: 4 });
+  const status = $Enums.EventStatus.PENDING;
   let end: Date;
   days === 1 ? (end = new Date(start.getTime() + 24 * 60 * 60 * 1000)) : (end = new Date(start.getTime() + days * 24 * 60 * 60 * 1000));
   let addressId = newFaker.number.int({ min: 1, max });
@@ -674,7 +674,8 @@ const CreateRandomEvent = async (): Promise<CreateEventDto> => {
     //image,
     image: newFaker.image.urlPicsumPhotos({ width: 600, height: 400, blur: 0, grayscale: false, }),
     groupId: newFaker.helpers.arrayElement(groupIds),
-    createdAt
+    createdAt,
+    status,
   }
 }
 

@@ -75,4 +75,10 @@ export class CreateEventDto {
     @Transform(({ value }) => new Date(value))
     @IsDate({ message: 'Start date is not conformè' })
     createdAt: Date
+
+    @ApiProperty()
+    @IsOptional()
+    @IsEnum($Enums.EventStatus, { message: 'Category mus be part of ' + Object.values($Enums.EventStatus).join(', ') })
+    status: $Enums.EventStatus
+
 }
