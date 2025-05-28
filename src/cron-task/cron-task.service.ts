@@ -70,7 +70,7 @@ export class CronTaskService {
         }
     }
 
-    @Cron(CronExpression.EVERY_10_MINUTES)
+    @Cron(CronExpression.EVERY_DAY_AT_1AM)
     async updateUserCount() {
         const data = async (groupId: number) => await this.prisma.user.count(
             { where: { GroupUser: { some: { groupId } } } })
