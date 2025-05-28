@@ -69,4 +69,10 @@ export class CreateEventDto {
     @IsNumber()
     groupId: number;
 
+
+    @ApiProperty({ type: Date })
+    @IsOptional()
+    @Transform(({ value }) => new Date(value))
+    @IsDate({ message: 'Start date is not conformè' })
+    createdAt: Date
 }

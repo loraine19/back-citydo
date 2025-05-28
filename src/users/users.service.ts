@@ -16,15 +16,15 @@ export class UsersService {
     id: true,
     email: true,
     GroupUser: { include: { Group: { select: { name: true, id: true } } } },
-    Profile: true
+    Profile: { include: { Address: true } }
   }
 
-  async create(data: CreateUserDto): Promise<User> {
+  async create(data: CreateUserDto): Promise<Partial<User>> {
     let user = { ...data };
     const userFind = await this.prisma.user.findUnique({ where: { email: user.email } });
     if (userFind) throw new HttpException('User already exists', HttpStatus.CONFLICT);
     user.password = await argon2.hash(user.password);
-    const createdUser = await this.prisma.user.create({ data: user, include: this.userSelectConfig });
+    const createdUser = await this.prisma.user.create({ data: user, select: this.userSelectConfig });
     return { ...createdUser, password: undefined }
   }
 

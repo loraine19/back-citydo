@@ -133,7 +133,7 @@ model Event {
   start           DateTime
   end             DateTime
   title           String
-  description     String
+  description     String        @db.LongText
   category        EventCategory
   participantsMin Int
   image           String?
@@ -187,7 +187,7 @@ model Service {
 ////// ISSUE
 model Issue {
   serviceId    Int       @id @unique
-  description  String?   @db.MediumText
+  description  String?   @db.LongText
   date         DateTime  @default(now())
   status       IssueStep @default(STEP_0)
   createdAt    DateTime  @default(now())
@@ -207,7 +207,7 @@ model Survey {
   id          Int              @id @default(autoincrement())
   userId      Int
   title       String
-  description String           @db.MediumText
+  description String           @db.LongText
   category    SurveyCategory
   image       String?
   createdAt   DateTime         @default(now())
@@ -226,7 +226,7 @@ model Pool {
   userId      Int
   userIdBenef Int
   title       String
-  description String           @db.MediumText
+  description String           @db.LongText
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
   User        User             @relation(fields: [userId], references: [id], name: "Pool", onUpdate: Cascade, onDelete: Cascade)
@@ -257,7 +257,7 @@ model Post {
   id          Int          @id @default(autoincrement())
   userId      Int
   title       String
-  description String       @db.MediumText
+  description String       @db.LongText
   category    PostCategory
   image       String?
   createdAt   DateTime     @default(now())
