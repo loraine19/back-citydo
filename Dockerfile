@@ -3,12 +3,11 @@ FROM node:slim AS build
 
 WORKDIR /app
 
+RUN apt-get update -y && apt-get install -y openssl
+
 COPY package*.json ./
 
 COPY prisma ./prisma ./  
-
-# order? 
-RUN apt-get update -y && apt-get install -y openssl
 
 RUN npm install 
 
