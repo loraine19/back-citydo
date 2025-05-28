@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, ParseIntPipe, Query, DefaultValuePipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, ParseIntPipe, Query, DefaultValuePipe, Put } from '@nestjs/common';
 import { MessagesService } from './messages.service';
 import { CreateMessageDto } from './dto/create-message.dto';
 import { UpdateMessageDto } from './dto/update-message.dto';
@@ -38,14 +38,13 @@ export class MessagesController {
   }
 
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.messagesService.findOne(+id);
-  }
+  @Put('remove/:id')
+  deleteMessage(
+    @User() userId: number,
+    @Param('id', ParseIntPipe) id: number,
+  ) {
+    return this.messagesService.removeMessage(userId, id);
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateMessageDto: UpdateMessageDto) {
-    return this.messagesService.update(+id, updateMessageDto);
   }
 
   @Patch('readConverstaion/:id')

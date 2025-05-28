@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { CreateMessageDto } from './dto/create-message.dto';
 import { UpdateMessageDto } from './dto/update-message.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -98,14 +98,14 @@ export class MessagesService {
     return { messages, count };
   }
 
-  async findOne(id: number) {
-    return `This action returns a #${id} message`;
+  async removeMessage(userId: number, id: number,) {
+    const message = await this.prisma.message.findUniqueOrThrow({ where: { id, userId } });
+    if (!message) throw new HttpException(`Ce message n'existe pas`, 409);
+    return await this.prisma.message.update({
+      where: { id, userId },
+      data: { message: 'Ce message a été supprimé', read: true },
+    })
   }
-
-  update(id: number, updateMessageDto: UpdateMessageDto) {
-    return `This action updates a #${id} message`;
-  }
-
   async readConversation(userId: number, id: number) {
     const messages = await this.prisma.message.updateMany({
       where: {
