@@ -1,41 +1,41 @@
 import { $Enums, PrismaClient, Service } from '@prisma/client';
-import { CreateServiceDto } from '../src/service/dto/create-service.dto';
+import { CreateServiceDto } from 'src/service/dto/create-service.dto';
 import { fr, base, Faker, } from '@faker-js/faker';
 import type { LocaleDefinition } from '@faker-js/faker';
-import { CreateAddressDto } from '../src/addresses/dto/create-address.dto';
-import { CreateGroupDto } from '../src/groups/dto/create-group.dto';
-import { CreateUserDto } from '../src/users/dto/create-user.dto';
-import { CreateProfileDto } from '../src/profiles/dto/create-profile.dto';
-import { CreateEventDto } from '../src/events/dto/create-event.dto';
-import { CreateGroupUserDto } from '../src/group-users/dto/create-group-user.dto';
-import { CreateParticipantDto } from '../src/participants/dto/create-participant.dto';
-import { CreatePostDto } from '../src/posts/dto/create-post.dto';
-import { CreateLikeDto } from '../src/likes/dto/create-like.dto';
-import { CreateVoteDto } from '../src/votes/dto/create-vote.dto';
+import { CreateAddressDto } from 'src/addresses/dto/create-address.dto';
+import { CreateGroupDto } from 'src/groups/dto/create-group.dto';
+import { CreateUserDto } from 'src/users/dto/create-user.dto';
+import { CreateProfileDto } from 'src/profiles/dto/create-profile.dto';
+import { CreateEventDto } from 'src/events/dto/create-event.dto';
+import { CreateGroupUserDto } from 'src/group-users/dto/create-group-user.dto';
+import { CreateParticipantDto } from 'src/participants/dto/create-participant.dto';
+import { CreatePostDto } from 'src/posts/dto/create-post.dto';
+import { CreateLikeDto } from 'src/likes/dto/create-like.dto';
+import { CreateVoteDto } from 'src/votes/dto/create-vote.dto';
 import { Decimal } from '@prisma/client/runtime/library';
-import { CreateFlagDto } from '../src/flags/dto/create-flag.dto';
-import { CreateIssueDto } from '../src/issues/dto/create-issue.dto';
-import { UsersService } from '../src/users/users.service';
-import { PrismaService } from '../src/prisma/prisma.service';
-import { EventsService } from '../src/events/events.service';
-import { AddressService } from '../src/addresses/address.service';
-import { NotificationsService } from '../src/notifications/notifications.service';
-import { MailerService } from '../src/mailer/mailer.service';
-import { GroupsService } from '../src/groups/groups.service';
-import { GroupUsersService } from '../src/group-users/group-users.service';
-import { ProfilesService } from '../src/profiles/profiles.service';
-import { ParticipantsService } from '../src/participants/participants.service';
-import { ServicesService } from '../src/service/service.service';
-import { IssuesService } from '../src/issues/issues.service';
-import { PostsService } from '../src/posts/posts.service';
-import { LikesService } from '../src/likes/likes.service';
-import { VotesService } from '../src/votes/votes.service';
-import { FlagsService } from '../src/flags/flags.service';
-import { MessagesService } from '../src/messages/messages.service';
-import { CreateMessageDto } from '../src/messages/dto/create-message.dto';
-import { NotifsGateway } from '../src/notifs/notifs.gateway';
-import { CreatePoolDto } from '../src/pools-surveys/dto/create-pool.dto';
-import { CreateSurveyDto } from '../src/pools-surveys/dto/create-survey.dto';
+import { CreateFlagDto } from 'src/flags/dto/create-flag.dto';
+import { CreateIssueDto } from 'src/issues/dto/create-issue.dto';
+import { UsersService } from 'src/users/users.service';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { EventsService } from 'src/events/events.service';
+import { AddressService } from 'src/addresses/address.service';
+import { NotificationsService } from 'src/notifications/notifications.service';
+import { MailerService } from 'src/mailer/mailer.service';
+import { GroupsService } from 'src/groups/groups.service';
+import { GroupUsersService } from 'src/group-users/group-users.service';
+import { ProfilesService } from 'src/profiles/profiles.service';
+import { ParticipantsService } from 'src/participants/participants.service';
+import { ServicesService } from 'src/service/service.service';
+import { IssuesService } from 'src/issues/issues.service';
+import { PostsService } from 'src/posts/posts.service';
+import { LikesService } from 'src/likes/likes.service';
+import { VotesService } from 'src/votes/votes.service';
+import { FlagsService } from 'src/flags/flags.service';
+import { MessagesService } from 'src/messages/messages.service';
+import { CreateMessageDto } from 'src/messages/dto/create-message.dto';
+import { NotifsGateway } from 'src/notifs/notifs.gateway';
+import { CreatePoolDto } from 'src/pools-surveys/dto/create-pool.dto';
+import { CreateSurveyDto } from 'src/pools-surveys/dto/create-survey.dto';
 
 const prisma = new PrismaClient();
 const prismaService = new PrismaService();
@@ -68,7 +68,6 @@ export const getImageBlob = async (url: string): Promise<Uint8Array<ArrayBufferL
   // return "data:" + blob.type + ';base64,' + buffer.toString('base64');
   return buffer;
 }
-
 
 enum FakerSubjects {
   EVENT = 'event',
