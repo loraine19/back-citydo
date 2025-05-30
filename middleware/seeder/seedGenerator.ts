@@ -225,11 +225,11 @@ const titleWords: TitleWords = {
         [ServiceCategory.CATEGORY_1]: { // Bricolage et entretien
             pref: [
                 'Besoin d\'un bricoleur ?',
-                'Service de bricolage :',
+                'Je vous propose',
                 'Coup de main pour vos travaux :',
-                'Proposition de bricolage :',
-                'Entraide bricolage :',
-                'Offre spéciale bricolage :',
+                'Proposition ',
+                'Entraide ',
+                'Offre spéciale ',
                 'À votre service pour bricoler :',
                 'Bricolage à domicile :',
                 'Service entretien :',
