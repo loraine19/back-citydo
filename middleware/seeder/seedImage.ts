@@ -50,6 +50,7 @@ interface GetRandomPixabayImageOptions {
 }
 
 function normalizeKeyword(keyword: string): string {
+    if (!keyword || typeof keyword !== 'string') return '';
     return keyword.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '');
 }
 
