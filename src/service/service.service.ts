@@ -74,6 +74,7 @@ export class ServicesService {
       orderBy,
       include: this.serviceIncludeConfig(userId),
     });
+    console.log('findAll services', { skip, take, where, orderBy, count, services })
     return { services, count }
   }
 
