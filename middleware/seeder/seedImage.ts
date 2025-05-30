@@ -49,6 +49,10 @@ interface GetRandomPixabayImageOptions {
     category?: PIXABAY_CATEGORY;
 }
 
+function normalizeKeyword(keyword: string): string {
+    return keyword.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '');
+}
+
 export function getImageUrlLocal(keywords: string[]): string {
     let imageUrl = '';
     let imagesSeederDir = path.join(__dirname, 'imagesSeeder');
@@ -61,12 +65,11 @@ export function getImageUrlLocal(keywords: string[]): string {
         const fileNames = jsonFiles.map((file: string) => path.basename(file, '.json').toLowerCase());
         const found = keywords.find((keyword: string) => {
             if (keyword) {
-                const normalizedKeyword = keyword.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-                return fileNames.includes(normalizedKeyword)
+                return fileNames.includes(normalizeKeyword(keyword));
             }
             else return false
         });
-        if (found) selectedFile = `${found.toLowerCase()}.json`
+        if (found) selectedFile = `${normalizeKeyword(found)}.json`
     } catch (err) {
         console.error('Erreur lors de la lecture du dossier :', err);
     }
@@ -79,9 +82,7 @@ export function getImageUrlLocal(keywords: string[]): string {
             if (!hit.tags || typeof hit.tags !== 'string') return false;
             return hit.tags.toLowerCase().split(',').some((tag: string) =>
                 keywords.some(keyword => {
-                    const normalizedTag = tag.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-                    const normalizedKeyword = typeof keyword === 'string' ? keyword.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '') : '';
-                    return normalizedTag === normalizedKeyword
+                    return normalizeKeyword(tag) === normalizeKeyword(keyword)
                 }))
         });
         if (arrayOfImages.length === 0) arrayOfImages = jsonData.hits;
@@ -123,4 +124,5 @@ const test = async () => {
     const imageUrl = await getRandomPixabayImageUrl(process.env.PIXABAY_API_KEY, ['féminin', 'femme', 'fille']);
     console.log(imageUrl);
 }
+test().catch(console.error);
 
