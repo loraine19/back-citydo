@@ -60,17 +60,13 @@ export class EventsController {
     @User() userId: number,
     @Query('page', ParseIntPipe) page?: number,
     @Query('filter') filter?: string,
-    @Query('category') category?: string): Promise<{ events: Event[], count: number }> {
-    switch (filter) {
-      case EventFilter.MINE:
-        return this.eventsService.findAllByUserId(userId, page, category);
-      case EventFilter.IGO:
-        return this.eventsService.findAllByParticipantId(userId, page, category);
-      case EventFilter.VALIDATED:
-        return this.eventsService.findAllValidated(userId, page, category);
-      default:
-        return this.eventsService.findAll(userId, page, category);
-    }
+    @Query('category') category?: string,
+    @Query('sort') sort?: string
+    , @Query('reverse') reverse?: boolean
+  ): Promise<{ events: Event[], count: number }> {
+    console.log('findAll', userId, page, category, filter, sort, reverse)
+    return this.eventsService.findAll(userId, page, category, filter, sort, reverse);
+
   }
 
 

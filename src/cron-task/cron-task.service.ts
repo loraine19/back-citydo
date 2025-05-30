@@ -5,6 +5,7 @@ import { UserNotifInfo } from 'src/notifications/entities/notification.entity';
 import { NotificationsService } from 'src/notifications/notifications.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { JwtService } from "@nestjs/jwt";
+import { getImageUrlLocal } from 'middleware/seeder/seedImage';
 const fs = require('fs');
 const path = require('path');
 
@@ -139,6 +140,63 @@ export class CronTaskService {
         await clean('events', (file: string) => this.prisma.event.findFirst({ where: { image: file } }));
         await clean('posts', (file: string) => this.prisma.post.findFirst({ where: { image: file } }));
         await clean('surveys', (file: string) => this.prisma.survey.findFirst({ where: { image: file } }));
+    }
+
+
+    @Cron(CronExpression.EVERY_10_MINUTES)
+    async addMissingPicture() {
+        const events = await this.prisma.event.findMany({
+            where: {
+                OR: [{ image: null }, { image: '' }],
+                //status: $Enums.EventStatus.PENDING
+            },
+        })
+
+        for (const event of events) {
+            const keywords = event.title.split(' ').slice(0, 3);
+            const imageUrl = getImageUrlLocal(keywords);
+            if (imageUrl) {
+                await this.prisma.event.update({
+                    where: { id: event.id },
+                    data: { image: imageUrl }
+                })
+            }
+
+        }
+
+        const posts = await this.prisma.post.findMany({
+            where: {
+                OR: [{ image: null }, { image: '' }],
+            },
+        })
+        for (const post of posts) {
+            const keywords = post.title.split(' ').slice(0, 3);
+            const imageUrl = getImageUrlLocal(keywords);
+            if (imageUrl) {
+                await this.prisma.post.update({
+                    where: { id: post.id },
+                    data: { image: imageUrl }
+                });
+            }
+        }
+
+        const surveys = await this.prisma.survey.findMany({
+            where: {
+                OR: [{ image: null }, { image: '' }],
+            },
+        })
+        for (const survey of surveys) {
+            const keywords = survey.title.split(' ').slice(0, 3);
+            const imageUrl = getImageUrlLocal(keywords);
+            if (imageUrl) {
+                await this.prisma.survey.update({
+                    where: { id: survey.id },
+                    data: { image: imageUrl }
+                });
+            }
+        }
+
+
     }
 
 }

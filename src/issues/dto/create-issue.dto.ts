@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IssueStep } from "@prisma/client";
-import { Type } from "class-transformer";
+import { Transform, Type } from "class-transformer";
 import { IsDate, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
 
 export class CreateIssueDto {
@@ -48,4 +48,10 @@ export class CreateIssueDto {
     @ApiProperty({ type: 'string', format: 'binary', required: false, })
     @IsOptional()
     image: any;
+
+    @ApiProperty({ type: Date })
+    @IsOptional()
+    @Transform(({ value }) => new Date(value))
+    @IsDate({ message: 'Start date is not conformè' })
+    createdAt: Date
 }

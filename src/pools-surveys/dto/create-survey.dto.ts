@@ -1,7 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { $Enums } from "@prisma/client";
 import { Transform } from "class-transformer";
-import { IsNotEmpty, IsNumber, IsString, IsEnum, IsOptional } from "class-validator";
+import { IsNotEmpty, IsNumber, IsString, IsEnum, IsOptional, IsDate } from "class-validator";
 
 export class CreateSurveyDto {
     //FOR DTO
@@ -41,4 +41,10 @@ export class CreateSurveyDto {
     @Transform(({ value }) => parseInt(value))
     @IsNumber()
     neededVotes: number;
+
+    @ApiProperty({ type: Date })
+    @IsOptional()
+    @Transform(({ value }) => new Date(value))
+    @IsDate({ message: 'Start date is not conformè' })
+    createdAt: Date
 }

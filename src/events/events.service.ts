@@ -1,12 +1,13 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../../src/prisma/prisma.service';
-import { $Enums, Event } from '@prisma/client';
+import { $Enums, Event, Prisma } from '@prisma/client';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { ImageInterceptor } from 'middleware/ImageInterceptor';
 import { AddressService } from 'src/addresses/address.service';
 import { Notification, UserNotifInfo } from '../notifications/entities/notification.entity';
 import { NotificationsService } from '../notifications/notifications.service';
+import { EventFilter, EventSort } from './constant';
 
 @Injectable()
 export class EventsService {
@@ -29,7 +30,24 @@ export class EventsService {
   }
 
   private groupSelectConfig = (userId: number) => ({ GroupUser: { some: { userId } } })
+  private now = new Date().getTime();
 
+  private sortBy = (sort: EventSort, reverse?: boolean): Prisma.EventOrderByWithRelationInput => {
+    switch (sort) {
+      case EventSort.AZ:
+        return reverse ? { title: 'desc' } : { title: 'asc' };
+      case EventSort.CREATED_AT:
+        return reverse ? { createdAt: 'desc' } : { createdAt: 'asc' };
+      case EventSort.INDAYS:
+        return reverse ? { start: 'desc', status: 'asc' } : { start: 'asc', status: 'asc' };
+      case EventSort.PARTICIPANTS:
+        return reverse ? { Participants: { _count: 'asc' } } : { Participants: { _count: 'desc' } };
+      default:
+        return reverse ? { createdAt: 'desc' } : { createdAt: 'asc' }
+    }
+  }
+
+  /// DEFAULTS VALUES 
   limit = parseInt(process.env.LIMIT)
   skip(page: number) { return (page - 1) * this.limit }
   updateNotif = $Enums.NotificationLevel.SUB_2
@@ -37,12 +55,22 @@ export class EventsService {
 
 
   //// CONSULT
-  async findAll(userId: number, page?: number, category?: string): Promise<{ events: Event[], count: number }> {
+  async findAll(userId: number, page?: number, category?: string, filter?: string, sort?: string, reverse?: boolean): Promise<{ events: Event[], count: number }> {
     const skip = page ? this.skip(page) : 0;
-    const where = category ?
-      { category: $Enums.EventCategory[category], Group: this.groupSelectConfig(userId) } :
-      { Group: this.groupSelectConfig(userId) }
-
+    let where: Prisma.EventWhereInput = { Group: this.groupSelectConfig(userId) };
+    const orderBy = this.sortBy(sort as EventSort, reverse)
+    category && (where.category = $Enums.EventCategory[category])
+    switch (filter) {
+      case EventFilter.MINE:
+        where.userId = userId;
+        break;
+      case EventFilter.IGO:
+        where.Participants = { some: { User: { id: userId } } }
+        break;
+      case EventFilter.VALIDATED:
+        where.status = $Enums.EventStatus.VALIDATED;
+        break;
+    }
     const count = await this.prisma.event.count({ where });
     const take = page ? this.limit : count;
     const events = await this.prisma.event.findMany({
@@ -50,60 +78,13 @@ export class EventsService {
       take,
       where,
       include: this.eventIncludeConfig(userId),
-      orderBy: { start: 'asc' }
+      orderBy
     }) || [];
     return { events, count }
   }
 
 
 
-
-
-  async findAllByUserId(userId: number, page?: number, category?: string): Promise<{ events: Event[], count: number }> {
-    const skip = page ? this.skip(page) : 0;
-    const where = category ? { userId, category: $Enums.EventCategory[category] } : { userId }
-    const count = await this.prisma.event.count({ where });
-    const take = page ? this.limit : count;
-    const events = await this.prisma.event.findMany({
-      skip,
-      take,
-      where,
-      include: this.eventIncludeConfig(userId),
-    }) || [];
-    return { events, count }
-  }
-
-  async findAllByParticipantId(userId: number, page?: number, category?: string): Promise<{ events: Event[], count: number }> {
-    const skip = page ? this.skip(page) : 0;
-    const where = category ?
-      { Group: this.groupSelectConfig(userId), category: $Enums.EventCategory[category], Participants: { some: { userId } } } : { Group: this.groupSelectConfig(userId), Participants: { some: { userId } } }
-    const count = await this.prisma.event.count({ where });
-    const take = page ? this.limit : count;
-    const events = await this.prisma.event.findMany({
-      skip,
-      take,
-      where,
-      include: this.eventIncludeConfig(userId)
-      , orderBy: { start: 'asc' }
-    })
-    return { events, count }
-  }
-
-  async findAllValidated(userId: number, page?: number, category?: string): Promise<{ events: Event[], count: number }> {
-    const where = category ? { Group: this.groupSelectConfig(userId), category: $Enums.EventCategory[category], status: $Enums.EventStatus.VALIDATED } : { Group: this.groupSelectConfig(userId), status: $Enums.EventStatus.VALIDATED }
-    const count = await this.prisma.event.count({ where });
-    const skip = page ? this.skip(page) : 0;
-    const take = page ? this.limit : count;
-    const events = await this.prisma.event.findMany({
-      skip,
-      take,
-      where,
-      include: this.eventIncludeConfig(userId),
-      orderBy: { start: 'asc' },
-    });
-
-    return { events, count }
-  }
 
 
   async findOne(id: number, userId: number): Promise<Event> {

@@ -1,7 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { $Enums } from "@prisma/client";
 import { Transform, Type } from "class-transformer";
-import { IsNotEmpty, IsNumber, IsEnum, IsString, IsOptional } from "class-validator";
+import { IsNotEmpty, IsNumber, IsEnum, IsString, IsOptional, IsDate } from "class-validator";
 
 export class CreateServiceDto {
 
@@ -58,5 +58,11 @@ export class CreateServiceDto {
     @Transform(({ value }) => parseInt(value))
     @IsNumber()
     groupId: number;
+
+    @ApiProperty({ type: Date })
+    @IsOptional()
+    @Transform(({ value }) => new Date(value))
+    @IsDate({ message: 'Start date is not conformè' })
+    createdAt: Date
 
 }

@@ -11,3 +11,10 @@ export enum ServiceUpdate {
     CANCEL_RESP = 'CANCEL_RESP',
     FINISH = 'FINISH',
 }
+
+export enum EventSort {
+    CREATED_AT = 'CREATED_AT',
+    INDAYS = 'INDAYS',
+    PARTICIPANTS = 'PARTICIPANTS',
+    AZ = 'AZ',
+}

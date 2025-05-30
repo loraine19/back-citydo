@@ -50,4 +50,5 @@ export class PoolEntity implements Pool {
     @IsNotEmpty()
     @IsNumber()
     neededVotes: number;
+
 }

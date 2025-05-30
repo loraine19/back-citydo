@@ -74,7 +74,7 @@ export class CreateEventDto {
     @IsOptional()
     @Transform(({ value }) => new Date(value))
     @IsDate({ message: 'Start date is not conformè' })
-    createdAt: Date
+    createdAt?: Date
 
     @ApiProperty()
     @IsOptional()
