@@ -52,7 +52,8 @@ interface GetRandomPixabayImageOptions {
 export function getImageUrlLocal(keywords: string[]): string {
     let imageUrl = '';
     let imagesSeederDir = path.join(__dirname, 'imagesSeeder');
-    process.env.NODE_ENV === 'dev' && (imagesSeederDir = imagesSeederDir.replace('dist', ''))
+    // process.env.NODE_ENV === 'dev' && (
+    imagesSeederDir = imagesSeederDir.replace('dist', '')
     let selectedFile = 'voisins.json';
     try {
         const files = fs.readdirSync(imagesSeederDir);
