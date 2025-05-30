@@ -22,7 +22,7 @@
     "migrate": "npx prisma migrate dev",
     "prisma-seed": "tsx prisma/seed.ts",
     "prisma-seed-prod": "node dist/prisma/seed.js",
-    "test-seed": "tsx prisma/seedGenerator.ts",
+    "test-seed": "tsx middleware/seeder/seedGenerator.ts",
     "test-seed-image": "tsx middleware/seeder/seedImage.ts",
     "create-db-user": "mysql -u root -p${MYSQL_ROOT_PASSWORD} < create_db_user.sql"
   },
