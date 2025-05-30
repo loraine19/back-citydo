@@ -60,8 +60,10 @@ export function getImageUrlLocal(keywords: string[]): string {
         const jsonFiles = files.filter((file: string) => file.endsWith('.json'));
         const fileNames = jsonFiles.map((file: string) => path.basename(file, '.json').toLowerCase());
         const found = keywords.find((keyword: string) => {
-            if (keyword) return fileNames.includes(keyword?.toLowerCase().normalize('NFD')
-                .replace(/[\u0300-\u036f]/g, '') || keyword?.toLowerCase().slice(keyword.length - 1, 1) || keyword?.toLowerCase().slice(keyword.length - 2, 2));
+            if (keyword) {
+                const normalizedKeyword = keyword.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                return fileNames.includes(normalizedKeyword)
+            }
             else return false
         });
         if (found) selectedFile = `${found.toLowerCase()}.json`
@@ -76,7 +78,11 @@ export function getImageUrlLocal(keywords: string[]): string {
         let arrayOfImages = jsonData.hits.filter((hit: PixabayHit) => {
             if (!hit.tags || typeof hit.tags !== 'string') return false;
             return hit.tags.toLowerCase().split(',').some((tag: string) =>
-                keywords.some(keyword => typeof keyword === 'string' && tag.trim() === keyword.toLowerCase()));
+                keywords.some(keyword => {
+                    const normalizedTag = tag.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+                    const normalizedKeyword = typeof keyword === 'string' ? keyword.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '') : '';
+                    return normalizedTag === normalizedKeyword
+                }))
         });
         if (arrayOfImages.length === 0) arrayOfImages = jsonData.hits;
         const randomIndex = Math.floor(Math.random() * arrayOfImages.length);
