@@ -83,3 +83,11 @@ export class ServiceEntity implements Service {
     @IsNotEmpty({ message: 'Group id is required' })
     groupId: number
 }
+
+export enum ServiceSort {
+    CREATED_AT = 'CREATED_AT',
+    USER = 'USER',
+    TITLE = 'TITLE',
+    SKILL = 'SKILL',
+    HARD = 'HARD',
+}

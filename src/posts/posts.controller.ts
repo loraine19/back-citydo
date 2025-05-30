@@ -8,8 +8,8 @@ import { ImageInterceptor } from '../../middleware/ImageInterceptor';
 import { PostEntity } from './entities/post.entity';
 import { AuthGuard } from '../auth/auth.guard';
 import { User } from 'middleware/decorators';
-import { PostFilter } from './entities/constant';
-import { Post as PostI } from '@prisma/client'
+import { PostFilter, PostSort } from './entities/constant';
+import { PostCategory, Post as PostI } from '@prisma/client'
 
 const route = 'posts'
 ApiTags(route)
@@ -62,16 +62,14 @@ export class PostsController {
   async findAll(
     @User() userId: number,
     @Query('page', ParseIntPipe) page?: number,
-    @Query('filter') filter?: string,
-    @Query('category') category?: string): Promise<{ posts: PostI[], count: number }> {
-    switch (filter) {
-      case PostFilter.MINE:
-        return this.postsService.findAllByUserId(userId, page, category);
-      case PostFilter.ILIKE:
-        return this.postsService.findAllILike(userId, page, category);
-      default:
-        return this.postsService.findAll(userId, page, category);
-    }
+    @Query('filter') filter?: PostFilter,
+    @Query('category') category?: PostCategory,
+    @Query('sort') sort?: PostSort,
+    @Query('reverse') reverse?: boolean
+  ): Promise<{ posts: PostI[], count: number }> {
+
+    return this.postsService.findAll(userId, page, filter, category, sort, reverse);
+
   }
 
   @Get(':id')

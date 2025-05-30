@@ -1,11 +1,12 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { $Enums, Profile, Service } from '@prisma/client';
+import { $Enums, Prisma, Profile, Service } from '@prisma/client';
 import { CreateServiceDto } from './dto/create-service.dto';
 import { GetPoints } from '../../middleware/GetPoints';
 import { ImageInterceptor } from 'middleware/ImageInterceptor';
 import { NotificationsService } from '../notifications/notifications.service';
 import { UserNotifInfo } from 'src/notifications/entities/notification.entity';
+import { ServiceSort } from './entities/service.entity';
 
 //// SERVICE MAKE ACTION
 @Injectable()
@@ -32,18 +33,45 @@ export class ServicesService {
   limit = parseInt(process.env.LIMIT)
   skip(page: number) { return (page - 1) * this.limit }
 
+  private sortBy = (sort: ServiceSort, reverse?: boolean): Prisma.ServiceOrderByWithRelationInput => {
+    switch (sort) {
+      case ServiceSort.TITLE:
+        return reverse ? { title: 'desc' } : { title: 'asc' };
+      case ServiceSort.CREATED_AT:
+        return reverse ? { createdAt: 'desc' } : { createdAt: 'asc' };
+      case ServiceSort.USER:
+        return reverse ? { User: { Profile: { firstName: 'desc' } } } : { User: { Profile: { firstName: 'asc' } } };
+      case ServiceSort.SKILL:
+        return reverse ? { skill: 'desc', } : { skill: 'asc', };
+      case ServiceSort.HARD:
+        return reverse ? { hard: 'desc', } : { hard: 'asc', };
+      default:
+        return reverse ? { createdAt: 'desc' } : { createdAt: 'asc' }
+    }
+  }
 
-  async findAll(userId: number, page?: number, type?: $Enums.ServiceType, step?: $Enums.ServiceStep, category?: $Enums.ServiceCategory,): Promise<{ services: Service[], count: number }> {
+
+  async findAll(userId: number, page?: number, mine?: boolean, type?: $Enums.ServiceType, step?: $Enums.ServiceStep, category?: $Enums.ServiceCategory, sort?: ServiceSort, reverse?: boolean): Promise<{ services: Service[], count: number }> {
     const skip = page ? this.skip(page) : 0;
-    const status = step ? $Enums.ServiceStep[step] : { in: [$Enums.ServiceStep.STEP_0, $Enums.ServiceStep.STEP_1] }
+    const types = type ? type.includes(',') ? { in: type.split(',').map(t => $Enums.ServiceType[t]) } : $Enums.ServiceType[type] : {};
+    const status = step ? step.includes(',') ? { in: step.split(',').map(s => $Enums.ServiceStep[s]) }
+      : $Enums.ServiceStep[step] : {};
     const Group = this.groupSelectConfig(userId);
-    const where = { type, status, category, Group }
+    let where: Prisma.ServiceWhereInput = { type: types, status, category, Group }
+    if (mine) where = {
+      ...where, OR: [
+        { User: { is: { id: userId } } },
+        { UserResp: { is: { id: userId } } }
+      ],
+    }
+    const orderBy: Prisma.ServiceOrderByWithRelationInput = sort ? this.sortBy(sort, reverse) : { createdAt: 'desc' };
     const count = await this.prisma.service.count({ where });
     const take = page ? this.limit : count
     const services = await this.prisma.service.findMany({
       skip,
       take,
       where,
+      orderBy,
       include: this.serviceIncludeConfig(userId),
     });
     return { services, count }

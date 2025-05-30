@@ -3,8 +3,7 @@ import { ServicesService } from './service.service';
 import { CreateServiceDto } from './dto/create-service.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
 import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOkResponse, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { ServiceEntity } from './entities/service.entity';
-import { RequestWithUser } from 'src/auth/auth.entities/auth.entity';
+import { ServiceEntity, ServiceSort } from './entities/service.entity';
 import { parseData } from '../../middleware/BodyParser';
 import { ImageInterceptor } from '../../middleware/ImageInterceptor';
 import { AuthGuard } from '../auth/auth.guard';
@@ -81,9 +80,12 @@ export class ServicesController {
     @Query('mine') mine?: boolean,
     @Query('type') type?: $Enums.ServiceType,
     @Query('step') step?: $Enums.ServiceStep,
-    @Query('category') category?: $Enums.ServiceCategory): Promise<{ services: Service[], count: number }> {
-    if (mine) return this.serviceService.findAllByUser(userId, page, type, step, category);
-    return this.serviceService.findAll(userId, page, type, step, category);
+    @Query('category') category?: $Enums.ServiceCategory,
+    @Query('sort') sort?: ServiceSort,
+    @Query('reverse') reverse?: boolean
+  ): Promise<{ services: Service[], count: number }> {
+
+    return this.serviceService.findAll(userId, page, mine, type, step, category, sort, reverse);
   }
 
 

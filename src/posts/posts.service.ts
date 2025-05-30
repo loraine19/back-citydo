@@ -1,9 +1,10 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { CreatePostDto } from './dto/create-post.dto';
 import { PrismaService } from '../../src/prisma/prisma.service';
-import { $Enums, Post, PostCategory } from '@prisma/client';
+import { $Enums, Post, PostCategory, Prisma } from '@prisma/client';
 import { ImageInterceptor } from 'middleware/ImageInterceptor';
 import { NotificationsService } from 'src/notifications/notifications.service';
+import { PostFilter, PostSort } from './entities/constant';
 
 @Injectable()
 export class PostsService {
@@ -26,6 +27,21 @@ export class PostsService {
     Profile: { select: { mailSub: true } }
   }
 
+
+  private sortBy = (sort: PostSort, reverse?: boolean): Prisma.PostOrderByWithRelationInput => {
+    switch (sort) {
+      case PostSort.TITLE:
+        return reverse ? { title: 'desc' } : { title: 'asc' };
+      case PostSort.CREATED_AT:
+        return reverse ? { createdAt: 'desc' } : { createdAt: 'asc' };
+      case PostSort.USER:
+        return reverse ? { User: { Profile: { firstName: 'desc' } } } : { User: { Profile: { firstName: 'asc' } } };
+      case PostSort.LIKE:
+        return reverse ? { Likes: { _count: 'asc' } } : { Likes: { _count: 'desc' } };
+      default:
+        return reverse ? { createdAt: 'desc' } : { createdAt: 'asc' }
+    }
+  }
   private groupSelectConfig = (userId: number) => ({ GroupUser: { some: { userId } } })
 
   limit = parseInt(process.env.LIMIT)
@@ -55,9 +71,22 @@ export class PostsService {
     return postCreated;
   }
 
-  async findAll(userId: number, page?: number, category?: string): Promise<{ posts: Post[], count: number }> {
+  async findAll(userId: number, page?: number, filter?: PostFilter, category?: PostCategory, sort?: PostSort, reverse?: boolean): Promise<{ posts: Post[], count: number }> {
     const skip = page ? this.skip(page) : 0;
-    const where = category ? { category: $Enums.PostCategory[category], Group: this.groupSelectConfig(userId) } : { Group: this.groupSelectConfig(userId) }
+    const Group = this.groupSelectConfig(userId);
+    const orderBy = this.sortBy(sort, reverse);
+    let where: Prisma.PostWhereInput = {
+      Group,
+      category
+    }
+    switch (filter) {
+      case PostFilter.MINE:
+        where.userId = userId;
+        break;
+      case PostFilter.ILIKE:
+        where.Likes = { some: { userId } }
+        break;
+    }
     const count = await this.prisma.post.count({ where });
     const take = page ? this.limit : count;
     const posts = await this.prisma.post.findMany({
@@ -65,7 +94,7 @@ export class PostsService {
       take,
       where,
       include: this.postIncludeConfig(userId),
-      orderBy: { Likes: { _count: 'desc' } }
+      orderBy
     }) || [];
     return { posts, count };
   }
