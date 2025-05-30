@@ -11,4 +11,10 @@ export enum PoolSurveyStep {
     VALIDATED = 'VALIDATED',
     REJECTED = 'REJECTED',
 }
-
+export enum PoolSurveySort {
+    CREATED_AT = 'CREATED_AT',
+    USER = 'USER',
+    BENEF = 'BENEF',
+    TITLE = 'TITLE',
+    VOTES = 'VOTES',
+}

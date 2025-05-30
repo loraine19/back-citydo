@@ -1,8 +1,8 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { $Enums, Pool, Survey } from '@prisma/client';
+import { $Enums, Pool, Prisma, Survey, VoteOpinion } from '@prisma/client';
 import { getDate } from 'middleware/BodyParser';
-import { PoolSurveyFilter, PoolSurveyStep } from './entities/constant';
+import { PoolSurveyFilter, PoolSurveySort, PoolSurveyStep } from './entities/constant';
 import { ImageInterceptor } from 'middleware/ImageInterceptor';
 import { CreatePoolDto } from './dto/create-pool.dto';
 import { UpdatePoolDto } from './dto/update-pool.dto';
@@ -36,41 +36,108 @@ export class PoolsSurveysService {
     email: true,
     Profile: { select: { mailSub: true } }
   }
+
+
+  private sortBy = (sort: PoolSurveySort, reverse?: boolean): Prisma.PoolOrderByWithRelationInput => {
+    switch (sort) {
+      case PoolSurveySort.TITLE:
+        return reverse ? { title: 'desc' } : { title: 'asc' };
+      case PoolSurveySort.CREATED_AT:
+        return reverse ? { createdAt: 'desc' } : { createdAt: 'asc' };
+      case PoolSurveySort.USER:
+        return reverse ? { User: { Profile: { firstName: 'desc' } } } : { User: { Profile: { firstName: 'asc' } } };
+      case PoolSurveySort.VOTES:
+        return reverse ? { Votes: { _count: 'asc' } } : { Votes: { _count: 'desc' } };
+      default:
+        return reverse ? { createdAt: 'desc' } : { createdAt: 'asc' }
+    }
+  }
+
   private groupSelectConfig = (userId: number) => ({ GroupUser: { some: { userId } } })
 
   limit = parseInt(process.env.LIMIT)
   skip(page: number) { return (page - 1) * this.limit }
 
-  async findAll(userId: number, page?: number, filter?: string, step?: string): Promise<{ poolsSurveys: (Pool | Survey)[], count: number }> {
+  async findAll(userId: number, page?: number, filter?: string, step?: string, sort?: PoolSurveySort, reverse?: boolean): Promise<{ poolsSurveys: (Pool | Survey)[], count: number }> {
     if (!step) return { poolsSurveys: [], count: 0 }
     const skip = page ? this.skip(page) : 0;
-    let where: any = filter === PoolSurveyFilter.MINE ? { userId } : { Group: this.groupSelectConfig(userId) }
+    const orderBy = this.sortBy(sort, reverse)
     let OR = []
     if (step.includes(PoolSurveyStep.NEW)) OR.push({ createdAt: { lt: getDate(0) } })
     if (step.includes(PoolSurveyStep.PENDING)) OR.push({ createdAt: { lt: getDate(7) } })
     if (step.includes(PoolSurveyStep.VALIDATED)) OR.push({ status: $Enums.PoolSurveyStatus.VALIDATED })
     if (step.includes(PoolSurveyStep.REJECTED)) OR.push({ status: $Enums.PoolSurveyStatus.REJECTED })
-    where = { ...where, OR }
+    const Group = this.groupSelectConfig(userId)
+    let where: any = { OR, Group }
+    if (filter === PoolSurveyFilter.MINE) {
+      where = {
+        ...where,
+        User: { id: userId }
+      }
+    }
+    let count = 0;
+    switch (filter) {
+      case PoolSurveyFilter.SURVEY:
+        count = await this.prisma.survey.count({ where });
+        break;
+      case PoolSurveyFilter.POOL:
+        count = await this.prisma.pool.count({ where });
+        break;
+      default:
+        count = await this.prisma.pool.count({ where }) + await this.prisma.survey.count({ where });
+    }
 
-    const count = filter === PoolSurveyFilter.SURVEY ? await this.prisma.survey.count({ where }) :
-      filter === PoolSurveyFilter.POOL ? await this.prisma.pool.count({ where }) : await this.prisma.pool.count({ where }) + await this.prisma.survey.count({ where })
     const take = page ? this.limit : count;
     const pools = filter === PoolSurveyFilter.SURVEY ? [] : await this.prisma.pool.findMany(
       {
         include: this.poolIncludeConfig(userId),
         skip,
         take,
-        where
+        where,
+        orderBy
       }
     )
     const surveys = filter === PoolSurveyFilter.POOL ? [] : await this.prisma.survey.findMany({
       include: this.surveyIncludeConfig(userId),
       skip,
       take,
-      where
+      where,
+      orderBy
     })
-    const poolsSurveys: (Pool | Survey)[] = [...pools, ...surveys]
-    poolsSurveys.sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())
+    let poolsSurveys: (any)[] =
+      filter === PoolSurveyFilter.SURVEY ? surveys : filter === PoolSurveyFilter.POOL ? pools :
+        [...pools, ...surveys]
+
+    switch (filter) {
+      case PoolSurveyFilter.SURVEY:
+        poolsSurveys = surveys
+        break;
+      case PoolSurveyFilter.POOL:
+        poolsSurveys = pools
+        break;
+      default:
+        poolsSurveys = [...pools, ...surveys]
+        switch (sort) {
+          case PoolSurveySort.CREATED_AT:
+            !reverse ? poolsSurveys.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()) :
+              poolsSurveys.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+            break;
+          case PoolSurveySort.TITLE:
+            !reverse ? poolsSurveys.sort((a, b) => a.title.localeCompare(b.title)) :
+              poolsSurveys.sort((a, b) => b.title.localeCompare(a.title));
+            break;
+          case PoolSurveySort.USER:
+            !reverse ? poolsSurveys.sort((a, b) => a.User.Profile.firstName.localeCompare(b.User.Profile.firstName)) :
+              poolsSurveys.sort((a, b) => b.User.Profile.firstName.localeCompare(a.User.Profile.firstName));
+            break;
+          case PoolSurveySort.VOTES:
+            reverse ? poolsSurveys.sort((a: any, b: any) => (b.Votes?.filter(v => v.opinion === VoteOpinion.OK).length - (a.Votes?.filter(v => v.opinion === VoteOpinion.OK)?.length ?? 0))) :
+              poolsSurveys.sort((a: any, b: any) => (a.Votes?.filter(v => v.opinion === VoteOpinion.OK).length ?? 0) - (b.Votes?.filter(v => v.opinion === VoteOpinion.OK).length ?? 0));
+            break;
+          default:
+            poolsSurveys.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        }
+    }
     return { poolsSurveys, count }
   }
 

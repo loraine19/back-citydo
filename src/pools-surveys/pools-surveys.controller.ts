@@ -12,6 +12,7 @@ import { PoolEntity } from './dto/pool.entity';
 import { SurveyEntity } from './dto/survey.entity';
 import { UpdatePoolDto } from './dto/update-pool.dto';
 import { UpdateSurveyDto } from './dto/update-survey.dto';
+import { PoolSurveySort } from './entities/constant';
 
 
 
@@ -29,8 +30,11 @@ export class PoolsSurveysController {
     @User() userId: number,
     @Query('page') page?: any,
     @Query('filter') filter?: string,
-    @Query('step') step?: string): Promise<{ poolsSurveys: (Pool | Survey)[], count: number }> {
-    return this.poolsSurveysService.findAll(userId, parseInt(page), filter, step)
+    @Query('step') step?: string,
+    @Query('sort') sort?: PoolSurveySort,
+    @Query('reverse') reverse?: boolean
+  ): Promise<{ poolsSurveys: (Pool | Survey)[], count: number }> {
+    return this.poolsSurveysService.findAll(userId, parseInt(page), filter, step, sort, reverse);
   }
 
   ///POOLS
