@@ -76,7 +76,7 @@ export function getImageUrlLocal(keywords: string[]): string {
         let arrayOfImages = jsonData.hits.filter((hit: PixabayHit) => {
             if (!hit.tags || typeof hit.tags !== 'string') return false;
             return hit.tags.toLowerCase().split(',').some((tag: string) =>
-                keywords.some(keyword => tag.trim() === keyword.toLowerCase()));
+                keywords.some(keyword => typeof keyword === 'string' && tag.trim() === keyword.toLowerCase()));
         });
         if (arrayOfImages.length === 0) arrayOfImages = jsonData.hits;
         const randomIndex = Math.floor(Math.random() * arrayOfImages.length);
