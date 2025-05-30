@@ -124,7 +124,7 @@ const titleWords: TitleWords = {
                 'Moment de partage :',
                 'Ne manquez pas ',
                 'Événement de quartier',
-                'Venez échanger :',
+                'Venez échanger pendant',
                 'Entre voisins :',
                 'Annonce,',
                 'Événement convivial à venir :'
@@ -152,7 +152,7 @@ const titleWords: TitleWords = {
                 'Événement artistique :',
                 'Venez découvrir la culture avec',
                 'Culture et partage :',
-                'Annonce culturelle :',
+                'Annonce pour les passionnés :',
                 'Événement culturel à venir :'
             ],
             suf: [
@@ -817,7 +817,7 @@ const eventElementsByCategory: Record<EventCategory, ElementSpecifique[]> = {
             detailsSpecifiques: ['à la salle commune municipale ou dans un café partenaire', 'apportez vos jeux préférés, tous les âges sont conviés', 'boissons et grignotages sur place (participation libre appréciée)']
         },
         {
-            nom: 'un atelier',
+            nom: 'un atelie r',
             adjectif: ['cuisine du monde', 'de poterie créatif', 'pâtisserie gourmande'],
             verbe: ['nous lançons', 'nous proposons', 'nous organisons', 'nous animons', 'je lance', 'je propose', 'j\'organise', 'j\'anime'],
             verbeRev: ['est lancé', 'est proposé', 'est organisé', 'est animé'],
@@ -1888,7 +1888,7 @@ export async function genereContent(
 ): Promise<{ title: string; description: string, elementRetenu: ElementSpecifique | undefined, image?: string }> {
     let titre: string = '';
     let description: string = '';
-    let Element: ElementSpecifique | undefined = { nom: '' }
+    let Element: ElementSpecifique | undefined = { nom: '', adjectif: [], verbe: [], verbeRev: [], detailsSpecifiques: [] };
     let categoryName: string | undefined;
     let pref = Math.random() < 0.65 ? true : false; // 65% de chance d'utiliser le préfixe
     let baseTitre: string = pref ? piocherElement(titleWords.autre.pref) : piocherElement(titleWords.autre.suf);
@@ -2003,8 +2003,11 @@ export async function genereContent(
     //// CONSTRUCTION FINAL
     baseTitre = baseTitre.replace(/:$/, '').trim();
     !verb && (verb = securVerb);
-    titre = pref ? `${baseTitre} ${Element.nom}` : `${Element.nom} ${baseTitre}`;
-    const descIntro = rev ? finaliserPhrase(` ${Element.nom} ${verb}`) : finaliserPhrase(`${verb} ${Element.nom}`);
+
+    let { nom, adjectif, verbe, verbeRev, detailsSpecifiques } = Element;
+    let add = piocherElement(adjectif) || '';
+    titre = pref ? `${baseTitre} ${nom} ${add}` : `${Element.nom} ${baseTitre} ${add}`;
+    const descIntro = rev ? finaliserPhrase(` ${Element.nom} ${Element.adjectif} ${verb}`) : finaliserPhrase(`${verb} ${Element.nom} ${Element.adjectif}`);
     description = descIntro + ' ' + generShortSentence(ContextPhrases, Element, options, nombrePhrasesDescription - 1);
 
 
