@@ -37,7 +37,7 @@ import { NotifsGateway } from 'src/notifs/notifs.gateway';
 import { CreatePoolDto } from 'src/pools-surveys/dto/create-pool.dto';
 import { CreateSurveyDto } from 'src/pools-surveys/dto/create-survey.dto';
 //// SEED GENERATOR
-import { EventCategory, FakerSubjects, genereContent, ContentOptions, GroupCategory, PostCategory, ServiceCategory, SurveyCategory } from '../middleware/seeder/seedGenerator';
+import { EventCategory, FakerSubjects, genereContent, ContentOptions, GroupCategory, PostCategory, ServiceCategory, SurveyCategory } from 'middleware/seeder/seedGenerator';
 
 const prisma = new PrismaClient();
 const prismaService = new PrismaService();
