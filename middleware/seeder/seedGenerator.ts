@@ -241,7 +241,7 @@ const titleWords: TitleWords = {
                 'peut vous aider',
                 'est à votre disposition',
                 'vous est proposé',
-                'est assuré',
+                'pour vous aider',
                 'est offert',
                 'est à réserver',
                 'est à saisir',
@@ -258,11 +258,11 @@ const titleWords: TitleWords = {
                 'Offre spéciale cours :',
                 'À votre service pour apprendre :',
                 'Cours à découvrir :',
-                'Aide aux devoirs :',
+                'Aide pour',
                 'Initiation proposée :'
             ],
             suf: [
-                'est proposé',
+                'si besoin',
                 'est disponible',
                 'peut vous aider',
                 'est à votre disposition',
@@ -270,7 +270,7 @@ const titleWords: TitleWords = {
                 'est assuré',
                 'est offert',
                 'est à réserver',
-                'est à saisir',
+                'pour vous',
                 'est à découvrir'
             ]
         },
@@ -373,10 +373,10 @@ const titleWords: TitleWords = {
                 'est à retrouver',
                 'est à signaler',
                 'est à partager',
-                'est publié',
-                'est à découvrir',
+                'disponible',
+                'est perdu',
                 'est à consulter',
-                'est à relayer',
+                'à été trouvé',
                 'est à commenter'
             ]
         },
@@ -450,8 +450,8 @@ const titleWords: TitleWords = {
                 'est offert',
                 'est à récupérer',
                 'est disponible',
-                'est à découvrir',
-                'est à consulter',
+                'pourrait vous servir',
+                'pour recycler',
                 'est à réserver',
                 'est à commenter',
                 'est à partager',
@@ -474,13 +474,13 @@ const titleWords: TitleWords = {
             suf: [
                 'est à lire',
                 'est à partager',
-                'est publiée',
+                'à voir',
                 'est diffusée',
                 'est à retenir',
                 'est à consulter',
                 'est à noter',
                 'est à découvrir',
-                'est à transmettre',
+                'interessant',
                 'est à commenter'
             ]
         }
@@ -686,14 +686,11 @@ const titleWords: TitleWords = {
         suf: [
             'à lire',
             'à partager',
+            '',
             'est publié',
-            'est transmis',
-            'est envoyé',
-            'est à découvrir',
-            'est à consulter',
-            'est à diffuser',
-            'est à retenir',
-            'est à commenter'
+            '',
+            'que tu peux lire',
+            'que tu as reçu',
         ]
     },
     autre: {
@@ -724,7 +721,13 @@ const titleWords: TitleWords = {
     }
 };
 
-const linkWords = ['et', 'ou', 'mais', 'donc', 'ni', 'car', 'aussi', 'alors', 'ainsi', 'cependant', 'pourtant', 'toutefois', 'néanmoins', 'en effet', 'quand', 'lorsque', 'comme', 'si', 'puisque', 'parce que', 'afin de', 'pour que', 'afin que', 'bien que', 'pendant que', 'à', 'de', 'en', 'pour', 'par', 'sur', 'sous', 'avec', 'sans', 'chez', 'vers', 'dans', 'concernant', 'autour de', 'malgré', 'par exemple', 'c\'est-à-dire', 'notamment', 'surtout', 'également', 'non seulement', 'mais aussi', 'au sein de']
+const linkWords = ['et', 'ou', 'mais', 'donc', 'ni', 'car', 'aussi', 'alors', 'ainsi', 'cependant', 'pourtant', 'toutefois', 'néanmoins', 'en effet', 'quand', 'lorsque', 'comme', 'si', 'puisque', 'parce que', 'afin de', 'pour que', 'afin que', 'bien que', 'pendant que', 'à', 'de', 'en', 'pour', 'par', 'sur', 'sous', 'avec', 'sans', 'chez', 'vers', 'dans', 'concernant', 'autour de', 'malgré', 'par exemple', 'c\'est-à-dire', 'notamment', 'surtout', 'également', 'non seulement', 'mais aussi', 'au sein de', 'l`']
+
+const wordToExclude = [
+    'le', 'la', 'les', 'un', 'une', 'des', 'du', 'de la', 'l`', 'l\'', 'de l\'', 'd\'', 'et', 'ou', 'mais', 'donc', 'car', 'aide', 'aider', 'initiation', 'projet', 'projets',
+    'aussi', 'alors', 'ainsi', 'cependant', 'autre', 'atelier', 'ateliers',
+    'bon', 'état', 'vendre', 'donner', 'perdu', 'trouvé', 'à vendre', 'à donner', 'perdu/trouvé', 'aux', 'à', 'de', 'en', 'pour', 'par', 'sur', 'matinale', 'soirée', 'journée', 'week-end', 'semaine', 'mois', 'tous'
+]
 
 // --- ÉLÉMENTS SPÉCIFIQUES PAR CATÉGORIE ---
 // ÉVÉNEMENTS
@@ -817,7 +820,7 @@ const eventElementsByCategory: Record<EventCategory, ElementSpecifique[]> = {
             detailsSpecifiques: ['à la salle commune municipale ou dans un café partenaire', 'apportez vos jeux préférés, tous les âges sont conviés', 'boissons et grignotages sur place (participation libre appréciée)']
         },
         {
-            nom: 'un atelie r',
+            nom: 'un atelier',
             adjectif: ['cuisine du monde', 'de poterie créatif', 'pâtisserie gourmande'],
             verbe: ['nous lançons', 'nous proposons', 'nous organisons', 'nous animons', 'je lance', 'je propose', 'j\'organise', 'j\'anime'],
             verbeRev: ['est lancé', 'est proposé', 'est organisé', 'est animé'],
@@ -1729,7 +1732,7 @@ const postContextPhrases = { // Spécifique à la catégorie de post
         "Cela fera certainement plaisir à quelqu'un.",
         "Je préfère donner plutôt que jeter.",
         "Pas de réservation, merci de votre compréhension.",
-        "Venez le chercher à [lieu précis ou quartier] quand vous voulez (sur RDV).",
+        "Venez le chercher à [lieu] quand vous voulez (sur RDV).",
         "Un petit geste pour la planète et pour vos voisins."
     ],
     [PostCategory.CATEGORY_4]: [ // Pour les animaux à donner/vendre (pas perdus/trouvés ici)
@@ -1763,7 +1766,7 @@ const poolContextPhrases = [
     "Merci d'avance pour votre générosité et votre soutien à ce projet important pour Marseille.",
     "N'hésitez pas à partager cette cagnotte autour de vous.",
     "Ensemble, nous pouvons atteindre notre objectif rapidement.",
-    "Les fonds récoltés seront utilisés exclusivement pour [objectif de la cagnotte].",
+    "Les fonds récoltés seront utilisés exclusivement pour aider.",
     "Nous vous tiendrons informés de l'avancement du projet.",
     "Un grand merci du fond du cœur pour votre solidarité."
 ];
@@ -1819,13 +1822,9 @@ const messageContextPhrases: string[] = [
 
 
 // --- UTILS ---
-export function piocherElement<T>(arr: T[], def: T | null = null): T {
-    if (!arr || arr.length === 0) {
-        if (def !== null) return def;
-        if (typeof def === 'object' && def !== null) return def;
-        if (typeof '' === typeof def || def === null) return '' as unknown as T;
-        throw new Error("Array is empty and no default value of correct type provided.");
-    }
+export function piocherElement<T>(arr: T[]): T {
+    if (!arr || arr.length === 0) return ['....'][0] as T
+    if (arr.length === 1) return arr[0];
     return arr[Math.floor(Math.random() * arr.length)];
 }
 
@@ -1845,12 +1844,10 @@ export function finaliserPhrase(phrase: string): string {
 function generShortSentence(phrasesSources: string[], elementSpecifique?: ElementSpecifique, options?: ContentOptions, nombreDePhrases = 2): string {
     const phrasesChoisies = new Set<string>();
     let tentatives = 0;
-
     const maxPhrasesPossibles = phrasesSources?.length + (elementSpecifique?.detailsSpecifiques?.length || 0);
     nombreDePhrases = Math.min(nombreDePhrases, maxPhrasesPossibles, 3); // Max 3 phrases pour la description
 
     if (nombreDePhrases === 0) return "";
-
     // Priorité aux détails spécifiques de l'élément s'ils existent
     if (elementSpecifique?.detailsSpecifiques) {
         for (const detail of elementSpecifique.detailsSpecifiques) {
@@ -1864,15 +1861,9 @@ function generShortSentence(phrasesSources: string[], elementSpecifique?: Elemen
         let phrase = piocherElement(phrasesSources);
         if (options?.ville) phrase = phrase.replace(/\[ville\]/g, options.ville);
         if (options?.date) phrase = phrase.replace(/\[date\]/g, options.date);
-        if (elementSpecifique?.nom && (elementSpecifique.nom.includes("terrain") || elementSpecifique.nom.includes("salle"))) {
-            phrase = phrase.replace(/\[lieu précis ou quartier\]/g, elementSpecifique.nom.substring(elementSpecifique.nom.indexOf("sur ") + 4 || elementSpecifique.nom.indexOf("à ") + 2));
-        } else if (options?.ville) {
-            phrase = phrase.replace(/\[lieu précis ou quartier\]/g, options.ville);
-        }
-        // Remplacer les placeholders génériques restants
-        phrase = phrase.replace(/\[ambiance\]/g, piocherElement(['chaleureuse', 'festive', 'conviviale', 'sportive', 'détendue']));
-        phrase = phrase.replace(/\[date limite fictive\]/g, "la fin de semaine prochaine");
-        phrase = phrase.replace(/\[objectif de la cagnotte\]/g, "la réalisation de ce projet");
+        if (options?.auteur) phrase = phrase.replace(/\[auteur\]/g, options.auteur);
+        phrase = phrase.replace(/\[ambiance\]/g, piocherElement(['chaleureuse', 'festive', 'conviviale', 'détendue']));
+        phrase = phrase.replace(/\[nom\]/g, piocherElement(['Maurice', 'Kiki', 'minou']));
         phrasesChoisies.add(finaliserPhrase(phrase));
         tentatives++;
     }
@@ -1885,106 +1876,94 @@ export async function genereContent(
     sujet: FakerSubjects,
     categoryKey?: string,
     options?: ContentOptions
-): Promise<{ title: string; description: string, elementRetenu: ElementSpecifique | undefined, image?: string }> {
+):
+    Promise<{ title: string; description: string, elementRetenu: ElementSpecifique | undefined, image?: string }> {
     let titre: string = '';
     let description: string = '';
     let Element: ElementSpecifique | undefined = { nom: '', adjectif: [], verbe: [], verbeRev: [], detailsSpecifiques: [] };
     let categoryName: string | undefined;
-    let pref = Math.random() < 0.65 ? true : false; // 65% de chance d'utiliser le préfixe
-    let baseTitre: string = pref ? piocherElement(titleWords.autre.pref) : piocherElement(titleWords.autre.suf);
+    let pref = Math.random() < 0.75 ? true : false; // 75% de chance d'utiliser le préfixe
+    let wordsForTitle: string[] = pref ? titleWords.autre.pref : titleWords.autre.suf
     let image: string | undefined = undefined;
     let needImage = false;
     const nombrePhrasesDescription = Math.floor(Math.random() * 4) + 2
     let rev = Math.random() < 0.7 ? false : true // 30% de chance 
     let securVerb = !rev ? 'je partage' : 'est proposé';
-    let verb = securVerb;
     let ContextPhrases: string[] = groupContextPhrases;
+    let catKey: string | undefined
 
 
     switch (sujet) {
         case FakerSubjects.EVENT: {
             needImage = true;
-            const catKey = categoryKey as EventCategory ?? piocherElement(Object.values(EventCategory).filter(k => k !== EventCategory.CATEGORY_5));
-            categoryName = EventCategory[catKey as any];
-            baseTitre = pref ? piocherElement(titleWords.event[catKey].pref) : piocherElement(titleWords.event[catKey].suf);
+            catKey = categoryKey as EventCategory ?? piocherElement(Object.values(EventCategory).filter(k => k !== EventCategory.CATEGORY_5));
+            wordsForTitle = pref ? titleWords.event[catKey].pref : titleWords.event[catKey].suf;
             Element = piocherElement(eventElementsByCategory[catKey] ?? eventElementsByCategory[EventCategory.CATEGORY_5]);
             if (!Element) break;
             ContextPhrases = eventContextPhrases;
-            verb = !rev ? piocherElement(Element.verbe ?? []) : piocherElement(Element.verbeRev ?? []);
             break;
         }
         case FakerSubjects.SERVICE: {
-            needImage = true;
-            const catKey = categoryKey as ServiceCategory ?? piocherElement(Object.values(ServiceCategory).filter(k => k !== ServiceCategory.CATEGORY_5));
-            categoryName = ServiceCategory[catKey as any];
-            baseTitre = pref ? piocherElement(titleWords.service[catKey].pref) : piocherElement(titleWords.service[catKey].suf);
+            needImage = true
+            catKey = categoryKey as ServiceCategory ?? piocherElement(Object.values(ServiceCategory).filter(k => k !== ServiceCategory.CATEGORY_5));
+            wordsForTitle = pref ? titleWords.service[catKey].pref : titleWords.service[catKey].suf;
             Element = piocherElement(serviceElementsByCategory[catKey] ?? serviceElementsByCategory[ServiceCategory.CATEGORY_5]);
             if (!Element) break;
             ContextPhrases = serviceContextPhrases;
             securVerb = !rev ? 'je vous propose' : 'vous est proposé'
-            verb = !rev ? piocherElement(Element.verbe ?? []) : piocherElement(Element.verbeRev ?? []);
             break;
         }
         case FakerSubjects.POST: {
             needImage = true;
-            const catKey = categoryKey as PostCategory ?? piocherElement(Object.values(PostCategory).filter(k => k !== PostCategory.CATEGORY_5));
-            categoryName = PostCategory[catKey as any];
-            baseTitre = pref ? piocherElement(titleWords.post[catKey].pref) : piocherElement(titleWords.post[catKey].suf);
+            catKey = categoryKey as PostCategory ?? piocherElement(Object.values(PostCategory).filter(k => k !== PostCategory.CATEGORY_5))
+            wordsForTitle = pref ? titleWords.post[catKey].pref : titleWords.post[catKey].suf
             Element = piocherElement(postElementsByCategory[catKey] ?? postElementsByCategory[PostCategory.CATEGORY_5]);
             if (!Element) break;
             ContextPhrases = postContextPhrases[catKey] ?? postContextPhrases[PostCategory.CATEGORY_5]
-            verb = !rev ? piocherElement(Element.verbe ?? []) : piocherElement(Element.verbeRev ?? []);
             break;
         }
         case FakerSubjects.SURVEY: {
             needImage = true;
-            const catKey = categoryKey as SurveyCategory ?? piocherElement(Object.values(SurveyCategory).filter(k => k !== SurveyCategory.CATEGORY_5));
-            categoryName = SurveyCategory[catKey as any];
-            baseTitre = pref ? piocherElement(titleWords.survey[catKey].pref) : piocherElement(titleWords.survey[catKey].suf);
+            catKey = categoryKey as SurveyCategory ?? piocherElement(Object.values(SurveyCategory).filter(k => k !== SurveyCategory.CATEGORY_5));
+            wordsForTitle = pref ? titleWords.survey[catKey].pref : titleWords.survey[catKey].suf
             Element = piocherElement(surveyElementsByCategory[catKey] ?? surveyElementsByCategory[SurveyCategory.CATEGORY_5]);
             if (!Element) break;
             ContextPhrases = surveyContextPhrases;
-            verb = !rev ? piocherElement(Element.verbe ?? []) : piocherElement(Element.verbeRev ?? []);
             break;
         }
         case FakerSubjects.GROUP: {
-            needImage = false;
-            const catKey = categoryKey as GroupCategory ?? piocherElement(Object.values(GroupCategory).filter(k => k !== GroupCategory.CATEGORY_5));
-            categoryName = GroupCategory[catKey as any];
-            baseTitre = pref ? piocherElement(titleWords.group.pref) : piocherElement(titleWords.group.suf);
+            needImage = false
+            categoryKey as GroupCategory ?? piocherElement(Object.values(GroupCategory).filter(k => k !== GroupCategory.CATEGORY_5))
+            wordsForTitle = pref ? titleWords.group.pref : titleWords.group.suf
             Element = piocherElement(groupElementsByCategory[catKey] ?? groupElementsByCategory[GroupCategory.CATEGORY_5]);
             if (!Element) break;
             ContextPhrases = groupContextPhrases;
             securVerb = !rev ? 'Nous vous invitons à' : 'vous attends';
-            verb = !rev ? piocherElement(Element.verbe ?? []) : piocherElement(Element.verbeRev ?? []);
             break;
         }
         case FakerSubjects.POOL: {
             needImage = false;
             Element = piocherElement(poolElementsByCategory);
-            baseTitre = pref ? piocherElement(titleWords.pool.pref) : piocherElement(titleWords.pool.suf);
+            wordsForTitle = pref ? titleWords.pool.pref : titleWords.pool.suf;
             if (!Element) break;
             ContextPhrases = poolContextPhrases;
             securVerb = !rev ? 'je vous invite à participer à' : 'attends votre participation ';
-            verb = !rev ? piocherElement(Element.verbe ?? []) : piocherElement(Element.verbeRev ?? []);
             break;
         }
         case FakerSubjects.MESSAGE: {
             needImage = false;
             Element = piocherElement(messageElements);
-            baseTitre = pref ? piocherElement(titleWords.message.pref) : piocherElement(titleWords.message.suf);
+            wordsForTitle = pref ? titleWords.message.pref : titleWords.message.suf;
             if (!Element) break;
             ContextPhrases = messageContextPhrases;
             securVerb = !rev ? 'je vous ecrire' : '';
-            verb = !rev ? piocherElement(Element.verbe ?? []) : piocherElement(Element.verbeRev ?? []);
-            break;
         }
         case FakerSubjects.ISSUE: {
             needImage = false;
             Element = piocherElement(issueElements);
             if (!Element) break;
             ContextPhrases = issueContextPhrases;
-            securVerb = (Math.random() < 0.5) ? 'vous signale' : 'vous informe de'; verb = rev ? piocherElement(Element.verbe ?? []) : piocherElement(Element.verbeRev ?? []);
+            securVerb = !rev ? 'je vous soumette' : 'soumette';
             break;
         }
         case FakerSubjects.AUTRE:
@@ -2001,25 +1980,27 @@ export async function genereContent(
     }
 
     //// CONSTRUCTION FINAL
-    baseTitre = baseTitre.replace(/:$/, '').trim();
+    let verb = !rev ? piocherElement(Element.verbe ?? []) : piocherElement(Element.verbeRev ?? []);
     !verb && (verb = securVerb);
-
-    let { nom, adjectif, verbe, verbeRev, detailsSpecifiques } = Element;
-    let add = piocherElement(adjectif) || '';
-    titre = pref ? `${baseTitre} ${nom} ${add}` : `${Element.nom} ${baseTitre} ${add}`;
-    const descIntro = rev ? finaliserPhrase(` ${Element.nom} ${Element.adjectif} ${verb}`) : finaliserPhrase(`${verb} ${Element.nom} ${Element.adjectif}`);
+    let baseTitre = piocherElement(wordsForTitle);
+    let add = piocherElement(Element.adjectif) || '';
+    let nom = Element.nom + ' ' + add;
+    titre = pref ? `${baseTitre} ${nom}` : `${nom} ${baseTitre}`;
+    const descIntro = rev ? finaliserPhrase(`${nom} ${verb}`) : finaliserPhrase(`${verb} ${nom}`);
     description = descIntro + ' ' + generShortSentence(ContextPhrases, Element, options, nombrePhrasesDescription - 1);
 
-
     if (needImage) {
-        const keyWord = (Element?.nom.split(' ')).filter(word => word.length > 2 && !linkWords.includes(word))
+        const keyWord = (nom.toLowerCase().split(' ')).filter(word => {
+            word.replace("'", ' '); //
+            if (word.length < 3) return false;
+            if (wordToExclude.includes(word)) return false;
+            if (linkWords.includes(word)) return false
+            return true
+        })
         let keySentence = keyWord.length > 0 ? keyWord.join(' ') : ''
-        const keyWords: string[] = keySentence
-            .split(' ')
-            .slice(0, 5);
-        keyWords.push(FakerSubjects[sujet.toLowerCase()]);
-        keyWords.push('Marseille')
-        keyWords.push(categoryName || 'quartier');
+        const keyWords: string[] = keySentence.split(' ')
+        catKey ? keyWords.push(catKey) : keyWords.push('Marseille')
+        console.log('Keywords for image search:', keyWords);
         image = await getRandomPixabayImageUrl(process.env.PIXABAY_API_KEY, keyWords)
     }
     return {
@@ -2035,41 +2016,35 @@ export async function genereContent(
 async function testGenerateur() {
 
     const sujetsATester = [
-        FakerSubjects.EVENT, FakerSubjects.SERVICE, FakerSubjects.POST,
-        FakerSubjects.SURVEY, FakerSubjects.GROUP, FakerSubjects.POOL,
-        FakerSubjects.MESSAGE, FakerSubjects.AUTRE
+        FakerSubjects.EVENT,
+        // FakerSubjects.SERVICE, FakerSubjects.POST,
+        // FakerSubjects.SURVEY, FakerSubjects.GROUP, FakerSubjects.POOL,
+        // FakerSubjects.MESSAGE, FakerSubjects.AUTRE
     ];
 
     const quelquesCategoriesParSujet = {
-        [FakerSubjects.EVENT]: [EventCategory.CATEGORY_1, EventCategory.CATEGORY_2, undefined],
-        [FakerSubjects.SERVICE]: [ServiceCategory.CATEGORY_1, ServiceCategory.CATEGORY_4, undefined],
-        [FakerSubjects.POST]: [PostCategory.CATEGORY_3, PostCategory.CATEGORY_1, PostCategory.CATEGORY_4, undefined],
-        [FakerSubjects.SURVEY]: [SurveyCategory.CATEGORY_1, SurveyCategory.CATEGORY_4, undefined],
-        [FakerSubjects.GROUP]: [GroupCategory.CATEGORY_1, GroupCategory.CATEGORY_4, undefined],
+        [FakerSubjects.EVENT]: [EventCategory.CATEGORY_1, EventCategory.CATEGORY_2,],
+        [FakerSubjects.SERVICE]: [ServiceCategory.CATEGORY_1, ServiceCategory.CATEGORY_4],
+        [FakerSubjects.POST]: [PostCategory.CATEGORY_3, PostCategory.CATEGORY_1],
+        [FakerSubjects.SURVEY]: [SurveyCategory.CATEGORY_2, SurveyCategory.CATEGORY_4],
+        [FakerSubjects.GROUP]: [GroupCategory.CATEGORY_1, GroupCategory.CATEGORY_4],
         [FakerSubjects.POOL]: [undefined], // Pas de sous-catégories
         [FakerSubjects.MESSAGE]: [undefined],
-        [FakerSubjects.AUTRE]: [undefined],
-    };
-
-    const optionsExemple: ContentOptions = {
-        auteur: "L'équipe d'animation du quartier",
-        ville: "Marseille",
-        date: "samedi prochain",
     };
 
     sujetsATester.forEach(sujet => {
         const categoriesPourCeSujet = quelquesCategoriesParSujet[sujet];
-        categoriesPourCeSujet.forEach(async catKey => {
-            const resultat = await genereContent(sujet, catKey, optionsExemple);
-            let infoCat = catKey ? ` (Catégorie testée: ${catKey})` : ' (Catégorie aléatoire/fallback)';
-            if (sujet === FakerSubjects.POOL || sujet === FakerSubjects.MESSAGE || sujet === FakerSubjects.AUTRE) infoCat = '';
-
-            console.log(`\n## ${capitaliser(sujet)}${infoCat} ##`);
-            console.log('Élément retenu:', resultat.elementRetenu?.nom);
-            console.log('Titre:', resultat.title);
-            console.log('Description:', resultat.description);
-            console.log('Image:', resultat.image);
-        });
+        if (categoriesPourCeSujet && Array.isArray(categoriesPourCeSujet)) {
+            categoriesPourCeSujet.forEach(async (catKey: string | undefined) => {
+                const resultat = await genereContent(sujet, catKey);
+                let infoCat = catKey ? ` (Catégorie testée: ${catKey})` : '  ';
+                console.log(`\n## ${capitaliser(sujet)}${infoCat ?? ''} ##`);
+                console.log('Élément retenu:', resultat.elementRetenu?.nom);
+                console.log('Titre:', resultat.title);
+                console.log('Description:', resultat.description);
+                console.log('Image:', resultat.image);
+            });
+        }
         console.log('-------------------------------');
     });
 

@@ -7,6 +7,8 @@ interface PixabayHit {
     type: string;
     tags: string;
     webformatURL: string;
+    largeImageURL: string;
+    previewURL: string;
 }
 
 interface PixabayApiResponse {
@@ -56,21 +58,29 @@ function normalizeKeyword(keyword: string): string {
 
 export function getImageUrlLocal(keywords: string[]): string {
     let imageUrl = '';
+
     let imagesSeederDir = path.join(__dirname, 'imagesSeeder');
     // process.env.NODE_ENV === 'dev' && (
     imagesSeederDir = imagesSeederDir.replace('dist', '')
     let selectedFile = 'voisins.json';
+
     try {
         const files = fs.readdirSync(imagesSeederDir);
         const jsonFiles = files.filter((file: string) => file.endsWith('.json'));
-        const fileNames = jsonFiles.map((file: string) => path.basename(file, '.json').toLowerCase());
-        const found = keywords.find((keyword: string) => {
-            if (keyword) {
-                return fileNames.includes(normalizeKeyword(keyword));
-            }
-            else return false
-        });
-        if (found) selectedFile = `${normalizeKeyword(found)}.json`
+        const fileNames = jsonFiles.map((file: string) => path.basename(file, '.json').toLowerCase())
+        let match = []
+        for (const keyword of keywords) {
+            fileNames.forEach((fileName: string) => {
+                if (normalizeKeyword(keyword) === normalizeKeyword(fileName)) {
+                    match.push(fileName)
+                }
+            })
+        }
+        if (match.length > 0) selectedFile = `${match[0]}.json`
+        // else {
+        //     const randomIndex = Math.floor(Math.random() * jsonFiles.length);
+        //     selectedFile = jsonFiles[randomIndex];
+        // }
     } catch (err) {
         console.error('Erreur lors de la lecture du dossier :', err);
     }
@@ -111,19 +121,29 @@ export async function getRandomPixabayImageUrl(
     if (options?.category) apiUrl += `&category=${encodeURIComponent(options.category)}`
     apiUrl += `&safesearch=true&order=popular`; // 'popular' ou 'latest' pour varier
 
+    let url = ''
     const response = await fetch(apiUrl);
     const data: PixabayApiResponse = await response.json();
     if (data.hits && data.hits.length > 0) {
-        const randomIndex = Math.floor(Math.random() * data.hits.length);
-        const randomImage = data.hits[randomIndex];
-        return randomImage.webformatURL; // Retourne l'URL souhaitée
-    } else return getImageUrlLocal(keywords);
-
+        const filteredHits = data.hits.sort((a, b) => {
+            const aTags = a.tags ? a.tags.toLowerCase().split(',') : [];
+            const bTags = b.tags ? b.tags.toLowerCase().split(',') : [];
+            const aMatch = aTags.some(tag => keywords.includes(normalizeKeyword(tag)));
+            const bMatch = bTags.some(tag => keywords.includes(normalizeKeyword(tag)));
+            return (bMatch ? 1 : 0) - (aMatch ? 1 : 0); // Priorise les images avec des tags correspondants
+        })
+        const randomIndex = Math.floor(Math.random() * 5);
+        const randomImage = filteredHits[randomIndex];
+        url = randomImage?.webformatURL || randomImage?.largeImageURL || randomImage?.previewURL || getImageUrlLocal(keywords)
+    }
+    else url = getImageUrlLocal(keywords);
+    console.log('url', url, 'keywords', keywords)
+    return url || null;
 }
 
 const test = async () => {
-    const imageUrl = await getRandomPixabayImageUrl(process.env.PIXABAY_API_KEY, ['féminin', 'femme', 'fille']);
+    const imageUrl = await getRandomPixabayImageUrl(process.env.PIXABAY_API_KEY, ['chat', 'animal']);
     console.log(imageUrl);
 }
-test().catch(console.error);
+//test().catch(console.error);
 
