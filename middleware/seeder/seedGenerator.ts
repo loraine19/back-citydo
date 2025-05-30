@@ -5,7 +5,9 @@ import translate from "translate";
 translate.engine = 'google';
 translate.key = process.env.GOOGLE_API_KEY || '';
 
-// --- ENUMS ---
+/**
+ * --- ENUMS ---
+ */
 export enum FakerSubjects {
     EVENT = 'event',
     SERVICE = 'service',
@@ -54,7 +56,9 @@ export enum SurveyCategory {
     CATEGORY_5 = 'Autre projet',
 }
 
-// --- INTERFACES POUR DONNÉES STRUCTURÉES ---
+/**
+ * --- INTERFACES POUR DONNÉES STRUCTURÉES ---
+ */
 interface ElementSpecifique {
     nom: string;
     adjectif?: string[]
@@ -69,17 +73,656 @@ export interface ContentOptions {
     date?: string;
 }
 
-// --- DATA ---
-const titleWordsByKey = {
-    event: ['Invitation à ', 'Participez à ', 'Nouveau rendez-vous', 'Annonce spéciale ', 'Ne manquez pas', 'Découvrez bientôt'],
-    service: ['Proposition de service', 'Besoin d\'un coup de main', 'Service', 'Entraide', 'Offre spéciale service', 'Besoin d\'un service'],
-    post: ['Annonce', 'Nouveaux', 'Objet à signaler', 'Information de voisinage', 'Bon à savoir', 'Infos', 'Nouvelle offre', 'partage', 'partagez', 'A signaler',],
-    pool: ['Appel à la solidarité', 'Soutien', 'Cagnotte', 'Ensemble pour une cause', 'Aider', 'Contribuez', 'Participez à la cagnotte', 'Votez'],
-    survey: ['Votre avis nous intéresse', 'Participez à notre consultation', 'Sondage important', 'Exprimez-vous', 'Donnez votre opinion', 'Votez'],
-    group: ['Communauté', 'Groupe', 'Ensemble', 'Collectif en action', 'Participez à la vie locale', 'Équipe'],
-    autre: ['Information diverse', 'Message pour la communauté', 'Communication importante', 'À noter dans le quartier',],
-    message: ['Un petit message', 'contact à propos', 'Message de voisinage', 'Information importante', 'Annonce rapide', 'Petit mot pour vous'],
+/**
+ * --- DATA ---
+ * Les préfixes et suffixes sont maintenant organisés par sous-catégorie pour event, service, post, survey.
+ */
+
+interface TitleWords {
+    event: Record<EventCategory, { pref: string[]; suf: string[] }>;
+    service: Record<ServiceCategory, { pref: string[]; suf: string[] }>;
+    post: Record<PostCategory, { pref: string[]; suf: string[] }>;
+    survey: Record<SurveyCategory, { pref: string[]; suf: string[] }>;
+    group: { pref: string[]; suf: string[] };
+    pool: { pref: string[]; suf: string[] };
+    message: { pref: string[]; suf: string[] };
+    autre: { pref: string[]; suf: string[] };
 }
+const titleWords: TitleWords = {
+    event: {
+        [EventCategory.CATEGORY_1]: { // Sport
+            pref: [
+                'Invitation à',
+                'Participez à ',
+                'Rendez-vous sportif :',
+                'À vos marques pour',
+                'Ne manquez pas',
+                'Challenge sportif :',
+                'Venez bouger avec',
+                'Sport et convivialité :',
+                'Annonce sportive :',
+                'Événement sportif à venir :'
+            ],
+            suf: [
+                'vous attend',
+                'est organisé pour les sportifs',
+                'est au programme sportif',
+                'est lancé pour tous',
+                'est proposé aux amateurs',
+                'est organisé pour vous',
+                'vous invite',
+                'est à l\'affiche sportive',
+                'est à découvrir',
+                'est à ne pas manquer'
+            ]
+        },
+        [EventCategory.CATEGORY_2]: { // Social
+            pref: [
+                'Invitation conviviale :',
+                'Participez à',
+                'Rendez-vous social ',
+                'Moment de partage :',
+                'Ne manquez pas ',
+                'Événement de quartier',
+                'Venez échanger :',
+                'Entre voisins :',
+                'Annonce,',
+                'Événement convivial à venir :'
+            ],
+            suf: [
+                'vous attend pour partager',
+                'est organisé pour tous',
+                'est au programme convivial',
+                'est lancé pour le quartier',
+                'est proposé aux voisins',
+                'est organisé pour vous',
+                'vous invite à échanger',
+                'est à l\'affiche',
+                'est à découvrir ensemble',
+                'est à ne pas manquer'
+            ]
+        },
+        [EventCategory.CATEGORY_3]: { // Culturel
+            pref: [
+                'Invitation culturelle ',
+                'Participez à la découverte',
+                'Rendez-vous culture',
+                'À la rencontre de la culture :',
+                'Ne manquez pas',
+                'Événement artistique :',
+                'Venez découvrir la culture avec',
+                'Culture et partage :',
+                'Annonce culturelle :',
+                'Événement culturel à venir :'
+            ],
+            suf: [
+                'vous attend',
+                'est organisé pour les curieux',
+                'est au programme culturel',
+                'est lancé pour tous',
+                'est proposé aux amateurs',
+                'est organisé pour vous',
+                'vous invite à découvrir',
+                'est à l\'affiche culturelle',
+                'est à explorer ensemble',
+                'est à ne pas manquer'
+            ]
+        },
+        [EventCategory.CATEGORY_4]: { // Musique
+            pref: [
+                'Invitation à ',
+                'Participez à',
+                'Rendez-vous musical :',
+                'À l\'écoute ',
+                'Ne manquez pas ',
+                'Événement musical :',
+                'Venez vibrer avec',
+                'Ambiance :',
+                'Annonce musicale :',
+                'Événement musical à venir :'
+            ],
+            suf: [
+                'vous attend en musique',
+                'est organisé pour les mélomanes',
+                'est au programme musical',
+                'est lancé pour tous',
+                'est proposé aux amateurs de musique',
+                'est organisé pour vous',
+                'vous invite à écouter',
+                'est à l\'affiche musicale',
+                'est à découvrir en rythme',
+                'est à ne pas manquer'
+            ]
+        },
+        [EventCategory.CATEGORY_5]: { // Autre
+            pref: [
+                'Invitation :',
+                'Participez à l\'événement :',
+                'Rendez-vous à ne pas manquer :',
+                'Annonce spéciale :',
+                'Ne manquez pas :',
+                'Événement à venir :',
+                'Venez découvrir :',
+                'À ne pas manquer :',
+                'Rejoignez-nous pour :',
+                'Événement spécial :'
+            ],
+            suf: [
+                'vous attend',
+                'est organisé pour vous',
+                'est au programme',
+                'est lancé',
+                'est proposé',
+                'est organisé',
+                'vous invite',
+                'est à l\'affiche',
+                'est à découvrir',
+                'est à ne pas manquer'
+            ]
+        }
+    },
+    service: {
+        [ServiceCategory.CATEGORY_1]: { // Bricolage et entretien
+            pref: [
+                'Besoin d\'un bricoleur ?',
+                'Service de bricolage :',
+                'Coup de main pour vos travaux :',
+                'Proposition de bricolage :',
+                'Entraide bricolage :',
+                'Offre spéciale bricolage :',
+                'À votre service pour bricoler :',
+                'Bricolage à domicile :',
+                'Service entretien :',
+                'Aide aux petits travaux :'
+            ],
+            suf: [
+                'est proposé',
+                'est disponible',
+                'peut vous aider',
+                'est à votre disposition',
+                'vous est proposé',
+                'est assuré',
+                'est offert',
+                'est à réserver',
+                'est à saisir',
+                'est à découvrir'
+            ]
+        },
+        [ServiceCategory.CATEGORY_2]: { // Cours et formation
+            pref: [
+                'Besoin d\'apprendre ?',
+                'Proposition de cours :',
+                'Soutien disponible :',
+                'Cours particuliers :',
+                'Formation à domicile :',
+                'Offre spéciale cours :',
+                'À votre service pour apprendre :',
+                'Cours à découvrir :',
+                'Aide aux devoirs :',
+                'Initiation proposée :'
+            ],
+            suf: [
+                'est proposé',
+                'est disponible',
+                'peut vous aider',
+                'est à votre disposition',
+                'vous est proposé',
+                'est assuré',
+                'est offert',
+                'est à réserver',
+                'est à saisir',
+                'est à découvrir'
+            ]
+        },
+        [ServiceCategory.CATEGORY_3]: { // Animaux
+            pref: [
+                'Service pour vos animaux :',
+                'Pour vos animaux :',
+                'Promenade de chien :',
+                'Aide pour animaux :',
+                'Offre spéciale animaux :',
+                'À votre service pour vos compagnons :',
+                'Animaux à garder :',
+                'Service animalier :',
+                'Aide aux animaux :',
+                'Garde à domicile :'
+            ],
+            suf: [
+                'est proposé',
+                'est disponible',
+                'peut vous aider',
+                'est à votre disposition',
+                'vous est proposé',
+                'est assuré',
+                'est offert',
+                'est à réserver',
+                'est à saisir',
+                'est à découvrir'
+            ]
+        },
+        [ServiceCategory.CATEGORY_4]: { // Enfants
+            pref: [
+                'Service pour enfants, ',
+                'Je vous propose',
+                'Aide pour',
+                'Disponible pour',
+                'Je recheche',
+                'À votre service pour vos enfants :',
+                'Aide avec',
+                'Service d\'accompagnement pour ',
+                'Service à domicile :',
+                'Soutien pour enfants :'
+            ],
+            suf: [
+                'est proposé',
+                'est disponible',
+                'peut vous aider',
+                'est à votre disposition',
+                'vous est proposé',
+                'est assuré',
+                'est offert',
+                'est à réserver',
+                'est à saisir',
+                'est à découvrir'
+            ]
+        },
+        [ServiceCategory.CATEGORY_5]: { // Autre
+            pref: [
+                'Service proposé :',
+                'Entraide :',
+                'Offre spéciale service :',
+                'Besoin d\'un service ?',
+                'À votre service :',
+                'Coup de main proposé :',
+                'Service à découvrir :',
+                'Aide ponctuelle :',
+                'Service solidaire :',
+                'Aide diverse :'
+            ],
+            suf: [
+                'est proposé',
+                'est disponible',
+                'peut vous aider',
+                'est à votre disposition',
+                'vous est proposé',
+                'est assuré',
+                'est offert',
+                'est à réserver',
+                'est à saisir',
+                'est à découvrir'
+            ]
+        }
+    },
+    post: {
+        [PostCategory.CATEGORY_1]: { // Perdu-Trouvé
+            pref: [
+                'Objet perdu/trouvé :',
+                'Annonce :',
+                'À signaler :',
+                'Perdu/trouvé à Marseille :',
+                'Information importante :',
+                'Alerte voisinage :',
+                'Recherche en cours :',
+                'Bon à savoir :',
+                'Objet à signaler :',
+                'Avis de recherche :'
+            ],
+            suf: [
+                'est signalé',
+                'est perdu/trouvé',
+                'est à retrouver',
+                'est à signaler',
+                'est à partager',
+                'est publié',
+                'est à découvrir',
+                'est à consulter',
+                'est à relayer',
+                'est à commenter'
+            ]
+        },
+        [PostCategory.CATEGORY_2]: { // Animaux
+            pref: [
+                'Animal, ',
+                'Annonce pour ',
+                'À donner :',
+                'Recherche',
+                'Information, à propos de',
+                'Bon à savoir sur',
+                'à signaler, ',
+                'Adoption possible :',
+                'Animal à placer :',
+                'À adopter :'
+            ],
+            suf: [
+                'est proposé à l\'adoption',
+                'est à adopter',
+                'est à donner',
+                'est à placer',
+                'est à découvrir',
+                'est à consulter',
+                'est à relayer',
+                'est à commenter',
+                'est à partager',
+                'est publié'
+            ]
+        },
+        [PostCategory.CATEGORY_3]: { // À vendre
+            pref: [
+                'À vendre :',
+                'Annonce vente :',
+                'Bon plan :',
+                'Objet à vendre :',
+                'À saisir :',
+                'Offre à ne pas manquer :',
+                'Vente entre voisins :',
+                'À découvrir :',
+                'Vente rapide :',
+                'Objet disponible :'
+            ],
+            suf: [
+                'est à vendre',
+                'est proposé',
+                'est à saisir',
+                'est disponible',
+                'est à découvrir',
+                'est à consulter',
+                'est à réserver',
+                'est à commenter',
+                'est à partager',
+                'est publié'
+            ]
+        },
+        [PostCategory.CATEGORY_4]: { // Je donne
+            pref: [
+                'À donner',
+                'Don solidaire',
+                'Objet gratuit !',
+                'Bon plan ',
+                'À récupérer rapidement',
+                'Don entre voisins :',
+                'À saisir ',
+                'Offre à ne pas manquer :',
+                'Don rapide :',
+                'Objet à donner :'
+            ],
+            suf: [
+                'est à donner',
+                'est offert',
+                'est à récupérer',
+                'est disponible',
+                'est à découvrir',
+                'est à consulter',
+                'est à réserver',
+                'est à commenter',
+                'est à partager',
+                'est publié'
+            ]
+        },
+        [PostCategory.CATEGORY_5]: { // Autre
+            pref: [
+                'Information à propos de',
+                'Annonce :',
+                'Bon à savoir sur',
+                'À signaler :',
+                'À découvrir :',
+                'Offre spéciale :',
+                'À consulter :',
+                'À partager :',
+                'À commenter :',
+                'À relayer :'
+            ],
+            suf: [
+                'est à lire',
+                'est à partager',
+                'est publiée',
+                'est diffusée',
+                'est à retenir',
+                'est à consulter',
+                'est à noter',
+                'est à découvrir',
+                'est à transmettre',
+                'est à commenter'
+            ]
+        }
+    },
+    survey: {
+        [SurveyCategory.CATEGORY_1]: { // Règles de quartier
+            pref: [
+                'Votre avis sur ',
+                'Consultation quartier :',
+                'Sondage sur ',
+                'Exprimez-vous',
+                'Participez à la consultation :',
+                'Question du jour :',
+                'Votez pour ',
+                'Consultation citoyenne :',
+                'À vous la parole :',
+                'Sondage quartier :'
+            ],
+            suf: [
+                'est lancé',
+                'est ouvert',
+                'vous attend',
+                'est en ligne',
+                'est disponible',
+                'est proposé',
+                'est à compléter',
+                'est à votre disposition',
+                'est à remplir',
+                'est en cours'
+            ]
+        },
+        [SurveyCategory.CATEGORY_2]: { // Projet de travaux
+            pref: [
+                'Votre avis sur',
+                'Consultation projet :',
+                'Sondage sur ',
+                'Exprimez-vous sur le projet :',
+                'Participez à la consultation :',
+                'Question du jour :',
+                'Votez pour :',
+                'Consultation citoyenne :',
+                'À vous la parole :',
+                'Sondage travaux :'
+            ],
+            suf: [
+                'est lancé',
+                'est ouvert',
+                'vous attend',
+                'est en ligne',
+                'est disponible',
+                'est proposé',
+                'est à compléter',
+                'est à votre disposition',
+                'est à remplir',
+                'est en cours'
+            ]
+        },
+        [SurveyCategory.CATEGORY_3]: { // Partage d'opinion
+            pref: [
+                'Votre opinion compte :',
+                'Sondage d\'opinion :',
+                'Exprimez-vous :',
+                'Partagez votre avis :',
+                'Consultation citoyenne :',
+                'Question du jour :',
+                'Votez pour votre idée :',
+                'À vous la parole :',
+                'Sondage en ligne :',
+                'Partage d\'opinion :'
+            ],
+            suf: [
+                'est lancé',
+                'est ouvert',
+                'vous attend',
+                'est en ligne',
+                'est disponible',
+                'est proposé',
+                'est à compléter',
+                'est à votre disposition',
+                'est à remplir',
+                'est en cours'
+            ]
+        },
+        [SurveyCategory.CATEGORY_4]: { // Organisation d'événement
+            pref: [
+                'Votre avis sur ',
+                'Consultation organisation :',
+                'Sondage événement :',
+                'Exprimez-vous sur l\'organisation :',
+                'Participez à la consultation :',
+                'Question du jour :',
+                'Votez pour ',
+                'Consultation citoyenne sur',
+                'À vous la parole :',
+                'Sondage organisation :'
+            ],
+            suf: [
+                'est lancé',
+                'est ouvert',
+                'vous attend',
+                'est en ligne',
+                'est disponible',
+                'est proposé',
+                'est à compléter',
+                'est à votre disposition',
+                'est à remplir',
+                'est en cours'
+            ]
+        },
+        [SurveyCategory.CATEGORY_5]: { // Autre projet
+            pref: [
+                'Votre avis sur ',
+                'Consultation pour ',
+                'Sondage sur ',
+                'Exprimez-vous pour ',
+                'Participez à la consultation :',
+                'Question du jour :',
+                'Votez pour',
+                'Consultation citoyenne :',
+                'À vous la parole :',
+                'Sondage projet :'
+            ],
+            suf: [
+                'est lancé',
+                'est ouvert',
+                'vous attend',
+                'est en ligne',
+                'est disponible',
+                'est proposé',
+                'est à compléter',
+                'est à votre disposition',
+                'est à remplir',
+                'est en cours'
+            ]
+        }
+    },
+    // Les autres catégories restent inchangées
+    group: {
+        pref: [
+            'Communauté :',
+            'Groupe :',
+            'Ensemble pour',
+            'Collectif en action :',
+            'Participez à la vie locale avec',
+            'Équipe :',
+            'Nouveau groupe :',
+            'Rejoignez le groupe',
+            'Invitation à rejoindre',
+            'Création du groupe :'
+        ],
+        suf: [
+            'vous attend',
+            'est ouvert à tous',
+            'est lancé',
+            'est actif',
+            'est à rejoindre',
+            'est en création',
+            'est proposé',
+            'est à découvrir',
+            'est en action',
+            'est à votre disposition'
+        ]
+    },
+    pool: {
+        pref: [
+            'Appel à la solidarité :',
+            'Soutien :',
+            'Cagnotte pour',
+            'Ensemble pour une cause :',
+            'Aider :',
+            'Contribuez à la cagnotte :',
+            'Participez à la cagnotte :',
+            'Votez pour soutenir :',
+            'Solidarité en action :',
+            'Collecte solidaire :'
+        ],
+        suf: [
+            'est lancée',
+            'est ouverte',
+            'est à soutenir',
+            'est en cours',
+            'est proposée',
+            'est à partager',
+            'est à découvrir',
+            'est à rejoindre',
+            'est à compléter',
+            'est à votre disposition'
+        ]
+    },
+    message: {
+        pref: [
+            'Un petit message :',
+            'Contact à propos de',
+            'Message de voisinage :',
+            'Information importante :',
+            'Annonce rapide :',
+            'Petit mot pour vous :',
+            'À lire :',
+            'À partager :',
+            'Note d\'information :',
+            'Message du jour :'
+        ],
+        suf: [
+            'à lire',
+            'à partager',
+            'est publié',
+            'est transmis',
+            'est envoyé',
+            'est à découvrir',
+            'est à consulter',
+            'est à diffuser',
+            'est à retenir',
+            'est à commenter'
+        ]
+    },
+    autre: {
+        pref: [
+            'Information diverse :',
+            'Message pour la communauté :',
+            'Communication importante :',
+            'À noter dans le quartier :',
+            'Annonce générale :',
+            'Info utile :',
+            'À savoir :',
+            'À diffuser :',
+            'À retenir :',
+            'À partager :'
+        ],
+        suf: [
+            'est à lire',
+            'est à partager',
+            'est publiée',
+            'est diffusée',
+            'est à retenir',
+            'est à consulter',
+            'est à noter',
+            'est à découvrir',
+            'est à transmettre',
+            'est à commenter'
+        ]
+    }
+};
 
 const linkWords = ['et', 'ou', 'mais', 'donc', 'ni', 'car', 'aussi', 'alors', 'ainsi', 'cependant', 'pourtant', 'toutefois', 'néanmoins', 'en effet', 'quand', 'lorsque', 'comme', 'si', 'puisque', 'parce que', 'afin de', 'pour que', 'afin que', 'bien que', 'pendant que', 'à', 'de', 'en', 'pour', 'par', 'sur', 'sous', 'avec', 'sans', 'chez', 'vers', 'dans', 'concernant', 'autour de', 'malgré', 'par exemple', 'c\'est-à-dire', 'notamment', 'surtout', 'également', 'non seulement', 'mais aussi', 'au sein de']
 
@@ -1236,6 +1879,8 @@ function generShortSentence(phrasesSources: string[], elementSpecifique?: Elemen
     return Array.from(phrasesChoisies).join(' ');
 }
 
+
+
 export async function genereContent(
     sujet: FakerSubjects,
     categoryKey?: string,
@@ -1245,14 +1890,14 @@ export async function genereContent(
     let description: string = '';
     let Element: ElementSpecifique | undefined = { nom: '' }
     let categoryName: string | undefined;
-    let baseTitre: string = piocherElement(titleWordsByKey[sujet] || titleWordsByKey.autre);
-    baseTitre = baseTitre.replace(/:$/, '').trim();
+    let pref = Math.random() < 0.65 ? true : false; // 65% de chance d'utiliser le préfixe
+    let baseTitre: string = pref ? piocherElement(titleWords.autre.pref) : piocherElement(titleWords.autre.suf);
     let image: string | undefined = undefined;
     let needImage = false;
     const nombrePhrasesDescription = Math.floor(Math.random() * 4) + 2
     let rev = Math.random() < 0.7 ? false : true // 30% de chance 
-    let securVerb = 'partage';
-    let verb = 'partage';
+    let securVerb = !rev ? 'je partage' : 'est proposé';
+    let verb = securVerb;
     let ContextPhrases: string[] = groupContextPhrases;
 
 
@@ -1261,10 +1906,10 @@ export async function genereContent(
             needImage = true;
             const catKey = categoryKey as EventCategory ?? piocherElement(Object.values(EventCategory).filter(k => k !== EventCategory.CATEGORY_5));
             categoryName = EventCategory[catKey as any];
+            baseTitre = pref ? piocherElement(titleWords.event[catKey].pref) : piocherElement(titleWords.event[catKey].suf);
             Element = piocherElement(eventElementsByCategory[catKey] ?? eventElementsByCategory[EventCategory.CATEGORY_5]);
             if (!Element) break;
             ContextPhrases = eventContextPhrases;
-            titre = `${baseTitre} ${capitaliser(Element.nom)}`;
             verb = !rev ? piocherElement(Element.verbe ?? []) : piocherElement(Element.verbeRev ?? []);
             break;
         }
@@ -1272,11 +1917,11 @@ export async function genereContent(
             needImage = true;
             const catKey = categoryKey as ServiceCategory ?? piocherElement(Object.values(ServiceCategory).filter(k => k !== ServiceCategory.CATEGORY_5));
             categoryName = ServiceCategory[catKey as any];
+            baseTitre = pref ? piocherElement(titleWords.service[catKey].pref) : piocherElement(titleWords.service[catKey].suf);
             Element = piocherElement(serviceElementsByCategory[catKey] ?? serviceElementsByCategory[ServiceCategory.CATEGORY_5]);
             if (!Element) break;
             ContextPhrases = serviceContextPhrases;
-            titre = `${capitaliser(Element.nom)} ${baseTitre}`;
-            securVerb = (Math.random() < 0.5) ? 'propose' : 'offre';
+            securVerb = !rev ? 'je vous propose' : 'vous est proposé'
             verb = !rev ? piocherElement(Element.verbe ?? []) : piocherElement(Element.verbeRev ?? []);
             break;
         }
@@ -1284,10 +1929,10 @@ export async function genereContent(
             needImage = true;
             const catKey = categoryKey as PostCategory ?? piocherElement(Object.values(PostCategory).filter(k => k !== PostCategory.CATEGORY_5));
             categoryName = PostCategory[catKey as any];
+            baseTitre = pref ? piocherElement(titleWords.post[catKey].pref) : piocherElement(titleWords.post[catKey].suf);
             Element = piocherElement(postElementsByCategory[catKey] ?? postElementsByCategory[PostCategory.CATEGORY_5]);
             if (!Element) break;
-            ContextPhrases = postContextPhrases[catKey] ?? postContextPhrases[PostCategory.CATEGORY_5];
-            titre = ` ${capitaliser(Element.nom)}`
+            ContextPhrases = postContextPhrases[catKey] ?? postContextPhrases[PostCategory.CATEGORY_5]
             verb = !rev ? piocherElement(Element.verbe ?? []) : piocherElement(Element.verbeRev ?? []);
             break;
         }
@@ -1295,10 +1940,10 @@ export async function genereContent(
             needImage = true;
             const catKey = categoryKey as SurveyCategory ?? piocherElement(Object.values(SurveyCategory).filter(k => k !== SurveyCategory.CATEGORY_5));
             categoryName = SurveyCategory[catKey as any];
+            baseTitre = pref ? piocherElement(titleWords.survey[catKey].pref) : piocherElement(titleWords.survey[catKey].suf);
             Element = piocherElement(surveyElementsByCategory[catKey] ?? surveyElementsByCategory[SurveyCategory.CATEGORY_5]);
             if (!Element) break;
             ContextPhrases = surveyContextPhrases;
-            titre = `${baseTitre} sur ${Element.nom}`
             verb = !rev ? piocherElement(Element.verbe ?? []) : piocherElement(Element.verbeRev ?? []);
             break;
         }
@@ -1306,30 +1951,31 @@ export async function genereContent(
             needImage = false;
             const catKey = categoryKey as GroupCategory ?? piocherElement(Object.values(GroupCategory).filter(k => k !== GroupCategory.CATEGORY_5));
             categoryName = GroupCategory[catKey as any];
+            baseTitre = pref ? piocherElement(titleWords.group.pref) : piocherElement(titleWords.group.suf);
             Element = piocherElement(groupElementsByCategory[catKey] ?? groupElementsByCategory[GroupCategory.CATEGORY_5]);
             if (!Element) break;
             ContextPhrases = groupContextPhrases;
-            titre = `${capitaliser(Element.nom)}`;
-            securVerb = (Math.random() < 0.5) ? 'vous invite à rejoindre' : 'vous propose de rejoindre';
+            securVerb = !rev ? 'Nous vous invitons à' : 'vous attends';
             verb = !rev ? piocherElement(Element.verbe ?? []) : piocherElement(Element.verbeRev ?? []);
             break;
         }
         case FakerSubjects.POOL: {
             needImage = false;
             Element = piocherElement(poolElementsByCategory);
+            baseTitre = pref ? piocherElement(titleWords.pool.pref) : piocherElement(titleWords.pool.suf);
             if (!Element) break;
             ContextPhrases = poolContextPhrases;
-            titre = `${baseTitre} sur ${Element.nom}`;
-            securVerb = (Math.random() < 0.5) ? 'vous invite à participer à' : 'vous propose de participer à';
+            securVerb = !rev ? 'je vous invite à participer à' : 'attends votre participation ';
             verb = !rev ? piocherElement(Element.verbe ?? []) : piocherElement(Element.verbeRev ?? []);
             break;
         }
         case FakerSubjects.MESSAGE: {
             needImage = false;
             Element = piocherElement(messageElements);
+            baseTitre = pref ? piocherElement(titleWords.message.pref) : piocherElement(titleWords.message.suf);
             if (!Element) break;
             ContextPhrases = messageContextPhrases;
-            titre = `${baseTitre} sur ${Element.nom}`;
+            securVerb = !rev ? 'je vous ecrire' : '';
             verb = !rev ? piocherElement(Element.verbe ?? []) : piocherElement(Element.verbeRev ?? []);
             break;
         }
@@ -1338,25 +1984,27 @@ export async function genereContent(
             Element = piocherElement(issueElements);
             if (!Element) break;
             ContextPhrases = issueContextPhrases;
-            titre = `${baseTitre} sur ${Element.nom}`;
             securVerb = (Math.random() < 0.5) ? 'vous signale' : 'vous informe de'; verb = rev ? piocherElement(Element.verbe ?? []) : piocherElement(Element.verbeRev ?? []);
             break;
         }
         case FakerSubjects.AUTRE:
         default: {
+            pref = false
             needImage = false;
-            const randomSujetAutre = piocherElement(Object.values(titleWordsByKey).flat());
+            const randomSujetAutre = piocherElement(Object.values(titleWords.autre).flat());
             Element = {
                 nom: `un sujet (${randomSujetAutre.toLowerCase()})`,
                 verbe: ["aimerions partager une information sur", "voudrions partager à propos de"]
             };
-            titre = `${baseTitre} : ${randomSujetAutre}`;
             break;
         }
     }
 
     //// CONSTRUCTION FINAL
-    const descIntro = rev ? finaliserPhrase(` ${Element.nom} ${securVerb}`) : finaliserPhrase(`${verb} ${Element.nom}`);
+    baseTitre = baseTitre.replace(/:$/, '').trim();
+    !verb && (verb = securVerb);
+    titre = pref ? `${baseTitre} ${Element.nom}` : `${Element.nom} ${baseTitre}`;
+    const descIntro = rev ? finaliserPhrase(` ${Element.nom} ${verb}`) : finaliserPhrase(`${verb} ${Element.nom}`);
     description = descIntro + ' ' + generShortSentence(ContextPhrases, Element, options, nombrePhrasesDescription - 1);
 
 
@@ -1365,8 +2013,10 @@ export async function genereContent(
         let keySentence = keyWord.length > 0 ? keyWord.join(' ') : ''
         const keyWords: string[] = keySentence
             .split(' ')
-            .slice(0, 3);
+            .slice(0, 5);
         keyWords.push(FakerSubjects[sujet.toLowerCase()]);
+        keyWords.push('Marseille')
+        keyWords.push(categoryName || 'quartier');
         image = await getRandomPixabayImageUrl(process.env.PIXABAY_API_KEY, keyWords)
     }
     return {
@@ -1415,6 +2065,7 @@ async function testGenerateur() {
             console.log('Élément retenu:', resultat.elementRetenu?.nom);
             console.log('Titre:', resultat.title);
             console.log('Description:', resultat.description);
+            console.log('Image:', resultat.image);
         });
         console.log('-------------------------------');
     });
