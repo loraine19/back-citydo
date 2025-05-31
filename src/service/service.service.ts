@@ -40,7 +40,8 @@ export class ServicesService {
       case ServiceSort.CREATED_AT:
         return reverse ? { createdAt: 'desc' } : { createdAt: 'asc' };
       case ServiceSort.USER:
-        return reverse ? { User: { Profile: { firstName: 'desc' } } } : { User: { Profile: { firstName: 'asc' } } };
+        return reverse ? { User: { Profile: { firstName: 'desc' } } } :
+          { User: { Profile: { firstName: 'asc' } } };
       case ServiceSort.SKILL:
         return reverse ? { skill: 'desc', } : { skill: 'asc', };
       case ServiceSort.HARD:
@@ -53,7 +54,8 @@ export class ServicesService {
 
   async findAll(userId: number, page?: number, mine?: boolean, type?: $Enums.ServiceType, step?: $Enums.ServiceStep, category?: $Enums.ServiceCategory, sort?: ServiceSort, reverse?: boolean): Promise<{ services: Service[], count: number }> {
     const skip = page ? this.skip(page) : 0;
-    const types = type ? type.includes(',') ? { in: type.split(',').map(t => $Enums.ServiceType[t]) } : $Enums.ServiceType[type] : {};
+    const types = type ? type.includes(',') ? { in: type.split(',').map(t => $Enums.ServiceType[t]) } :
+      $Enums.ServiceType[type] : {};
     const status = step ? step.includes(',') ? { in: step.split(',').map(s => $Enums.ServiceStep[s]) }
       : $Enums.ServiceStep[step] : {};
     const Group = this.groupSelectConfig(userId);
@@ -74,7 +76,6 @@ export class ServicesService {
       orderBy,
       include: this.serviceIncludeConfig(userId),
     });
-    console.log('findAll services', { skip, take, where, orderBy, count, services })
     return { services, count }
   }
 
