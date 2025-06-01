@@ -105,11 +105,11 @@ export function getImageUrlLocal(keywords: string[]): string {
 }
 
 export async function getRandomPixabayImageUrl(
-    apiKey: string,
     keywords: string[],
     options?: GetRandomPixabayImageOptions
 ): Promise<string | null> {
 
+    const apiKey = process.env.PIXABAY_API_KEY;
     if (!apiKey) return getImageUrlLocal(keywords);
     if (!keywords || keywords.length === 0) return getImageUrlLocal(['voisins', 'quartier']);
 
@@ -122,29 +122,41 @@ export async function getRandomPixabayImageUrl(
     apiUrl += `&safesearch=true&order=popular`; // 'popular' ou 'latest' pour varier
 
     let url = ''
-    const response = await fetch(apiUrl);
-    const data: PixabayApiResponse = await response.json();
-    if (data.hits && data.hits.length > 0) {
-        const filteredHits = data.hits.sort((a, b) => {
-            const aTags = a.tags ? a.tags.toLowerCase().split(',') : [];
-            const bTags = b.tags ? b.tags.toLowerCase().split(',') : [];
-            const aMatch = aTags.some(tag => keywords.includes(normalizeKeyword(tag)));
-            const bMatch = bTags.some(tag => keywords.includes(normalizeKeyword(tag)));
-            return (bMatch ? 1 : 0) - (aMatch ? 1 : 0)
-        })
-        const randomIndex = Math.floor(Math.random() * 5);
-        const randomImage = filteredHits[randomIndex];
-        url = randomImage?.previewURL.replace('_150', '_1280');
-        console.log('FROM API PIXABAY ')
-        getImageUrlLocal(keywords)
+    try {
+        const response = await fetch(apiUrl);
+        const data: PixabayApiResponse = await response.json();
+        if (data.hits && data.hits.length > 0) {
+            const filteredHits = data.hits.sort((a, b) => {
+                const aTags = a.tags ? a.tags.toLowerCase().split(',') : [];
+                const bTags = b.tags ? b.tags.toLowerCase().split(',') : [];
+                const aMatch = aTags.some(tag => keywords.includes(normalizeKeyword(tag)));
+                const bMatch = bTags.some(tag => keywords.includes(normalizeKeyword(tag)));
+                return (bMatch ? 1 : 0) - (aMatch ? 1 : 0)
+            })
+            const randomIndex = Math.floor(Math.random() * 5);
+            const randomImage = filteredHits[randomIndex];
+            url = randomImage?.previewURL.replace('_150', '_1280');
+            console.log('FROM API PIXABAY ')
+            getImageUrlLocal(keywords)
+        } else {
+            console.warn('No images found for keywords:', keywords);
+            url = getImageUrlLocal(keywords);
+            if (!url) {
+                console.warn('No local image found, returning null');
+                return null;
+            }
+        }
+    } catch (err) {
+        console.error('Error fetching from Pixabay API:', err);
+        url = getImageUrlLocal(keywords);
     }
-    else url = getImageUrlLocal(keywords);
+
     console.log('url', url, 'keywords', keywords)
     return url || null;
 }
 
 const test = async () => {
-    const imageUrl = await getRandomPixabayImageUrl(process.env.PIXABAY_API_KEY, ['chat', 'animal']);
+    const imageUrl = await getRandomPixabayImageUrl(['chat', 'animal']);
     console.log(imageUrl);
 }
 //test().catch(console.error);

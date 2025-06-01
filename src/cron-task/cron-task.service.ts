@@ -143,7 +143,7 @@ export class CronTaskService {
     }
 
 
-    @Cron(CronExpression.EVERY_10_MINUTES)
+    @Cron(CronExpression.EVERY_YEAR)
     async addMissingPicture() {
         const events = await this.prisma.event.findMany({
             where: {

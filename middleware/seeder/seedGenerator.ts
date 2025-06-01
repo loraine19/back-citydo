@@ -2001,7 +2001,7 @@ export async function genereContent(
         const keyWords: string[] = keySentence.split(' ')
         catKey ? keyWords.push(catKey) : keyWords.push('Marseille')
         console.log('Keywords for image search:', keyWords);
-        image = await getRandomPixabayImageUrl(process.env.PIXABAY_API_KEY, keyWords)
+        image = await getRandomPixabayImageUrl(keyWords)
     }
     return {
         image: image,
