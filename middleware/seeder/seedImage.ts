@@ -99,7 +99,7 @@ export function getImageUrlLocal(keywords: string[]): string {
         if (arrayOfImages.length === 0) arrayOfImages = jsonData.hits;
         const randomIndex = Math.floor(Math.random() * arrayOfImages.length);
         const randomImage = arrayOfImages[randomIndex];
-        imageUrl = randomImage.webformatURL;
+        imageUrl = randomImage.previewURL.replace('_150', '_1280');
     }
     return imageUrl
 }
@@ -130,11 +130,13 @@ export async function getRandomPixabayImageUrl(
             const bTags = b.tags ? b.tags.toLowerCase().split(',') : [];
             const aMatch = aTags.some(tag => keywords.includes(normalizeKeyword(tag)));
             const bMatch = bTags.some(tag => keywords.includes(normalizeKeyword(tag)));
-            return (bMatch ? 1 : 0) - (aMatch ? 1 : 0); // Priorise les images avec des tags correspondants
+            return (bMatch ? 1 : 0) - (aMatch ? 1 : 0)
         })
         const randomIndex = Math.floor(Math.random() * 5);
         const randomImage = filteredHits[randomIndex];
-        url = randomImage?.webformatURL || randomImage?.largeImageURL || randomImage?.previewURL || getImageUrlLocal(keywords)
+        url = randomImage?.previewURL.replace('_150', '_1280');
+        console.log('FROM API PIXABAY ')
+        getImageUrlLocal(keywords)
     }
     else url = getImageUrlLocal(keywords);
     console.log('url', url, 'keywords', keywords)
