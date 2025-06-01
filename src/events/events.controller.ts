@@ -9,8 +9,6 @@ import { parseData } from '../../middleware/BodyParser';
 import { AuthGuard } from '../auth/auth.guard';
 import { Event } from '@prisma/client';
 import { User } from '../../middleware/decorators';
-import { EventFilter } from './constant';
-
 
 const route = 'events'
 @Controller(route)
@@ -34,7 +32,6 @@ export class EventsController {
     return this.eventsService.create(data)
   }
 
-
   @Patch(':id')
   @ApiBearerAuth()
   @ApiOkResponse({ type: EventEntity })
@@ -52,7 +49,6 @@ export class EventsController {
     return this.eventsService.update(id, data, userId)
   }
 
-
   @Get()
   @ApiBearerAuth()
   @ApiOkResponse({ type: EventEntity, isArray: true })
@@ -61,14 +57,11 @@ export class EventsController {
     @Query('page', ParseIntPipe) page?: number,
     @Query('filter') filter?: string,
     @Query('category') category?: string,
-    @Query('sort') sort?: string
-    , @Query('reverse') reverse?: boolean
+    @Query('sort') sort?: string,
+    @Query('reverse') reverse?: boolean
   ): Promise<{ events: Event[], count: number }> {
-    console.log('findAll', userId, page, category, filter, sort, reverse)
     return this.eventsService.findAll(userId, page, category, filter, sort, reverse);
-
   }
-
 
   @Get(':id')
   @ApiBearerAuth()
