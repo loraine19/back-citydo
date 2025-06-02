@@ -66,6 +66,7 @@ export class ServicesService {
         { UserResp: { is: { id: userId } } }
       ],
     }
+
     const orderBy: Prisma.ServiceOrderByWithRelationInput = sort ? this.sortBy(sort, reverse) : { createdAt: 'desc' };
     const count = await this.prisma.service.count({ where });
     const take = page ? this.limit : count
@@ -76,6 +77,7 @@ export class ServicesService {
       orderBy,
       include: this.serviceIncludeConfig(userId),
     });
+    if (mine && !type && !step) return { services: [], count: 0 }
     return { services, count }
   }
 
