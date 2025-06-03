@@ -64,7 +64,6 @@ export class AuthService {
         res.cookie('isLogged', 'true', {
             httpOnly: false,
             secure: true,
-            sameSite: process.env.NODE_ENV === 'prod' ? 'strict' : 'none',
             maxAge: parseInt(process.env.COOKIE_EXPIRES_REFRESH),
             path: '/',
         })
@@ -78,7 +77,6 @@ export class AuthService {
         res.cookie('isLogged', 'false', {
             httpOnly: false,
             secure: true,
-            sameSite: process.env.NODE_ENV === 'prod' ? 'strict' : 'none',
             maxAge: parseInt(process.env.COOKIE_EXPIRES_REFRESH),
             path: '/',
         })
