@@ -66,7 +66,7 @@ export class AuthService {
             secure: true,
             sameSite: 'none',
             maxAge: parseInt(process.env.COOKIE_EXPIRES_REFRESH),
-            path: '/',
+            path: process.env.DOMAIN
         })
         console.log('Headers après définition du cookie:', res.getHeaders());
     }
@@ -80,7 +80,7 @@ export class AuthService {
             secure: true,
             sameSite: 'none',
             maxAge: parseInt(process.env.COOKIE_EXPIRES_REFRESH),
-            path: '/',
+            path: process.env.DOMAIN
         })
         console.log('Headers après définition du cookie:', res.getHeaders());
     }
