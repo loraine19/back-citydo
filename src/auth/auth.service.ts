@@ -43,7 +43,7 @@ export class AuthService {
 
     errorCredentials = { message: 'Identifiants incorrect' }
 
-    async setAuthCookies(res: Response, accessToken: string, refreshToken: string) {
+    setAuthCookies(res: Response, accessToken: string, refreshToken: string) {
         res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
         res.setHeader('Pragma', 'no-cache');
         res.setHeader('Expires', '0');
@@ -61,6 +61,27 @@ export class AuthService {
             maxAge: parseInt(process.env.COOKIE_EXPIRES_REFRESH),
             path: '/',
         });
+        res.cookie('isLogged', 'true', {
+            httpOnly: false,
+            secure: true,
+            sameSite: process.env.NODE_ENV === 'prod' ? 'strict' : 'none',
+            maxAge: parseInt(process.env.COOKIE_EXPIRES_REFRESH),
+            path: '/',
+        })
+        console.log('Headers après définition du cookie:', res.getHeaders());
+    }
+
+    setAuthCookiesLoggout(res: Response) {
+        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
+        res.cookie('isLogged', 'false', {
+            httpOnly: false,
+            secure: true,
+            sameSite: process.env.NODE_ENV === 'prod' ? 'strict' : 'none',
+            maxAge: parseInt(process.env.COOKIE_EXPIRES_REFRESH),
+            path: '/',
+        })
         console.log('Headers après définition du cookie:', res.getHeaders());
     }
 
@@ -95,6 +116,7 @@ export class AuthService {
             const newVerifyToken = await this.generateVerifyToken(user.id);
             this.mailerService.sendVerificationEmail(email, newVerifyToken.token);
             await this.prisma.token.update({ where: { userId_type: { userId: user.id, type: $Enums.TokenType.VERIFY } }, data: { token: newVerifyToken.hashToken } })
+            this.setAuthCookiesLoggout(res);
             return { message: 'Votre compte est inactif, veuillez verifier votre email' }
         }
         const { refreshToken, hashRefreshToken } = await this.generateRefreshToken(user.id);
@@ -132,13 +154,17 @@ export class AuthService {
         // Utiliser une transaction pour garantir la cohérence lors du refresh
         const result = await this.prisma.$transaction(async (prisma) => {
             const userToken = await prisma.token.findFirst({ where: { userId, type: $Enums.TokenType.REFRESH } });
-            if (!userToken) throw new HttpException('Impossible de renouveller la session', 401)
+            if (!userToken) {
+                this.setAuthCookiesLoggout(res);
+                throw new HttpException('Impossible de renouveller la session', 401)
+            }
             const refreshTokenValid = await argon2.verify(userToken.token, refreshToken)
             await prisma.token.deleteMany({ where: { userId, type: $Enums.TokenType.REFRESH } });
             if (!refreshTokenValid) {
                 const decoded: any = this.jwtService.decode(refreshToken);
                 console.log('Token du cookie:', new Date(decoded?.iat * 1000).toISOString());
                 console.log('Token créé en db:', userToken.createdAt, userToken.updatedAt);
+                this.setAuthCookiesLoggout(res);
                 throw new HttpException('Impossible de renouveller la connexion', 401);
             }
 
@@ -150,11 +176,14 @@ export class AuthService {
             });
             console.log('updateRefreshToken', updateRefreshToken.createdAt);
             const refreshSuccess = await argon2.verify(updateRefreshToken.token, newRefresh.refreshToken);
-            if (!refreshSuccess || !updateRefreshToken) throw new HttpException('Impossible d\'enregistrer la nouvelle connexion', 401);
+            if (!refreshSuccess || !updateRefreshToken) {
+                this.setAuthCookiesLoggout(res);
+                throw new HttpException('Impossible d\'enregistrer la nouvelle connexion', 401);
+            }
 
             return { accessToken, refreshToken: newRefresh.refreshToken };
         });
-        await this.setAuthCookies(res, result.accessToken, result.refreshToken);
+        this.setAuthCookies(res, result.accessToken, result.refreshToken);
         return { message: 'Token rafraichi' }
     }
 
@@ -163,6 +192,7 @@ export class AuthService {
         if (userId) await this.prisma.token.deleteMany({ where: { userId } });
         res.clearCookie(process.env.ACCESS_COOKIE_NAME);
         res.clearCookie(process.env.REFRESH_COOKIE_NAME);
+        this.setAuthCookiesLoggout(res);
         return { message: 'Vous etes deconnecté' }
     }
 

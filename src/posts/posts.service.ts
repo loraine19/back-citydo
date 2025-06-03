@@ -96,6 +96,7 @@ export class PostsService {
       include: this.postIncludeConfig(userId),
       orderBy
     }) || [];
+    console.log('findAll', posts, orderBy)
     return { posts, count };
   }
 

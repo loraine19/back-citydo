@@ -16,10 +16,10 @@ export class ServicesService {
 
   private serviceIncludeConfig(userId?: number) {
     return {
-      User: { select: { id: true, email: true, Profile: { include: { Address: true } } } },
+      User: { select: { id: true, email: true, GroupUser: { include: { Group: true } }, Profile: { include: { Address: true } } } },
       UserResp: { select: { id: true, email: true, Profile: { include: { Address: true } } } },
       Flags: { where: { target: $Enums.FlagTarget.SERVICE, userId } },
-      Group: { include: { GroupUser: true, Address: true } }
+      Group: { include: { GroupUser: true, Address: true, } }
     }
   }
   private userSelectConfig = {
