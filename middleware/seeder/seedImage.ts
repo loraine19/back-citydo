@@ -136,7 +136,6 @@ export async function getRandomPixabayImageUrl(
             const randomIndex = Math.floor(Math.random() * 5);
             const randomImage = filteredHits[randomIndex];
             url = randomImage?.previewURL.replace('_150', '_1280');
-            console.log('FROM API PIXABAY ')
             getImageUrlLocal(keywords)
         } else {
             console.warn('No images found for keywords:', keywords);

@@ -85,7 +85,6 @@ export class ServicesController {
     @Query('reverse') reverse?: boolean
   ): Promise<{ services: Service[], count: number }> {
 
-    console.log('findAll', { userId, page, mine, type, step, category, sort, reverse });
     return this.serviceService.findAll(userId, page, mine, type, step, category, sort, reverse);
   }
 

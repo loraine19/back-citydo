@@ -2000,7 +2000,6 @@ export async function genereContent(
         let keySentence = keyWord.length > 0 ? keyWord.join(' ') : ''
         const keyWords: string[] = keySentence.split(' ')
         catKey ? keyWords.push(catKey) : keyWords.push('Marseille')
-        console.log('Keywords for image search:', keyWords);
         image = await getRandomPixabayImageUrl(keyWords)
     }
     return {
