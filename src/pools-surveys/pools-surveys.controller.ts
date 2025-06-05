@@ -32,9 +32,10 @@ export class PoolsSurveysController {
     @Query('filter') filter?: PoolSurveyFilter,
     @Query('step') step?: PoolSurveyStep,
     @Query('sort') sort?: PoolSurveySort,
-    @Query('reverse') reverse?: boolean
+    @Query('reverse') reverse?: boolean,
+    @Query('search') search?: string
   ): Promise<{ poolsSurveys: (Pool | Survey)[], count: number }> {
-    const params: PoolSurveysFindParams = { filter, step, sort, reverse }
+    const params: PoolSurveysFindParams = { filter, step, sort, reverse, search }
     return this.poolsSurveysService.findAll(userId, parseInt(page), params);
   }
 

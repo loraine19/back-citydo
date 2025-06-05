@@ -76,15 +76,11 @@ export class PoolsSurveysService {
         User: { id: userId }
       }
     }
-    let whereSearch: Prisma.PoolWhereInput | Prisma.SurveyWhereInput = {
-      OR: [
+    if (search) {
+      where.OR = [
         { title: { contains: search } },
         { description: { contains: search } },
-        { User: { Profile: { firstName: { contains: search } } } },
-      ]
-    }
-    if (search) {
-      where = { ...where, ...whereSearch }
+        { User: { Profile: { firstName: { contains: search } } } }]
     }
     let count = 0;
     switch (filter) {
@@ -98,7 +94,6 @@ export class PoolsSurveysService {
       default:
         count = await this.prisma.pool.count({ where }) + await this.prisma.survey.count({ where });
     }
-
     const take = page ? this.limit : count;
     const pools = filter === PoolSurveyFilter.SURVEY ? [] : await this.prisma.pool.findMany(
       {
@@ -150,7 +145,8 @@ export class PoolsSurveysService {
             poolsSurveys.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
         }
     }
-    return { poolsSurveys, count }
+    console.log('poolsSurveys', count, search, where)
+    return { poolsSurveys, count, }
   }
 
   ////POOLS 
