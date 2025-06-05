@@ -4,7 +4,7 @@ import { PrismaService } from '../../src/prisma/prisma.service';
 import { $Enums, Post, PostCategory, Prisma } from '@prisma/client';
 import { ImageInterceptor } from 'middleware/ImageInterceptor';
 import { NotificationsService } from 'src/notifications/notifications.service';
-import { PostFilter, PostSort } from './entities/constant';
+import { PostFilter, PostFindParams, PostSort } from './entities/constant';
 
 @Injectable()
 export class PostsService {
@@ -71,7 +71,8 @@ export class PostsService {
     return postCreated;
   }
 
-  async findAll(userId: number, page?: number, filter?: PostFilter, category?: PostCategory, sort?: PostSort, reverse?: boolean): Promise<{ posts: Post[], count: number }> {
+  async findAll(userId: number, page?: number, params?: PostFindParams): Promise<{ posts: Post[], count: number }> {
+    const { category, filter, sort, reverse, search } = params;
     const skip = page ? this.skip(page) : 0;
     const Group = this.groupSelectConfig(userId);
     const orderBy = this.sortBy(sort, reverse);
@@ -87,6 +88,16 @@ export class PostsService {
         where.Likes = { some: { userId } }
         break;
     }
+    if (search) {
+      where = {
+        ...where,
+        OR: [
+          { title: { contains: search } },
+          { description: { contains: search } },
+          { User: { Profile: { firstName: { contains: search } } } },
+        ]
+      }
+    }
     const count = await this.prisma.post.count({ where });
     const take = page ? this.limit : count;
     const posts = await this.prisma.post.findMany({
@@ -95,21 +106,6 @@ export class PostsService {
       where,
       include: this.postIncludeConfig(userId),
       orderBy
-    }) || [];
-    return { posts, count };
-  }
-
-  async findAllByUserId(userId: number, page?: number, category?: string,): Promise<{ posts: Post[], count: number }> {
-    const skip = page ? this.skip(page) : 0;
-    const where = category ? { userId, category: $Enums.PostCategory[category] } : { userId }
-    const count = await this.prisma.post.count({ where });
-    const take = page ? this.limit : count;
-    const posts = await this.prisma.post.findMany({
-      skip,
-      take,
-      where,
-      include: this.postIncludeConfig(userId),
-      orderBy: { Likes: { _count: 'desc' } }
     }) || [];
     return { posts, count };
   }

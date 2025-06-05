@@ -7,7 +7,7 @@ import { ImageInterceptor } from 'middleware/ImageInterceptor';
 import { AddressService } from 'src/addresses/address.service';
 import { Notification, UserNotifInfo } from '../notifications/entities/notification.entity';
 import { NotificationsService } from '../notifications/notifications.service';
-import { EventFilter, EventSort } from './constant';
+import { EventFilter, EventFindParams, EventSort } from './constant';
 
 @Injectable()
 export class EventsService {
@@ -55,11 +55,24 @@ export class EventsService {
 
 
   //// CONSULT
-  async findAll(userId: number, page?: number, category?: string, filter?: string, sort?: string, reverse?: boolean): Promise<{ events: Event[], count: number }> {
+  async findAll(userId: number, page?: number,
+    params?: EventFindParams):
+    Promise<{ events: Event[], count: number }> {
+    const { category, filter, sort, reverse, search } = params;
     const skip = page ? this.skip(page) : 0;
-    let where: Prisma.EventWhereInput = { Group: this.groupSelectConfig(userId) };
+    const Group = this.groupSelectConfig(userId);
+    let where: Prisma.EventWhereInput = { Group, category };
+    const whereSearch: Prisma.EventWhereInput = {
+      OR: [
+        { title: { contains: search } },
+        { description: { contains: search } },
+        { User: { Profile: { firstName: { contains: search } } } },
+      ]
+    }
+    if (search) {
+      where = { ...where, ...whereSearch }
+    }
     const orderBy = this.sortBy(sort as EventSort, reverse)
-    category && (where.category = $Enums.EventCategory[category])
     switch (filter) {
       case EventFilter.MINE:
         where.userId = userId;

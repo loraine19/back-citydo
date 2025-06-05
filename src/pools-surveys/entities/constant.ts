@@ -1,3 +1,4 @@
+import { $Enums } from "@prisma/client";
 
 export enum PoolSurveyFilter {
     MINE = 'MINE',
@@ -17,4 +18,13 @@ export enum PoolSurveySort {
     BENEF = 'BENEF',
     TITLE = 'TITLE',
     VOTES = 'VOTES',
+}
+
+export interface PoolSurveysFindParams {
+    filter?: PoolSurveyFilter;
+    category?: $Enums.SurveyCategory;
+    step?: PoolSurveyStep;
+    sort?: PoolSurveySort
+    reverse?: boolean;
+    search?: string;
 }

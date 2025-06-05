@@ -91,3 +91,15 @@ export enum ServiceSort {
     SKILL = 'SKILL',
     HARD = 'HARD',
 }
+
+
+export interface ServiceFindParams {
+    page?: number;
+    mine?: boolean;
+    type?: $Enums.ServiceType;
+    step?: $Enums.ServiceStep;
+    category?: $Enums.ServiceCategory;
+    sort?: ServiceSort;
+    reverse?: boolean;
+    search?: string;
+}

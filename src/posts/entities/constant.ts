@@ -1,3 +1,4 @@
+import { $Enums } from "@prisma/client";
 
 export enum PostFilter {
     MINE = 'MINE',
@@ -11,4 +12,12 @@ export enum PostSort {
     TITLE = 'TITLE',
     LIKE = 'LIKE',
 
+}
+
+export interface PostFindParams {
+    filter?: PostFilter;
+    category?: $Enums.PostCategory;
+    sort?: PostSort;
+    reverse?: boolean;
+    search?: string;
 }

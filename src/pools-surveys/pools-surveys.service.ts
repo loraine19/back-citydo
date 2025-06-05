@@ -2,7 +2,7 @@ import { HttpException, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { $Enums, Pool, Prisma, Survey, VoteOpinion } from '@prisma/client';
 import { getDate } from 'middleware/BodyParser';
-import { PoolSurveyFilter, PoolSurveySort, PoolSurveyStep } from './entities/constant';
+import { PoolSurveyFilter, PoolSurveysFindParams, PoolSurveySort, PoolSurveyStep } from './entities/constant';
 import { ImageInterceptor } from 'middleware/ImageInterceptor';
 import { CreatePoolDto } from './dto/create-pool.dto';
 import { UpdatePoolDto } from './dto/update-pool.dto';
@@ -58,7 +58,8 @@ export class PoolsSurveysService {
   limit = parseInt(process.env.LIMIT)
   skip(page: number) { return (page - 1) * this.limit }
 
-  async findAll(userId: number, page?: number, filter?: string, step?: string, sort?: PoolSurveySort, reverse?: boolean): Promise<{ poolsSurveys: (Pool | Survey)[], count: number }> {
+  async findAll(userId: number, page?: number, params?: PoolSurveysFindParams): Promise<{ poolsSurveys: (Pool | Survey)[], count: number }> {
+    const { filter, step, sort, reverse, search } = params
     if (!step) return { poolsSurveys: [], count: 0 }
     const skip = page ? this.skip(page) : 0;
     const orderBy = this.sortBy(sort, reverse)
@@ -75,9 +76,20 @@ export class PoolsSurveysService {
         User: { id: userId }
       }
     }
+    let whereSearch: Prisma.PoolWhereInput | Prisma.SurveyWhereInput = {
+      OR: [
+        { title: { contains: search } },
+        { description: { contains: search } },
+        { User: { Profile: { firstName: { contains: search } } } },
+      ]
+    }
+    if (search) {
+      where = { ...where, ...whereSearch }
+    }
     let count = 0;
     switch (filter) {
       case PoolSurveyFilter.SURVEY:
+        where.OR.push({ categorie: { contains: search } })
         count = await this.prisma.survey.count({ where });
         break;
       case PoolSurveyFilter.POOL:

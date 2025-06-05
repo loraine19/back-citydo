@@ -3,7 +3,7 @@ import { ServicesService } from './service.service';
 import { CreateServiceDto } from './dto/create-service.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
 import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOkResponse, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { ServiceEntity, ServiceSort } from './entities/service.entity';
+import { ServiceEntity, ServiceFindParams, ServiceSort } from './entities/service.entity';
 import { parseData } from '../../middleware/BodyParser';
 import { ImageInterceptor } from '../../middleware/ImageInterceptor';
 import { AuthGuard } from '../auth/auth.guard';
@@ -82,10 +82,11 @@ export class ServicesController {
     @Query('step') step?: $Enums.ServiceStep,
     @Query('category') category?: $Enums.ServiceCategory,
     @Query('sort') sort?: ServiceSort,
-    @Query('reverse') reverse?: boolean
+    @Query('reverse') reverse?: boolean,
+    @Query('search') search?: string
   ): Promise<{ services: Service[], count: number }> {
-
-    return this.serviceService.findAll(userId, page, mine, type, step, category, sort, reverse);
+    const Params: ServiceFindParams = { page, mine, type, step, category, sort, reverse, search }
+    return this.serviceService.findAll(userId, page, Params);
   }
 
 

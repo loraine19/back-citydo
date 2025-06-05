@@ -1,3 +1,4 @@
+import { $Enums } from "@prisma/client";
 
 export enum EventFilter {
     MINE = 'MINE',
@@ -17,4 +18,13 @@ export enum EventSort {
     INDAYS = 'INDAYS',
     PARTICIPANTS = 'PARTICIPANTS',
     AZ = 'AZ',
+}
+
+export interface EventFindParams {
+    filter?: EventFilter;
+    step?: $Enums.EventStatus
+    category?: $Enums.EventCategory
+    sort?: EventSort;
+    reverse?: boolean;
+    search?: string;
 }

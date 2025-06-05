@@ -65,10 +65,11 @@ export class PostsController {
     @Query('filter') filter?: PostFilter,
     @Query('category') category?: PostCategory,
     @Query('sort') sort?: PostSort,
-    @Query('reverse') reverse?: boolean
+    @Query('reverse') reverse?: boolean,
+    @Query('search') search?: string
   ): Promise<{ posts: PostI[], count: number }> {
-
-    return this.postsService.findAll(userId, page, filter, category, sort, reverse);
+    const params = { filter, category, sort, reverse, search }
+    return this.postsService.findAll(userId, page, params);
 
   }
 

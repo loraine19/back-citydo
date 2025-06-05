@@ -6,12 +6,15 @@ import { GetPoints } from '../../middleware/GetPoints';
 import { ImageInterceptor } from 'middleware/ImageInterceptor';
 import { NotificationsService } from '../notifications/notifications.service';
 import { UserNotifInfo } from 'src/notifications/entities/notification.entity';
-import { ServiceSort } from './entities/service.entity';
+import { ServiceFindParams, ServiceSort } from './entities/service.entity';
 
 //// SERVICE MAKE ACTION
 @Injectable()
 export class ServicesService {
   constructor(private prisma: PrismaService, private notificationsService: NotificationsService) { }
+
+  limit = parseInt(process.env.LIMIT)
+  skip(page: number) { return (page - 1) * this.limit }
 
 
   private serviceIncludeConfig(userId?: number) {
@@ -22,6 +25,7 @@ export class ServicesService {
       Group: { include: { GroupUser: true, Address: true, } }
     }
   }
+
   private userSelectConfig = {
     id: true,
     email: true,
@@ -29,9 +33,6 @@ export class ServicesService {
   }
 
   private groupSelectConfig = (userId: number) => ({ GroupUser: { some: { userId } } })
-
-  limit = parseInt(process.env.LIMIT)
-  skip(page: number) { return (page - 1) * this.limit }
 
   private sortBy = (sort: ServiceSort, reverse?: boolean): Prisma.ServiceOrderByWithRelationInput => {
     switch (sort) {
@@ -51,8 +52,8 @@ export class ServicesService {
     }
   }
 
-
-  async findAll(userId: number, page?: number, mine?: boolean, type?: $Enums.ServiceType, step?: $Enums.ServiceStep, category?: $Enums.ServiceCategory, sort?: ServiceSort, reverse?: boolean): Promise<{ services: Service[], count: number }> {
+  async findAll(userId: number, page?: number, params?: ServiceFindParams): Promise<{ services: Service[], count: number }> {
+    const { mine, type, step, category, sort, reverse, search } = params;
     const skip = page ? this.skip(page) : 0;
     const types = type ? type.includes(',') ? { in: type.split(',').map(t => $Enums.ServiceType[t]) } :
       $Enums.ServiceType[type] : {};
@@ -60,11 +61,24 @@ export class ServicesService {
       : $Enums.ServiceStep[step] : {};
     const Group = this.groupSelectConfig(userId);
     let where: Prisma.ServiceWhereInput = { type: types, status, category, Group }
+    let whereSearch: Prisma.ServiceWhereInput = {
+      OR: [
+        { title: { contains: search } },
+        { description: { contains: search } },
+        { User: { Profile: { firstName: { contains: search } } } },
+        { UserResp: { Profile: { firstName: { contains: search } } } }
+      ]
+    }
+
     if (mine) where = {
       ...where, OR: [
         { User: { is: { id: userId } } },
         { UserResp: { is: { id: userId } } }
       ],
+    }
+
+    if (search) {
+      where = { ...where, ...whereSearch }
     }
 
     const orderBy: Prisma.ServiceOrderByWithRelationInput = sort ? this.sortBy(sort, reverse) : { createdAt: 'desc' };
@@ -82,34 +96,7 @@ export class ServicesService {
   }
 
 
-  async findAllByUser(userId: number, page?: number, type?: $Enums.ServiceType, step?: $Enums.ServiceStep, category?: $Enums.ServiceCategory): Promise<{ services: Service[], count: number }> {
-    const skip = page ? this.skip(page) : 0;
-    const steps = step ? step.includes(',')
-      ? { in: step.split(',').map(s => $Enums.ServiceStep[s]) }
-      : $Enums.ServiceStep[step] : {};
-    const types = type ? type.includes(',')
-      ? { in: type.split(',').map(t => $Enums.ServiceType[t]) }
-      : $Enums.ServiceType[type] : {};
-    const where = {
-      OR: [
-        { User: { is: { id: userId } } },
-        { UserResp: { is: { id: userId } } }
-      ],
-      type: types,
-      status: steps,
-      category
-    }
-    const count = await this.prisma.service.count({ where });
-    const take = page ? this.limit : count
-    const services = await this.prisma.service.findMany({
-      skip,
-      take,
-      where,
-      include: this.serviceIncludeConfig(userId),
-    });
-    if (step || category || type) return { services, count }
-    return { services: [], count: 0 }
-  }
+
 
 
   async findOne(id: number, userId: number): Promise<Service> {

@@ -7,8 +7,9 @@ import { EventsService } from './events.service';
 import { ImageInterceptor } from '../../middleware/ImageInterceptor';
 import { parseData } from '../../middleware/BodyParser';
 import { AuthGuard } from '../auth/auth.guard';
-import { Event } from '@prisma/client';
+import { Event, EventCategory } from '@prisma/client';
 import { User } from '../../middleware/decorators';
+import { EventFilter, EventFindParams, EventSort } from './constant';
 
 const route = 'events'
 @Controller(route)
@@ -55,12 +56,14 @@ export class EventsController {
   async findAll(
     @User() userId: number,
     @Query('page', ParseIntPipe) page?: number,
-    @Query('filter') filter?: string,
-    @Query('category') category?: string,
-    @Query('sort') sort?: string,
-    @Query('reverse') reverse?: boolean
+    @Query('filter') filter?: EventFilter,
+    @Query('category') category?: EventCategory,
+    @Query('sort') sort?: EventSort,
+    @Query('reverse') reverse?: boolean,
+    @Query('search') search?: string
   ): Promise<{ events: Event[], count: number }> {
-    return this.eventsService.findAll(userId, page, category, filter, sort, reverse);
+    const params: EventFindParams = { filter, category, sort, reverse, search }
+    return this.eventsService.findAll(userId, page, params);
   }
 
   @Get(':id')
