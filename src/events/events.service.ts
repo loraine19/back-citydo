@@ -93,6 +93,7 @@ export class EventsService {
       include: this.eventIncludeConfig(userId),
       orderBy
     }) || [];
+    console.log('events', count, where, filter)
     return { events, count }
   }
 
