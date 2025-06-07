@@ -21,27 +21,27 @@ export class FlagsService {
 
     const { userId, target, targetId, ...flag } = data;
     const exist = await this.prisma.flag.findUnique({ where: { userId_target_targetId: { userId, target, targetId } } });
-    if (exist) throw new HttpException('ce flag existe deja', HttpStatus.CONFLICT);
+    if (exist) throw new HttpException('msg: Vous avez deja signalé ce contenu', HttpStatus.CONFLICT);
     const d = { ...flag, User: { connect: { id: userId } }, target }
     let data2: { data: any, include: any };
     if (target === $Enums.FlagTarget.EVENT) {
       const eventExists = await this.prisma.event.findUnique({ where: { id: targetId } });
-      if (!eventExists) throw new HttpException('Invalid targetId for EVENT', HttpStatus.BAD_REQUEST);
+      if (!eventExists) throw new HttpException('msg: l\'evenement n\'existe pas', HttpStatus.BAD_REQUEST);
       data2 = { data: { ...d, Event: { connect: { id: targetId } } }, include: { Event: true } };
     }
     if (target === $Enums.FlagTarget.POST) {
       const postExists = await this.prisma.post.findUnique({ where: { id: targetId } });
-      if (!postExists) throw new HttpException(`l'annonce ${targetId} n\'existe pas`, HttpStatus.BAD_REQUEST);
+      if (!postExists) throw new HttpException(`msg: l'annonce ${targetId} n\'existe pas`, HttpStatus.BAD_REQUEST);
       data2 = { data: { ...d, Post: { connect: { id: targetId } } }, include: { Post: true } };
     }
     if (target === $Enums.FlagTarget.SERVICE) {
       const serviceExists = await this.prisma.service.findUnique({ where: { id: targetId } });
-      if (!serviceExists) throw new HttpException(`le service ${targetId} n\'existe pas`, HttpStatus.BAD_REQUEST);
+      if (!serviceExists) throw new HttpException(`msg: le service ${targetId} n\'existe pas`, HttpStatus.BAD_REQUEST);
       data2 = { data: { ...d, Service: { connect: { id: targetId } } }, include: { Service: true } };
     }
     if (target === $Enums.FlagTarget.SURVEY) {
       const surveyExists = await this.prisma.survey.findUnique({ where: { id: targetId } });
-      if (!surveyExists) throw new HttpException(`le sondage ${targetId} n\'existe pas`, HttpStatus.BAD_REQUEST);
+      if (!surveyExists) throw new HttpException(`msg: le sondage ${targetId} n\'existe pas`, HttpStatus.BAD_REQUEST);
       data2 = { data: { ...d, Survey: { connect: { id: targetId } } }, include: { Survey: true } };
     }
     const flagCreated = await this.prisma.flag.create({ data: data2.data, include: data2.include });
@@ -157,7 +157,7 @@ export class FlagsService {
         Service: { include: { User: { select: { id: true, email: true, Profile: true } } } },
       }
     });
-    if (!flag) throw new HttpException(`no flag found`, HttpStatus.NO_CONTENT);
+    if (!flag) throw new HttpException(`msg: le signalement n\'existe pas`, HttpStatus.NO_CONTENT);
     switch (flag.target) {
       case $Enums.FlagTarget.EVENT:
         return { ...flag, element: flag.Event, title: flag.Event.title };

@@ -53,7 +53,7 @@ export class IssuesService {
       }
     });
     if (!service) {
-      throw new HttpException('Impossible de trouver le service', HttpStatus.NOT_FOUND);
+      throw new HttpException('msg: Impossible de trouver le service', HttpStatus.NOT_FOUND);
     }
     const createdIssue = await this.prisma.issue.create({
       data: {
@@ -184,7 +184,7 @@ export class IssuesService {
 
   async update(id: number, data: UpdateIssueDto, userId: number): Promise<Issue> {
     const issue = await this.prisma.issue.findUniqueOrThrow({ where: { serviceId: id }, include: { Service: true } });
-    if (issue.userId !== userId) throw new HttpException('Vous n\'êtes pas autorisé à accéder à cette ressource', 403)
+    if (issue.userId !== userId) throw new HttpException('msg: Vous n\'êtes pas autorisé à accéder à cette ressource', 403)
     return await this.prisma.issue.update({
       where: { serviceId: id },
       data
@@ -227,7 +227,7 @@ export class IssuesService {
       where: { serviceId: id },
       include: { Service: { include: { User: { select: this.userSelectConfig }, UserResp: { select: this.userSelectConfig } } } }
     });
-    if (element.userId !== userId) throw new HttpException('Vous n\'êtes pas autorisé à effacer cette ressource', 403)
+    if (element.userId !== userId) throw new HttpException('msg: Vous n\'êtes pas autorisé à effacer cette ressource', 403)
     element.image && ImageInterceptor.deleteImage(element.image);
     const issue = await this.prisma.issue.delete({ where: { serviceId: id } });
     const notification = {

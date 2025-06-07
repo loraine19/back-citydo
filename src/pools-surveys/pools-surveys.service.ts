@@ -201,7 +201,7 @@ export class PoolsSurveysService {
     const pool = await this.prisma.pool.delete({
       where: { id, userId }
     })
-    if (pool.userId !== userId) throw new HttpException('Vous n\'êtes pas autorisé à supprimer cette cagnotte', 403)
+    if (pool.userId !== userId) throw new HttpException('msg: Vous n\'êtes pas autorisé à supprimer cette cagnotte', 403)
     return pool
   }
 
@@ -256,7 +256,7 @@ export class PoolsSurveysService {
 
   async removeSurvey(id: number, userId: number): Promise<Survey> {
     const survey = await this.prisma.survey.findUniqueOrThrow({ where: { id, userId } })
-    if (survey.userId !== userId) throw new HttpException('Vous n\'êtes pas autorisé à supprimer cette enquête', 403)
+    if (survey.userId !== userId) throw new HttpException('msg: Vous n\'êtes pas autorisé à supprimer cette enquête', 403)
     survey.image && ImageInterceptor.deleteImage(survey.image)
     return await this.prisma.survey.delete({ where: { id } });
   }

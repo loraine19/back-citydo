@@ -19,11 +19,11 @@ export class VotesService {
       await this.prisma.pool.findUnique({ where: { id: targetId }, select: { User: { select: this.userSelectConfig }, status: true, Votes: true, UserBenef: { select: this.userSelectConfig } } }) :
       await this.prisma.survey.findUnique({ where: { id: targetId }, select: { User: { select: this.userSelectConfig }, title: true, status: true, Votes: true } });
     if (!find) throw new HttpException(`${target} n'existe pas`, HttpStatus.NOT_FOUND);
-    if (find.status === $Enums.PoolSurveyStatus.REJECTED) throw new HttpException('Vous ne pouvez pas voter sur cette cagnotte/sondage car il est cloturé', 403);
-    if (find.status === $Enums.PoolSurveyStatus.VALIDATED) throw new HttpException('Vous ne pouvez pas voter sur cette cagnotte/sondage car il est validé', 403);
+    if (find.status === $Enums.PoolSurveyStatus.REJECTED) throw new HttpException('msg: Vous ne pouvez pas voter sur cette cagnotte/sondage car il est cloturé', 403);
+    if (find.status === $Enums.PoolSurveyStatus.VALIDATED) throw new HttpException('msg: Vous ne pouvez pas voter sur cette cagnotte/sondage car il est validé', 403);
     const title = target === $Enums.VoteTarget.SURVEY && 'title' in find ? find.title : find.User.Profile.firstName
     const vote = await this.prisma.vote.findUnique({ where: { userId_target_targetId: { userId, targetId, target } } });
-    if (vote) throw new HttpException('Vous avez déjà voté', 403)
+    if (vote) throw new HttpException('msg:Vous avez déjà voté', 403)
     const voteCount = find.Votes.filter(vote => vote.opinion === $Enums.VoteOpinion.OK).length
     const groupIds = find.User.GroupUser.map(g => g.groupId)
     const users = await this.usersService.usersInGroup(find.User.id, groupIds)
@@ -83,8 +83,8 @@ export class VotesService {
   async update(userId: number, data: UpdateVoteDto): Promise<Vote> {
     const { targetId, target, opinion } = data
     const vote = await this.prisma.vote.findUnique({ where: { userId_target_targetId: { userId, targetId: data.targetId, target: data.target } } });
-    if (!vote) throw new HttpException('Votre vote n\'existe pas', 404)
-    if (vote.createdAt.getTime() + 24 * 60 * 60 * 1000 < new Date().getTime()) throw new HttpException('Vous ne pouvez pas modifier ce vote, il est trop vieux', 403)
+    if (!vote) throw new HttpException('msg: Votre vote n\'existe pas', 404)
+    if (vote.createdAt.getTime() + 24 * 60 * 60 * 1000 < new Date().getTime()) throw new HttpException('msg: Vous ne pouvez pas modifier ce vote, il est trop vieux', 403)
     return this.prisma.vote.update({
       where: { userId_target_targetId: { userId, targetId, target } },
       data: { opinion },

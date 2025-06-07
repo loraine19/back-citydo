@@ -177,7 +177,7 @@ describe('FlagsService', () => {
 
       // Act & Assert
       await expect(service.create(createFlagDto)).rejects.toThrow(
-        new HttpException('ce flag existe deja', HttpStatus.CONFLICT)
+        new HttpException('msg: Vous avez deja signalé ce contenu', 409)
       );
       expect(mockPrismaService.flag.create).not.toHaveBeenCalled();
       expect(mockPrismaService.flag.count).not.toHaveBeenCalled();
@@ -190,7 +190,7 @@ describe('FlagsService', () => {
 
       // Act & Assert
       await expect(service.create(createFlagDto)).rejects.toThrow(
-        new HttpException('Invalid targetId for EVENT', HttpStatus.BAD_REQUEST)
+        new HttpException('msg: l\'evenement n\'existe pas', 400)
       );
       expect(mockPrismaService.flag.create).not.toHaveBeenCalled();
     });

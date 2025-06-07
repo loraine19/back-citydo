@@ -150,7 +150,7 @@ export class PostsService {
 
   async remove(id: number, userId: number): Promise<Post> {
     const element = await this.prisma.post.findUniqueOrThrow({ where: { id } });
-    if (element.userId !== userId) throw new HttpException('Vous n\'êtes pas autorisé à supprimer cette annonce', 403)
+    if (element.userId !== userId) throw new HttpException('msg: Vous n\'êtes pas autorisé à supprimer cette annonce', 403)
     element.image && ImageInterceptor.deleteImage(element.image);
     return await this.prisma.post.delete({ where: { id } });
   }

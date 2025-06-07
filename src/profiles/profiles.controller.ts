@@ -58,7 +58,7 @@ export class ProfilesController {
   @ApiBearerAuth()
   async findAll() {
     const profiles = await this.profilesService.findAll()
-    if (!profiles.length) throw new HttpException(`No profiles found.`, HttpStatus.NO_CONTENT);
+    if (!profiles.length) throw new HttpException(`msg: aucun ${route} trouvé.`, HttpStatus.NO_CONTENT);
     return profiles
   }
 

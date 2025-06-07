@@ -30,7 +30,7 @@ export class GroupsController {
   @ApiOkResponse({ type: GroupEntity, isArray: true })
   async findAll(): Promise<Group[]> {
     const groups = await this.groupsService.findAll()
-    if (!groups.length) throw new HttpException(`No ${route} found.`, HttpStatus.NO_CONTENT);
+    if (!groups.length) throw new HttpException(`msg: Aucun groupe trouvé.`, HttpStatus.NO_CONTENT);
     return groups;
   }
 

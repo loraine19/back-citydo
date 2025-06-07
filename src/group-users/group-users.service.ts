@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { $Enums, GroupUser } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateGroupUserDto } from './dto/create-group-user.dto';
@@ -13,7 +13,7 @@ export class GroupUsersService {
     const { groupId, role } = data
     const user = await this.prisma.user.findUniqueOrThrow({ where: { id: userId }, include: { GroupUser: true } });
     if (user.GroupUser.some((groupUser: GroupUser) => groupUser.groupId === groupId)) {
-      throw new Error('User already in this group');
+      throw new HttpException('msg: l\'utilisateur est déjà dans ce groupe', 409);
     }
 
     return await this.prisma.groupUser.create({
@@ -73,7 +73,7 @@ export class GroupUsersService {
 
   async delete(userId: number, groupId: number): Promise<GroupUser> {
     const groupUser = await this.prisma.groupUser.findUniqueOrThrow({ where: { userId_groupId: { groupId, userId } } });
-    if (!groupUser) throw new Error('User not in this group');
+    if (!groupUser) throw new HttpException('msg: l\'utilisateur n\'est pas dans ce groupe', 404);
     return await this.prisma.groupUser.delete({ where: { userId_groupId: { groupId, userId } } });
   }
 

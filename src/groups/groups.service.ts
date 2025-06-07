@@ -48,7 +48,7 @@ export class GroupsService {
       where: { GroupUser: { every: { User: { id: userId } } } },
       include: this.groupIncludeConfig,
     })
-    if (groups.length === 0) throw new HttpException('User not found in any group', HttpStatus.NO_CONTENT)
+    if (groups.length === 0) throw new HttpException('msg: Vous n\'avez aucun groupe', HttpStatus.NO_CONTENT)
     return groups
   }
 

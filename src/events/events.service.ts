@@ -136,7 +136,7 @@ export class EventsService {
 
   async update(updateId: number, data: UpdateEventDto, userIdC: number): Promise<Event> {
     const { userId, addressId, Address, groupId, ...event } = data;
-    if (userIdC !== userId) throw new HttpException('Vous n\'avez pas les droits de modifier cet évènement', 403)
+    if (userIdC !== userId) throw new HttpException('msg: Vous n\'avez pas les droits de modifier cet évènement', 403)
     const addressIdVerified = await this.addressService.verifyAddress(Address);
     const eventUpdated = await this.prisma.event.update({
       where: { id: updateId },
@@ -166,7 +166,7 @@ export class EventsService {
 
   async remove(id: number, userId: number): Promise<Event> {
     const element = await this.prisma.event.findUniqueOrThrow({ where: { id } });
-    if (userId !== element.userId) throw new HttpException('Vous n\'avez pas les droits de modifier cet évènement', 403)
+    if (userId !== element.userId) throw new HttpException('msg: Vous n\'avez pas les droits de modifier cet évènement', 403)
     element.image && ImageInterceptor.deleteImage(element.image);
     const event = await this.prisma.event.delete({ where: { id }, include: this.eventIncludeConfig(userId) });
     if (event) {

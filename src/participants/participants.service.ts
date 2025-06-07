@@ -19,7 +19,7 @@ export class ParticipantsService {
     const { userId, eventId } = data;
     const user = await this.prisma.user.findUnique({ where: { id: userId }, select: this.userIncludeConfig });
     const event = await this.prisma.event.findUnique({ where: { id: eventId, Group: this.groupSelectConfig(userId) }, select: { title: true, start: true, Address: true, Participants: true, participantsMin: true, groupId: true, Group: { include: { GroupUser: true } }, User: { select: this.userIncludeConfig } } });
-    if (!event) throw new HttpException('L\'événement n\'existe pas, ou n\'est pas dans votre groupe', 404);
+    if (!event) throw new HttpException('msg: L\'événement n\'existe pas, ou n\'est pas dans votre groupe', 404);
     const participantsCount = event.Participants.length
     const groupIds = event.groupId
     const users = await this.usersService.usersInGroup(event.User.id, [groupIds])

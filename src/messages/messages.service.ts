@@ -100,7 +100,7 @@ export class MessagesService {
 
   async removeMessage(userId: number, id: number,) {
     const message = await this.prisma.message.findUniqueOrThrow({ where: { id, userId } });
-    if (!message) throw new HttpException(`Ce message n'existe pas`, 409);
+    if (!message) throw new HttpException(`msg: Ce message n'existe pas`, 409);
     return await this.prisma.message.update({
       where: { id, userId },
       data: { message: 'Ce message a été supprimé', read: true },

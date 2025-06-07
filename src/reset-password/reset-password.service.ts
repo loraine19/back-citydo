@@ -29,7 +29,7 @@ export class ResetPasswordService {
 
   async validate(payload: { email: string }) {
     const user = await this.prisma.user.findUnique({ where: { email: payload.email } });
-    if (!user) { throw new UnauthorizedException("no User"); }
+    if (!user) { throw new UnauthorizedException("msg: User not found"); }
     return user;
   }
 
@@ -43,22 +43,22 @@ export class ResetPasswordService {
       return { message: 'votre email de reinitialisation été envoyé' };
     } catch (error) {
       console.log(error);
-      throw new HttpException('Error sending reset password email', HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new HttpException('msg: echec de l\'envoi de l\'email de réinitialisation', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
   async updatePassword(data: any): Promise<{ message: string }> {
     const { resetToken, password, email } = data;
     const playload = this.jwtService.decode(resetToken);
-    if (playload.email !== email) throw new HttpException('Invalid token', HttpStatus.UNAUTHORIZED);
+    if (playload.email !== email) throw new HttpException('msg: action non autorisée', 403);
     const user = await this.prisma.user.findUniqueOrThrow({ where: { email: email } })
     const oldResetToken = await this.prisma.token.findFirst({ where: { userId: user.id, type: 'RESET' } })
     const isTokenMatch = await argon2.verify(oldResetToken.token, resetToken);
-    if (!isTokenMatch) throw new HttpException('Invalid token', HttpStatus.UNAUTHORIZED);
+    if (!isTokenMatch) throw new HttpException('msg: accès non autorisé', 403);
     const isTokenValid = this.jwtService.verify(resetToken);
-    if (!isTokenValid) throw new HttpException('Invalid token', HttpStatus.UNAUTHORIZED);
+    if (!isTokenValid) throw new HttpException('msg: accès non autorisé', 403);
     const updatedUser = await this.prisma.user.update({ where: { id: user.id }, data: { password: await argon2.hash(password) } });
-    if (!updatedUser) throw new HttpException('Error updating password', HttpStatus.INTERNAL_SERVER_ERROR);
+    if (!updatedUser) throw new HttpException('msg: echec de la mise à jour du mot de passe', 409);
     return { message: 'Mot de passe mis à jour, vous pouvez vous connecter' };
   }
 }

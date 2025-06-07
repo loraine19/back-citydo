@@ -22,7 +22,7 @@ export class UsersService {
   async create(data: CreateUserDto): Promise<Partial<User>> {
     let user = { ...data };
     const userFind = await this.prisma.user.findUnique({ where: { email: user.email } });
-    if (userFind) throw new HttpException('User already exists', HttpStatus.CONFLICT);
+    if (userFind) throw new HttpException('msg: L\'utilisateur existe deja', HttpStatus.CONFLICT);
     user.password = await argon2.hash(user.password);
     const createdUser = await this.prisma.user.create({ data: user, select: this.userSelectConfig });
     return { ...createdUser, password: undefined }
@@ -34,7 +34,7 @@ export class UsersService {
 
   async findAllModo(id: number, groupId: number): Promise<Partial<User>[]> {
     const user = await this.prisma.user.findUnique({ where: { id }, include: { GroupUser: true } });
-    if (user.GroupUser.every(g => g.groupId !== groupId)) throw new HttpException('Vous ne faites pas partie de ce groupe', HttpStatus.FORBIDDEN);
+    if (user.GroupUser.every(g => g.groupId !== groupId)) throw new HttpException('msg: Vous ne faites pas partie de ce groupe', HttpStatus.FORBIDDEN);
     const modos = await this.prisma.user.findMany({
       where: {
         id: { not: id },
@@ -87,9 +87,9 @@ export class UsersService {
 
   async usersInGroup(userId: number, groupId: number[]): Promise<UserNotifInfo[]> {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    if (!user) throw new NotFoundException('cette utilisateur n\'existe pas');
+    if (!user) throw new NotFoundException('msg: cette utilisateur n\'existe pas');
     // console.log(user.GroupUser, groupId);
-    // if (!user.GroupUser.some(g => g.groupId in groupId)) throw new HttpException('Vous ne faites pas partie de ce groupe', 403);
+    // if (!user.GroupUser.some(g => g.groupId in groupId)) throw new HttpException('msg: Vous ne faites pas partie de ce groupe', 403);
     return await this.prisma.user.findMany({
       where: {
         GroupUser: { some: { groupId: { in: groupId } } }
@@ -100,7 +100,7 @@ export class UsersService {
 
   async update(id: number, user: UpdateUserDto): Promise<User> {
     const existingUser = await this.prisma.user.findUniqueOrThrow({ where: { id } });
-    if (!existingUser) { throw new NotFoundException(`User with id ${id} not found`) }
+    if (!existingUser) { throw new HttpException('msg: cet utilisateur n\'existe pas', HttpStatus.NOT_FOUND); }
     if (user.password) { user.password = await argon2.hash(user.password); }
     const updatedUser = await this.prisma.user.update({
       where: { id },
@@ -111,7 +111,7 @@ export class UsersService {
   }
 
   async remove(id: number, userId: number): Promise<{ message: string }> {
-    if (userId !== id) throw new HttpException('Vous n\'avez pas le droit de supprimer cet utilisateur', 403)
+    if (userId !== id) throw new HttpException('msg: Vous n\'avez pas le droit de supprimer cet utilisateur', 403)
     await this.prisma.user.delete({ where: { id } });
     return { message: 'User deleted successfully' };
 

@@ -194,8 +194,8 @@ export class ServicesService {
     const UserDo = service.type === $Enums.ServiceType.DO ? service.UserResp : service.User;
     const UserGet = service.type === $Enums.ServiceType.GET ? service.UserResp : service.User;
     const points = GetPoints(service, UserDo.Profile);
-    if (UserGet.id !== userId) throw new HttpException(`Vous n'avez pas le droit de valider ce service`, HttpStatus.FORBIDDEN)
-    if (UserGet.Profile.points < points) throw new HttpException(`Vous n'avez pas assez de points`, HttpStatus.FORBIDDEN)
+    if (UserGet.id !== userId) throw new HttpException(`msg: Vous n'avez pas le droit de valider ce service`, HttpStatus.FORBIDDEN)
+    if (UserGet.Profile.points < points) throw new HttpException(`msg: Vous n'avez pas assez de points`, HttpStatus.FORBIDDEN)
     const updateUserProfile: Profile = await this.prisma.profile.update({ where: { userId: UserGet.id }, data: { points: UserGet.Profile.points - points } });
     const update = await this.prisma.service.update({
       where: { id },
@@ -222,7 +222,7 @@ export class ServicesService {
     const UserDo = service.type === $Enums.ServiceType.DO ? service.UserResp : service.User;
     const UserGet = service.type === $Enums.ServiceType.GET ? service.UserResp : service.User;
     const points = GetPoints(service, UserDo.Profile)
-    if (UserGet.id !== userId) throw new HttpException(`Vous n'avez pas le droit de cloturerce service`, HttpStatus.FORBIDDEN)
+    if (UserGet.id !== userId) throw new HttpException(`msg: Vous n'avez pas le droit de cloturerce service`, HttpStatus.FORBIDDEN)
     await this.prisma.profile.update({ where: { userId: UserDo.id }, data: { points: UserDo.Profile.points + points } });
     const update = await this.prisma.service.update({
       where: { id },

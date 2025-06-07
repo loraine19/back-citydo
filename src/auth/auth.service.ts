@@ -210,10 +210,10 @@ export class AuthService {
 
     async deletAccountConfirm(userId: number, email: string, deleteToken: string): Promise<{ message: string }> {
         const user = await this.prisma.user.findUniqueOrThrow({ where: { id: userId } });
-        if (user.email !== email) throw new HttpException('Vous n\'avez pas le droit de supprimer ce compte', 403);
+        if (user.email !== email) throw new HttpException('msg: Vous n\'avez pas le droit de supprimer ce compte', 403);
         const userToken = await this.prisma.token.findFirst({ where: { userId: userId, type: $Enums.TokenType.DELETE } });
         const deleteTokenValid = await argon2.verify(userToken.token, deleteToken.trim());
-        if (!deleteTokenValid) throw new HttpException('Vous n\'avez pas le droit de supprimer ce compte', 403);
+        if (!deleteTokenValid) throw new HttpException('msg: Vous n\'avez pas le droit de supprimer ce compte', 403);
         await this.prisma.user.delete({ where: { id: userId } });
         return { message: 'Votre compte a bien été supprimé' }
     }
