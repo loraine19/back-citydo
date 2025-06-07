@@ -1,6 +1,6 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { $Enums, Pool, Prisma, Survey, VoteOpinion } from '@prisma/client';
+import { $Enums, Pool, Prisma, Survey, SurveyCategory, VoteOpinion } from '@prisma/client';
 import { getDate } from 'middleware/BodyParser';
 import { PoolSurveyFilter, PoolSurveysFindParams, PoolSurveySort, PoolSurveyStep } from './entities/constant';
 import { ImageInterceptor } from 'middleware/ImageInterceptor';
@@ -85,7 +85,9 @@ export class PoolsSurveysService {
     let count = 0;
     switch (filter) {
       case PoolSurveyFilter.SURVEY:
-        where.OR.push({ categorie: { contains: search } })
+        if (SurveyCategory[search as keyof typeof SurveyCategory]) {
+          where.OR.push({ category: search as SurveyCategory })
+        }
         count = await this.prisma.survey.count({ where });
         break;
       case PoolSurveyFilter.POOL:
