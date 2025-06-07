@@ -147,7 +147,6 @@ export class PoolsSurveysService {
             poolsSurveys.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
         }
     }
-    console.log('poolsSurveys', count, search, where)
     return { poolsSurveys, count, }
   }
 

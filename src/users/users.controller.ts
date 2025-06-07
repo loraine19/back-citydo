@@ -29,7 +29,7 @@ export class UsersController {
   async findAll(
     @Param('groupId', ParseIntPipe) groupId: number,
     @UserDec() userId: number): Promise<Partial<User>[]> {
-    return await this.usersService.usersInGroup(userId, [groupId]) || []
+    return await this.usersService.usersInGroup(userId, groupId) || []
   }
 
 

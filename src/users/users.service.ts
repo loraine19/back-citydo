@@ -85,17 +85,21 @@ export class UsersService {
 
 
 
-  async usersInGroup(userId: number, groupId: number[]): Promise<UserNotifInfo[]> {
+  async usersInGroup(userId: number, groupId: number): Promise<UserNotifInfo[]> {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new NotFoundException('msg: cette utilisateur n\'existe pas');
     // console.log(user.GroupUser, groupId);
     // if (!user.GroupUser.some(g => g.groupId in groupId)) throw new HttpException('msg: Vous ne faites pas partie de ce groupe', 403);
-    return await this.prisma.user.findMany({
+    const users = await this.prisma.user.findMany({
       where: {
-        GroupUser: { some: { groupId: { in: groupId } } }
+        GroupUser: {
+          some: { groupId: groupId }
+        }
       },
       select: this.userSelectConfig,
     });
+    console.log(users.map(u => (groupId in u.GroupUser.map(g => g.groupId))));
+    return users
   }
 
   async update(id: number, user: UpdateUserDto): Promise<User> {

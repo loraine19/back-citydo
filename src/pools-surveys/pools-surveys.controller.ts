@@ -44,7 +44,7 @@ export class PoolsSurveysController {
   @ApiBearerAuth()
   @ApiResponse({ type: PoolEntity })
   createPool(
-    @Body() data: any,
+    @Body() data: CreatePoolDto,
     @User() userId: number): Promise<Pool> {
     data.userId = userId
     data = parseData(data)
@@ -91,7 +91,7 @@ export class PoolsSurveysController {
   @UseInterceptors(ImageInterceptor.create('survey'))
   @ApiConsumes('multipart/form-data', 'application/json')
   async create(
-    @Body() data: any,
+    @Body() data: CreateSurveyDto,
     @UploadedFile() image: Express.Multer.File,
     @User() userId: number): Promise<Survey> {
     data.userId = userId

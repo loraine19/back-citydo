@@ -16,8 +16,8 @@ export class VotesService {
   async create(data: CreateVoteDto): Promise<Vote> {
     const { targetId, target, userId, opinion } = data
     const find = target === $Enums.VoteTarget.POOL ?
-      await this.prisma.pool.findUnique({ where: { id: targetId }, select: { User: { select: this.userSelectConfig }, status: true, Votes: true, UserBenef: { select: this.userSelectConfig } } }) :
-      await this.prisma.survey.findUnique({ where: { id: targetId }, select: { User: { select: this.userSelectConfig }, title: true, status: true, Votes: true } });
+      await this.prisma.pool.findUnique({ where: { id: targetId }, select: { User: { select: this.userSelectConfig }, status: true, Votes: true, UserBenef: { select: this.userSelectConfig }, groupId: true } }) :
+      await this.prisma.survey.findUnique({ where: { id: targetId }, select: { User: { select: this.userSelectConfig }, title: true, status: true, Votes: true, groupId: true } });
     if (!find) throw new HttpException(`${target} n'existe pas`, HttpStatus.NOT_FOUND);
     if (find.status === $Enums.PoolSurveyStatus.REJECTED) throw new HttpException('msg: Vous ne pouvez pas voter sur cette cagnotte/sondage car il est cloturé', 403);
     if (find.status === $Enums.PoolSurveyStatus.VALIDATED) throw new HttpException('msg: Vous ne pouvez pas voter sur cette cagnotte/sondage car il est validé', 403);
@@ -25,8 +25,7 @@ export class VotesService {
     const vote = await this.prisma.vote.findUnique({ where: { userId_target_targetId: { userId, targetId, target } } });
     if (vote) throw new HttpException('msg:Vous avez déjà voté', 403)
     const voteCount = find.Votes.filter(vote => vote.opinion === $Enums.VoteOpinion.OK).length
-    const groupIds = find.User.GroupUser.map(g => g.groupId)
-    const users = await this.usersService.usersInGroup(find.User.id, groupIds)
+    const users = await this.usersService.usersInGroup(userId, find.groupId)
     const isValided = opinion === $Enums.VoteOpinion.OK && ((voteCount + 1) / users.length >= 0.51)
     const notification = (typeEnum: $Enums.NotificationType, type: string, id: number) => ({
       type: typeEnum,
