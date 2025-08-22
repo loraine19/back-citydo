@@ -98,7 +98,6 @@ export class UsersService {
       },
       select: this.userSelectConfig,
     });
-    console.log(users.map(u => (groupId in u.GroupUser.map(g => g.groupId))));
     return users
   }
 

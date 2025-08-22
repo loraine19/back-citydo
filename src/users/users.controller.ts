@@ -38,7 +38,6 @@ export class UsersController {
   async findAllModo(
     @Param('groupId', ParseIntPipe) groupId: number,
     @UserDec() userId: number): Promise<Partial<User>[]> {
-    console.log('userId', userId, 'groupId', groupId)
     return await this.usersService.findAllModo(userId, groupId) || []
   }
 

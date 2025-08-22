@@ -540,7 +540,7 @@ const seed = async () => {
 
   //  PARTICIPANT 
   const participant = async () => {
-    while (await prisma.participant.count() < max * 3) {
+    while (await prisma.participant.count() < max * 6) {
       {
         const { userId, eventId, ...participant } = await CreateRandomParticipant();
         const cond = await prisma.participant.findUnique({ where: { userId_eventId: { userId, eventId } } });
@@ -590,7 +590,7 @@ const seed = async () => {
 
   // LIKE 
   const like = async () => {
-    while (await prisma.like.count() < max * 2) {
+    while (await prisma.like.count() < max * 3) {
       const { userId, postId, ...like } = CreateRandomLike();
       const cond = await prisma.like.findUnique({ where: { userId_postId: { userId, postId } } });
       if (!cond) await likesService.create({ ...like, userId, postId })
@@ -638,7 +638,7 @@ const seed = async () => {
 
   // VOTE fk user 
   const vote = async () => {
-    while (await prisma.vote.count() < max * 8) {
+    while (await prisma.vote.count() < max * 9) {
       const { userId, targetId, target, ...vote } = await CreateRandomVote();
       const cond = await prisma.vote.findUnique({ where: { userId_target_targetId: { userId, target, targetId } } });
       const targetFind = (async () => {

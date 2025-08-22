@@ -136,7 +136,6 @@ export class PostsService {
 
 
   async update(id: number, data: any): Promise<Post> {
-    console.log('update post', id, data);
     const { userId, groupId, ...post } = data
 
     return await this.prisma.post.update({
