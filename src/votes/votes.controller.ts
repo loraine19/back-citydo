@@ -7,6 +7,7 @@ import { VoteEntity } from './entities/vote.entity';
 import { Vote } from '@prisma/client';
 import { AuthGuard } from '../auth/auth.guard';
 import { User } from 'middleware/decorators';
+import { timeStamp } from 'console';
 
 const route = "votes"
 @UseGuards(AuthGuard)

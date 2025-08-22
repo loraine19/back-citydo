@@ -14,6 +14,7 @@ export class VotesService {
   private userSelectConfig = { id: true, email: true, GroupUser: true, Profile: { select: { mailSub: true, firstName: true } } }
 
   async create(data: CreateVoteDto): Promise<Vote> {
+
     const { targetId, target, userId, opinion } = data
     const find = target === $Enums.VoteTarget.POOL ?
       await this.prisma.pool.findUnique({ where: { id: targetId }, select: { User: { select: this.userSelectConfig }, status: true, Votes: true, UserBenef: { select: this.userSelectConfig }, groupId: true } }) :
@@ -60,7 +61,6 @@ export class VotesService {
       return vote
     }
     else if (target === $Enums.VoteTarget.SURVEY) {
-
       const vote = await this.prisma.vote.create({
         data: {
           opinion, target,
