@@ -9,7 +9,8 @@ COPY package*.json ./
 
 COPY prisma ./prisma ./  
 
-RUN npm install 
+# remove peer dependencies after fixing deps react 
+RUN npm install --legacy-peer-deps
 
 COPY . .
 
