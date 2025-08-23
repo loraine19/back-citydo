@@ -92,6 +92,7 @@ export class ServicesService {
       include: this.serviceIncludeConfig(userId),
     });
     if (mine && !type && !step) return { services: [], count: 0 }
+    console.log('SERVICES:', count, services);
     return { services, count }
   }
 
