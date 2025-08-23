@@ -20,6 +20,7 @@ export class CronTaskService {
     createdOneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
     createdTwoWeeksAgo = new Date(Date.now() - 15 * 24 * 60 * 60 * 1000)
     createdOneMonthAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+    startInTwoDays = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000)
     userSelectConfig = { User: { select: { id: true, email: true, Profile: { select: { mailSub: true } } } } }
 
     @Cron(CronExpression.EVERY_2_HOURS)
@@ -33,7 +34,7 @@ export class CronTaskService {
             include: this.userSelectConfig
         })
         const events = await this.prisma.event.findMany({
-            where: { createdAt: { lt: this.createdTwoWeeksAgo }, status: $Enums.EventStatus.PENDING },
+            where: { start: { lte: this.startInTwoDays }, status: $Enums.EventStatus.PENDING },
             include: this.userSelectConfig
         })
 
