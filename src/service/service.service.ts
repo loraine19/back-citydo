@@ -168,21 +168,22 @@ export class ServicesService {
 
   //// CANCEL_RESP
   async updateCancelResp(id: number, userId: number): Promise<Service> {
-    const origin = await this.prisma.service.findUnique({ where: { id }, include: { UserResp: { select: { email: true, Profile: true } } } });
+    const origin = await this.prisma.service.findUnique({ where: { id }, include: { UserResp: { include: { Profile: true } } } });
     const update = await this.prisma.service.update({
       where: { id },
       include: this.serviceIncludeConfig(userId),
       data: { UserResp: { disconnect: true }, status: $Enums.ServiceStep.STEP_0 }
     })
+    console.log(update)
     if (update) {
       const notification = {
         title: 'annulation de prise en charge de service',
-        description: `la prise en charge du service ${update.title} a été annuler par${update.UserResp.Profile.firstName}`,
+        description: `la prise en charge du service ${update.title} a été annuler par${origin.UserResp.Profile.firstName}`,
         type: $Enums.NotificationType.SERVICE,
         level: $Enums.NotificationLevel.SUB_1,
         link: `/service/${id}`
       }
-      await this.notificationsService.createMany([new UserNotifInfo(update.User), new UserNotifInfo(update.UserResp)], notification)
+      await this.notificationsService.createMany([new UserNotifInfo(update.User), new UserNotifInfo(origin.UserResp)], notification)
       return update;
     }
   }
