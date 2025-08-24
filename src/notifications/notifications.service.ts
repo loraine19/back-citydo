@@ -48,13 +48,13 @@ export class NotificationsService {
     const convertFilter: $Enums.NotificationType[] = filter ? filter.includes(',')
       ? filter.split(',').map(f => $Enums.NotificationType[f as keyof typeof $Enums.NotificationType])
       : [$Enums.NotificationType[filter as keyof typeof $Enums.NotificationType]] : [];
-    const where = filter ?
+    let where: any = filter ?
       { userId, type: { in: convertFilter }, read: false } :
       { userId, read: false };
-    const mapOption = map ? { addressId: { not: null } } : {}
-    const count = await this.prisma.notification.count({ where: { ...where, ...mapOption } });
+    where = map ? { ...where, addressId: { not: null } } : where;
+    const count = await this.prisma.notification.count({ where });
     const take = (page && page !== 0) ? this.limit : count;
-    const notifs = await this.prisma.notification.findMany({ where: { ...where, ...mapOption }, skip, take, orderBy: { createdAt: 'desc' }, include: { Address: true } });
+    const notifs = await this.prisma.notification.findMany({ where, skip, take, orderBy: { createdAt: 'desc' }, include: { Address: true } });
     return { notifs, count };
   }
 
