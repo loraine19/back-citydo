@@ -17,9 +17,9 @@ export class NotificationsController {
     @User() userId: number,
     @Query('page', new DefaultValuePipe(0), ParseIntPipe) page?: number,
     @Query('filter') filter?: string,
-    @Query('map') map?: boolean): Promise<{ notifs: Notification[], count: number }> {
+    @Query('map') map?: boolean): Promise<{ notifs: Notification[], count: number, countMsg: number, countOther: number }> {
     const result = await this.notificationsService.findAll(page, userId, filter, map);
-    return { notifs: result.notifs, count: result.count };
+    return { notifs: result.notifs, count: result.count, countMsg: result.countMsg, countOther: result.countOther };
   }
 
   @Get(':id')

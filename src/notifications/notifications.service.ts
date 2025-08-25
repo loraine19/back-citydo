@@ -53,9 +53,12 @@ export class NotificationsService {
       { userId, read: false };
     where = map ? { ...where, addressId: { not: null } } : where;
     const count = await this.prisma.notification.count({ where });
+    const countMsg = await this.prisma.notification.count({ where: { userId, type: $Enums.NotificationType.MESSAGE, read: false } });
+    const countOther = await this.prisma.notification.count({ where: { userId, type: { not: $Enums.NotificationType.MESSAGE }, read: false } });
     const take = (page && page !== 0) ? this.limit : count;
     const notifs = await this.prisma.notification.findMany({ where, skip, take, orderBy: { createdAt: 'desc' }, include: { Address: true } });
-    return { notifs, count };
+    console.log({ count, countMsg, countOther });
+    return { notifs, count, countMsg, countOther };
   }
 
   findOne(id: number, userId: number) {
