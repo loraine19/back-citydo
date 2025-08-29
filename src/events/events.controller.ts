@@ -30,6 +30,7 @@ export class EventsController {
     Promise<Event> {
     data.userId = userId
     data = await parseData(data, image)
+    console.log('Creating event with data:', data)
     return this.eventsService.create(data)
   }
 

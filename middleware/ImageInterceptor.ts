@@ -8,6 +8,7 @@ import * as path from 'path';
 @Injectable()
 export class ImageInterceptor {
     static create(element: string) {
+        console.log(element)
         return FileInterceptor('image', {
             storage: diskStorage({
                 destination: './dist/public/images/' + element,
