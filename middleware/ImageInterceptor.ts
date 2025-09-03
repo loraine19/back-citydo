@@ -8,7 +8,10 @@ import * as path from 'path';
 @Injectable()
 export class ImageInterceptor {
     static create(element: string) {
-        console.log(element)
+        const dir = `./dist/public/images/${element}`;
+        if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, { recursive: true });
+        }
         return FileInterceptor('image', {
             storage: diskStorage({
                 destination: './dist/public/images/' + element,

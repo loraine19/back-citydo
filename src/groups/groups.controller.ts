@@ -42,7 +42,9 @@ export class GroupsController {
     @Query('filter') filter?: string,
     @Query('category') category?: string):
     Promise<{ groups: Group[]; count: number }> {
-    return this.groupsService.findNearestGroups(userId, page, filter, category)
+    const groups = await this.groupsService.findNearestGroups(userId, page, filter, category)
+    console.log(groups)
+    return groups
   }
 
 

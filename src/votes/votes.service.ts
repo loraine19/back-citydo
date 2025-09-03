@@ -80,10 +80,12 @@ export class VotesService {
 
 
   async update(userId: number, data: UpdateVoteDto): Promise<Vote> {
+    console.log(data)
     const { targetId, target, opinion } = data
+    const targetFind = target === $Enums.VoteTarget.POOL ? await this.prisma.pool.findUnique({ where: { id: targetId } }) : await this.prisma.survey.findUnique({ where: { id: targetId } });
     const vote = await this.prisma.vote.findUnique({ where: { userId_target_targetId: { userId, targetId: data.targetId, target: data.target } } });
     if (!vote) throw new HttpException('msg: Votre vote n\'existe pas', 404)
-    if (vote.createdAt.getTime() + 24 * 60 * 60 * 1000 < new Date().getTime()) throw new HttpException('msg: Vous ne pouvez pas modifier ce vote, il est trop vieux', 403)
+    if (targetFind.status !== $Enums.PoolSurveyStatus.PENDING) throw new HttpException('msg: Vous ne pouvez pas modifier ce vote, il est terminé', 403)
     return this.prisma.vote.update({
       where: { userId_target_targetId: { userId, targetId, target } },
       data: { opinion },
