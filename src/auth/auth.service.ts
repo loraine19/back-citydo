@@ -32,7 +32,7 @@ export class AuthService {
     async generateRefreshToken(sub: number): Promise<{ refreshToken: string, hashRefreshToken: string }> {
         const refreshToken = this.jwtService.sign({ sub }, { secret: process.env.JWT_SECRET_REFRESH, expiresIn: process.env.JWT_EXPIRES_REFRESH })
         /// secure test
-        await this.prisma.token.create({ data: { type: $Enums.TokenType.REFRESH_SECURE, userId: sub, token: refreshToken } })
+        await this.prisma.token.update({ where: { userId_type: { userId: sub, type: $Enums.TokenType.REFRESH_SECURE } }, data: { type: $Enums.TokenType.REFRESH_SECURE, token: refreshToken } })
         const hashRefreshToken = await argon2.hash(refreshToken, this.memoryOptions);
         return { refreshToken, hashRefreshToken }
     }
