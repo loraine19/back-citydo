@@ -49,6 +49,16 @@ export class MailerService {
         }
     }
 
+    public async sendDevelopmentEmail(to: string, subject: string, html: string) {
+        const devEmail = process.env.DEV_EMAIL;
+        if (!devEmail) {
+            console.error('DEV_EMAIL is not defined');
+            return;
+        }
+        const subjectWithPrefix = `[DEV] ${subject}`;
+        await this.sendEmail(devEmail, subjectWithPrefix, html);
+    }
+
     public async sendResetPasswordEmail(to: string, token: string) {
         const subject = 'Initialisation de votre mot de passe';
         const html = this.generateEmailHtml('Vous avez demande une initialisation de votre mot de passe veuillez cliquer sur le lien ci-dessous (le lien est valable pendant 1 heure):',

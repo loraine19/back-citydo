@@ -76,7 +76,7 @@ export interface ContentOptions {
 /**
  * --- DATA ---
  * Les préfixes et suffixes sont maintenant organisés par sous-catégorie pour event, service, post, survey.
- */
+*/
 
 interface TitleWords {
     event: Record<EventCategory, { pref: string[]; suf: string[] }>;
@@ -90,638 +90,437 @@ interface TitleWords {
 }
 const titleWords: TitleWords = {
     event: {
-        [EventCategory.CATEGORY_1]: { // Sport
+        [EventCategory.CATEGORY_1]: {
             pref: [
-                'Invitation à',
-                'Participez à ',
-                'Rendez-vous sportif :',
-                'À vos marques pour',
-                'Ne manquez pas',
-                'Challenge sportif :',
-                'Venez bouger avec',
-                'Sport et convivialité :',
-                'Annonce sportive :',
-                'Événement sportif à venir :'
+                'Sport :',
+                'Participez à',
+                'Rendez-vous sportif',
+                'Challenge',
+                'Bougez avec nous',
+                'Annonce sportive',
+                'Venez jouer',
+                'Tournoi',
+                'Match',
+                'Séance',
+                'Balade',
+                'Randonnée'
             ],
             suf: [
                 'vous attend',
-                'est organisé pour les sportifs',
-                'est au programme sportif',
-                'est lancé pour tous',
-                'est proposé aux amateurs',
-                'est organisé pour vous',
-                'vous invite',
-                'est à l\'affiche sportive',
-                'est à découvrir',
-                'est à ne pas manquer'
+                'au programme',
+                'pour tous',
+                'à découvrir',
+                'à ne pas manquer',
+                'ce week-end',
+                'bientôt',
+                'dans le quartier'
             ]
         },
-        [EventCategory.CATEGORY_2]: { // Social
+        [EventCategory.CATEGORY_2]: {
             pref: [
-                'Invitation conviviale :',
-                'Participez à',
-                'Rendez-vous social ',
-                'Moment de partage :',
-                'Ne manquez pas ',
-                'Événement de quartier',
-                'Venez échanger pendant',
-                'Entre voisins :',
-                'Annonce,',
-                'Événement convivial à venir :'
+                'Convivial :',
+                'Partage :',
+                'Événement social',
+                'Rencontre',
+                'Soirée',
+                'Apéro',
+                'Pique-nique',
+                'Fête',
+                'Atelier',
+                'Brunch',
+                'Goûter',
+                'Brocante'
             ],
             suf: [
-                'vous attend pour partager',
-                'est organisé pour tous',
-                'est au programme convivial',
-                'est lancé pour le quartier',
-                'est proposé aux voisins',
-                'est organisé pour vous',
-                'vous invite à échanger',
-                'est à l\'affiche',
-                'est à découvrir ensemble',
-                'est à ne pas manquer'
+                'pour partager',
+                'pour tous',
+                'à découvrir',
+                'à ne pas manquer',
+                'dans le quartier',
+                'ensemble',
+                'bientôt'
             ]
         },
-        [EventCategory.CATEGORY_3]: { // Culturel
+        [EventCategory.CATEGORY_3]: {
             pref: [
-                'Invitation culturelle ',
-                'Participez à la découverte',
-                'Rendez-vous culture',
-                'À la rencontre de la culture :',
-                'Ne manquez pas',
-                'Événement artistique :',
-                'Venez découvrir la culture avec',
-                'Culture et partage :',
-                'Annonce pour les passionnés :',
-                'Événement culturel à venir :'
+                'Culture :',
+                'Découverte :',
+                'Exposition',
+                'Atelier',
+                'Visite',
+                'Projection',
+                'Café',
+                'Participez à',
+                'Rendez-vous culturel',
+                'Annonce culturelle'
             ],
             suf: [
                 'vous attend',
-                'est organisé pour les curieux',
-                'est au programme culturel',
-                'est lancé pour tous',
-                'est proposé aux amateurs',
-                'est organisé pour vous',
-                'vous invite à découvrir',
-                'est à l\'affiche culturelle',
-                'est à explorer ensemble',
-                'est à ne pas manquer'
+                'pour les curieux',
+                'à explorer',
+                'à découvrir',
+                'dans le quartier',
+                'bientôt'
             ]
         },
-        [EventCategory.CATEGORY_4]: { // Musique
+        [EventCategory.CATEGORY_4]: {
             pref: [
-                'Invitation à ',
+                'Musique :',
+                'Concert',
+                'Scène musicale',
+                'Chorale',
+                'Blind test',
                 'Participez à',
-                'Rendez-vous musical :',
-                'À l\'écoute ',
-                'Ne manquez pas ',
-                'Événement musical :',
-                'Venez vibrer avec',
-                'Ambiance :',
-                'Annonce musicale :',
-                'Événement musical à venir :'
+                'Rendez-vous musical',
+                'Vibrez avec nous',
+                'Annonce musicale'
             ],
             suf: [
-                'vous attend en musique',
-                'est organisé pour les mélomanes',
-                'est au programme musical',
-                'est lancé pour tous',
-                'est proposé aux amateurs de musique',
-                'est organisé pour vous',
-                'vous invite à écouter',
-                'est à l\'affiche musicale',
-                'est à découvrir en rythme',
-                'est à ne pas manquer'
+                'en musique',
+                'pour tous',
+                'à découvrir',
+                'à ne pas manquer',
+                'dans le quartier',
+                'bientôt'
             ]
         },
-        [EventCategory.CATEGORY_5]: { // Autre
+        [EventCategory.CATEGORY_5]: {
             pref: [
                 'Invitation :',
-                'Participez à l\'événement :',
-                'Rendez-vous à ne pas manquer :',
-                'Annonce spéciale :',
-                'Ne manquez pas :',
-                'Événement à venir :',
-                'Venez découvrir :',
-                'À ne pas manquer :',
-                'Rejoignez-nous pour :',
-                'Événement spécial :'
+                'Participez :',
+                'Rendez-vous :',
+                'Annonce :',
+                'Marché',
+                'Nettoyage',
+                'Concours',
+                'Vide-grenier',
+                'Projet',
+                'Initiative'
             ],
             suf: [
                 'vous attend',
-                'est organisé pour vous',
-                'est au programme',
-                'est lancé',
-                'est proposé',
-                'est organisé',
-                'vous invite',
-                'est à l\'affiche',
-                'est à découvrir',
-                'est à ne pas manquer'
+                'pour vous',
+                'à découvrir',
+                'à ne pas manquer',
+                'dans le quartier',
+                'bientôt'
             ]
         }
     },
     service: {
-        [ServiceCategory.CATEGORY_1]: { // Bricolage et entretien
+        [ServiceCategory.CATEGORY_1]: {
             pref: [
-                'Besoin d\'un bricoleur ?',
-                'Je vous propose',
-                'Coup de main pour vos travaux :',
-                'Proposition ',
-                'Entraide ',
-                'Offre spéciale ',
-                'À votre service pour bricoler :',
-                'Bricolage à domicile :',
-                'Service entretien :',
-                'Aide aux petits travaux :'
+                'Bricolage :',
+                'Aide travaux',
+                'Entretien',
+                'Jardinage',
+                'Je propose',
+                'Service maison',
+                'Petits travaux',
+                'Réparation'
             ],
             suf: [
-                'est proposé',
-                'est disponible',
-                'peut vous aider',
-                'est à votre disposition',
-                'vous est proposé',
-                'pour vous aider',
-                'est offert',
-                'est à réserver',
-                'est à saisir',
-                'est à découvrir'
-            ]
-        },
-        [ServiceCategory.CATEGORY_2]: { // Cours et formation
-            pref: [
-                'Besoin d\'apprendre ?',
-                'Proposition de cours :',
-                'Soutien disponible :',
-                'Cours particuliers :',
-                'Formation à domicile :',
-                'Offre spéciale cours :',
-                'À votre service pour apprendre :',
-                'Cours à découvrir :',
-                'Aide pour',
-                'Initiation proposée :'
-            ],
-            suf: [
-                'si besoin',
-                'est disponible',
-                'peut vous aider',
-                'est à votre disposition',
-                'vous est proposé',
-                'est assuré',
-                'est offert',
-                'est à réserver',
+                'proposé',
+                'disponible',
+                'à saisir',
+                'dans le quartier',
                 'pour vous',
-                'est à découvrir'
+                'à réserver'
             ]
         },
-        [ServiceCategory.CATEGORY_3]: { // Animaux
+        [ServiceCategory.CATEGORY_2]: {
             pref: [
-                'Service pour vos animaux :',
-                'Pour vos animaux :',
-                'Promenade de chien :',
-                'Aide pour animaux :',
-                'Offre spéciale animaux :',
-                'À votre service pour vos compagnons :',
-                'Animaux à garder :',
-                'Service animalier :',
-                'Aide aux animaux :',
-                'Garde à domicile :'
+                'Cours :',
+                'Soutien scolaire',
+                'Initiation',
+                'Formation',
+                'Atelier langue',
+                'Aide devoirs',
+                'Je propose'
             ],
             suf: [
-                'est proposé',
-                'est disponible',
-                'peut vous aider',
-                'est à votre disposition',
-                'vous est proposé',
-                'est assuré',
-                'est offert',
-                'est à réserver',
-                'est à saisir',
-                'est à découvrir'
+                'disponible',
+                'à découvrir',
+                'pour tous',
+                'dans le quartier',
+                'à réserver'
             ]
         },
-        [ServiceCategory.CATEGORY_4]: { // Enfants
+        [ServiceCategory.CATEGORY_3]: {
             pref: [
-                'Service pour enfants, ',
-                'Je vous propose',
-                'Aide pour',
-                'Disponible pour',
-                'Je recheche',
-                'À votre service pour vos enfants :',
-                'Aide avec',
-                'Service d\'accompagnement pour ',
-                'Service à domicile :',
-                'Soutien pour enfants :'
+                'Animaux :',
+                'Garde',
+                'Promenade',
+                'Service animalier',
+                'Je propose',
+                'Aide animaux'
             ],
             suf: [
-                'est proposé',
-                'est disponible',
-                'peut vous aider',
-                'est à votre disposition',
-                'vous est proposé',
-                'est assuré',
-                'est offert',
-                'est à réserver',
-                'est à saisir',
-                'est à découvrir'
+                'proposé',
+                'disponible',
+                'pour vos animaux',
+                'dans le quartier'
             ]
         },
-        [ServiceCategory.CATEGORY_5]: { // Autre
+        [ServiceCategory.CATEGORY_4]: {
             pref: [
-                'Service proposé :',
-                'Entraide :',
-                'Offre spéciale service :',
-                'Besoin d\'un service ?',
-                'À votre service :',
-                'Coup de main proposé :',
-                'Service à découvrir :',
-                'Aide ponctuelle :',
-                'Service solidaire :',
-                'Aide diverse :'
+                'Enfants :',
+                'Aide',
+                'Soutien',
+                'Baby-sitting',
+                'Garde enfants',
+                'Je propose'
             ],
             suf: [
-                'est proposé',
-                'est disponible',
-                'peut vous aider',
-                'est à votre disposition',
-                'vous est proposé',
-                'est assuré',
-                'est offert',
-                'est à réserver',
-                'est à saisir',
-                'est à découvrir'
+                'proposé',
+                'disponible',
+                'pour vos enfants',
+                'dans le quartier'
+            ]
+        },
+        [ServiceCategory.CATEGORY_5]: {
+            pref: [
+                'Service :',
+                'Entraide',
+                'Aide',
+                'Partage',
+                'Je propose',
+                'Coup de main'
+            ],
+            suf: [
+                'proposé',
+                'disponible',
+                'pour tous',
+                'dans le quartier'
             ]
         }
     },
     post: {
-        [PostCategory.CATEGORY_1]: { // Perdu-Trouvé
+        [PostCategory.CATEGORY_1]: {
             pref: [
-                'Objet perdu/trouvé :',
+                'Perdu/trouvé :',
                 'Annonce :',
-                'À signaler :',
-                'Perdu/trouvé à Marseille :',
-                'Information importante :',
-                'Alerte voisinage :',
-                'Recherche en cours :',
-                'Bon à savoir :',
-                'Objet à signaler :',
-                'Avis de recherche :'
-            ],
-            suf: [
-                'est signalé',
-                'est perdu/trouvé',
-                'est à retrouver',
-                'est à signaler',
-                'est à partager',
-                'disponible',
-                'est perdu',
-                'est à consulter',
-                'à été trouvé',
-                'est à commenter'
-            ]
-        },
-        [PostCategory.CATEGORY_2]: { // Animaux
-            pref: [
-                'Animal, ',
-                'Annonce pour ',
-                'À donner :',
+                'À signaler',
+                'Objet perdu',
+                'Objet trouvé',
                 'Recherche',
-                'Information, à propos de',
-                'Bon à savoir sur',
-                'à signaler, ',
-                'Adoption possible :',
-                'Animal à placer :',
-                'À adopter :'
+                'Signalement'
             ],
             suf: [
-                'est proposé à l\'adoption',
-                'est à adopter',
-                'est à donner',
-                'est à placer',
-                'est à découvrir',
-                'est à consulter',
-                'est à relayer',
-                'est à commenter',
-                'est à partager',
-                'est publié'
+                'signalé',
+                'à retrouver',
+                'dans le quartier',
+                'urgent',
+                'merci de partager'
             ]
         },
-        [PostCategory.CATEGORY_3]: { // À vendre
+        [PostCategory.CATEGORY_2]: {
+            pref: [
+                'Animal :',
+                'Adoption',
+                'À donner',
+                'À adopter',
+                'Recherche famille',
+                'Don animalier'
+            ],
+            suf: [
+                'à adopter',
+                'à donner',
+                'disponible',
+                'dans le quartier'
+            ]
+        },
+        [PostCategory.CATEGORY_3]: {
             pref: [
                 'À vendre :',
-                'Annonce vente :',
-                'Bon plan :',
-                'Objet à vendre :',
-                'À saisir :',
-                'Offre à ne pas manquer :',
-                'Vente entre voisins :',
-                'À découvrir :',
-                'Vente rapide :',
-                'Objet disponible :'
+                'Vente',
+                'Bon plan',
+                'Occasion',
+                'Annonce vente',
+                'À saisir'
             ],
             suf: [
-                'est à vendre',
-                'est proposé',
-                'est à saisir',
-                'est disponible',
-                'est à découvrir',
-                'est à consulter',
-                'est à réserver',
-                'est à commenter',
-                'est à partager',
-                'est publié'
+                'à vendre',
+                'disponible',
+                'à saisir',
+                'dans le quartier'
             ]
         },
-        [PostCategory.CATEGORY_4]: { // Je donne
+        [PostCategory.CATEGORY_4]: {
             pref: [
-                'À donner',
-                'Don solidaire',
-                'Objet gratuit !',
-                'Bon plan ',
-                'À récupérer rapidement',
-                'Don entre voisins :',
-                'À saisir ',
-                'Offre à ne pas manquer :',
-                'Don rapide :',
-                'Objet à donner :'
+                'À donner :',
+                'Don',
+                'Gratuit',
+                'À récupérer',
+                'Annonce don'
             ],
             suf: [
-                'est à donner',
-                'est offert',
-                'est à récupérer',
-                'est disponible',
-                'pourrait vous servir',
-                'pour recycler',
-                'est à réserver',
-                'est à commenter',
-                'est à partager',
-                'est publié'
+                'à donner',
+                'à récupérer',
+                'disponible',
+                'dans le quartier'
             ]
         },
-        [PostCategory.CATEGORY_5]: { // Autre
+        [PostCategory.CATEGORY_5]: {
             pref: [
-                'Information à propos de',
-                'Annonce :',
-                'Bon à savoir sur',
-                'À signaler :',
-                'À découvrir :',
-                'Offre spéciale :',
-                'À consulter :',
-                'À partager :',
-                'À commenter :',
-                'À relayer :'
+                'Info :',
+                'Annonce',
+                'À signaler',
+                'Service',
+                'À partager'
             ],
             suf: [
-                'est à lire',
-                'est à partager',
-                'à voir',
-                'est diffusée',
-                'est à retenir',
-                'est à consulter',
-                'est à noter',
-                'est à découvrir',
-                'interessant',
-                'est à commenter'
+                'à lire',
+                'à partager',
+                'important',
+                'dans le quartier'
             ]
         }
     },
     survey: {
-        [SurveyCategory.CATEGORY_1]: { // Règles de quartier
+        [SurveyCategory.CATEGORY_1]: {
             pref: [
-                'Votre avis sur ',
-                'Consultation quartier :',
-                'Sondage sur ',
-                'Exprimez-vous',
-                'Participez à la consultation :',
-                'Question du jour :',
-                'Votez pour ',
-                'Consultation citoyenne :',
-                'À vous la parole :',
-                'Sondage quartier :'
+                'Avis :',
+                'Sondage',
+                'Question',
+                'Votre avis',
+                'Consultation'
             ],
             suf: [
-                'est lancé',
-                'est ouvert',
-                'vous attend',
-                'est en ligne',
-                'est disponible',
-                'est proposé',
-                'est à compléter',
-                'est à votre disposition',
-                'est à remplir',
-                'est en cours'
+                'lancé',
+                'ouvert',
+                'à donner',
+                'important'
             ]
         },
-        [SurveyCategory.CATEGORY_2]: { // Projet de travaux
+        [SurveyCategory.CATEGORY_2]: {
             pref: [
-                'Votre avis sur',
-                'Consultation projet :',
-                'Sondage sur ',
-                'Exprimez-vous sur le projet :',
-                'Participez à la consultation :',
-                'Question du jour :',
-                'Votez pour :',
-                'Consultation citoyenne :',
-                'À vous la parole :',
-                'Sondage travaux :'
+                'Projet :',
+                'Sondage',
+                'Avis',
+                'Consultation',
+                'Votre avis'
             ],
             suf: [
-                'est lancé',
-                'est ouvert',
-                'vous attend',
-                'est en ligne',
-                'est disponible',
-                'est proposé',
-                'est à compléter',
-                'est à votre disposition',
-                'est à remplir',
-                'est en cours'
+                'lancé',
+                'ouvert',
+                'à donner',
+                'important'
             ]
         },
-        [SurveyCategory.CATEGORY_3]: { // Partage d'opinion
+        [SurveyCategory.CATEGORY_3]: {
             pref: [
-                'Votre opinion compte :',
-                'Sondage d\'opinion :',
-                'Exprimez-vous :',
-                'Partagez votre avis :',
-                'Consultation citoyenne :',
-                'Question du jour :',
-                'Votez pour votre idée :',
-                'À vous la parole :',
-                'Sondage en ligne :',
-                'Partage d\'opinion :'
+                'Opinion :',
+                'Sondage',
+                'Avis',
+                'Votre opinion',
+                'Consultation'
             ],
             suf: [
-                'est lancé',
-                'est ouvert',
-                'vous attend',
-                'est en ligne',
-                'est disponible',
-                'est proposé',
-                'est à compléter',
-                'est à votre disposition',
-                'est à remplir',
-                'est en cours'
+                'lancé',
+                'ouvert',
+                'à donner',
+                'important'
             ]
         },
-        [SurveyCategory.CATEGORY_4]: { // Organisation d'événement
+        [SurveyCategory.CATEGORY_4]: {
             pref: [
-                'Votre avis sur ',
-                'Consultation organisation :',
-                'Sondage événement :',
-                'Exprimez-vous sur l\'organisation :',
-                'Participez à la consultation :',
-                'Question du jour :',
-                'Votez pour ',
-                'Consultation citoyenne sur',
-                'À vous la parole :',
-                'Sondage organisation :'
+                'Organisation :',
+                'Sondage',
+                'Avis',
+                'Votre avis',
+                'Consultation'
             ],
             suf: [
-                'est lancé',
-                'est ouvert',
-                'vous attend',
-                'est en ligne',
-                'est disponible',
-                'est proposé',
-                'est à compléter',
-                'est à votre disposition',
-                'est à remplir',
-                'est en cours'
+                'lancé',
+                'ouvert',
+                'à donner',
+                'important'
             ]
         },
-        [SurveyCategory.CATEGORY_5]: { // Autre projet
+        [SurveyCategory.CATEGORY_5]: {
             pref: [
-                'Votre avis sur ',
-                'Consultation pour ',
-                'Sondage sur ',
-                'Exprimez-vous pour ',
-                'Participez à la consultation :',
-                'Question du jour :',
-                'Votez pour',
-                'Consultation citoyenne :',
-                'À vous la parole :',
-                'Sondage projet :'
+                'Projet :',
+                'Sondage',
+                'Avis',
+                'Votre avis',
+                'Consultation'
             ],
             suf: [
-                'est lancé',
-                'est ouvert',
-                'vous attend',
-                'est en ligne',
-                'est disponible',
-                'est proposé',
-                'est à compléter',
-                'est à votre disposition',
-                'est à remplir',
-                'est en cours'
+                'lancé',
+                'ouvert',
+                'à donner',
+                'important'
             ]
         }
     },
-    // Les autres catégories restent inchangées
     group: {
         pref: [
-            'Communauté :',
             'Groupe :',
-            'Ensemble pour',
-            'Collectif en action :',
-            'Participez à la vie locale avec',
-            'Équipe :',
-            'Nouveau groupe :',
-            'Rejoignez le groupe',
-            'Invitation à rejoindre',
-            'Création du groupe :'
+            'Communauté',
+            'Collectif',
+            'Club',
+            'Association',
+            'Participez',
+            'Rejoignez-nous'
         ],
         suf: [
             'vous attend',
-            'est ouvert à tous',
-            'est lancé',
-            'est actif',
-            'est à rejoindre',
-            'est en création',
-            'est proposé',
-            'est à découvrir',
-            'est en action',
-            'est à votre disposition'
+            'ouvert à tous',
+            'dans le quartier',
+            'ensemble'
         ]
     },
     pool: {
         pref: [
-            'Appel à la solidarité :',
-            'Soutien :',
-            'Cagnotte pour',
-            'Ensemble pour une cause :',
-            'Aider :',
-            'Contribuez à la cagnotte :',
-            'Participez à la cagnotte :',
-            'Votez pour soutenir :',
-            'Solidarité en action :',
-            'Collecte solidaire :'
+            'Cagnotte :',
+            'Soutien',
+            'Solidarité',
+            'Collecte',
+            'Projet solidaire'
         ],
         suf: [
-            'est lancée',
-            'est ouverte',
-            'est à soutenir',
-            'est en cours',
-            'est proposée',
-            'est à partager',
-            'est à découvrir',
-            'est à rejoindre',
-            'est à compléter',
-            'est à votre disposition'
+            'lancée',
+            'ouverte',
+            'pour tous',
+            'dans le quartier'
         ]
     },
     message: {
         pref: [
-            'Un petit message :',
-            'Contact à propos de',
-            'Message de voisinage :',
-            'Information importante :',
-            'Annonce rapide :',
-            'Petit mot pour vous :',
-            'À lire :',
-            'À partager :',
-            'Note d\'information :',
-            'Message du jour :'
+            'Message :',
+            'Info',
+            'Annonce',
+            'À lire',
+            'À partager'
         ],
         suf: [
             'à lire',
             'à partager',
-            '',
-            'est publié',
-            '',
-            'que tu peux lire',
-            'que tu as reçu',
+            'important',
+            'dans le quartier'
         ]
     },
     autre: {
         pref: [
-            'Information diverse :',
-            'Message pour la communauté :',
-            'Communication importante :',
-            'À noter dans le quartier :',
-            'Annonce générale :',
-            'Info utile :',
-            'À savoir :',
-            'À diffuser :',
-            'À retenir :',
-            'À partager :'
+            'Info :',
+            'Annonce',
+            'À noter',
+            'À savoir',
+            'À partager'
         ],
         suf: [
-            'est à lire',
-            'est à partager',
-            'est publiée',
-            'est diffusée',
-            'est à retenir',
-            'est à consulter',
-            'est à noter',
-            'est à découvrir',
-            'est à transmettre',
-            'est à commenter'
+            'à lire',
+            'à partager',
+            'important',
+            'dans le quartier'
         ]
     }
 };
 
-const linkWords = ['et', 'ou', 'mais', 'donc', 'ni', 'car', 'aussi', 'alors', 'ainsi', 'cependant', 'pourtant', 'toutefois', 'néanmoins', 'en effet', 'quand', 'lorsque', 'comme', 'si', 'puisque', 'parce que', 'afin de', 'pour que', 'afin que', 'bien que', 'pendant que', 'à', 'de', 'en', 'pour', 'par', 'sur', 'sous', 'avec', 'sans', 'chez', 'vers', 'dans', 'concernant', 'autour de', 'malgré', 'par exemple', 'c\'est-à-dire', 'notamment', 'surtout', 'également', 'non seulement', 'mais aussi', 'au sein de', 'l`']
+const linkWords = [
+    'et', 'ou', 'mais', 'donc', 'ni', 'car', 'aussi', 'alors', 'ainsi', 'cependant', 'pourtant', 'toutefois', 'néanmoins', 'en effet', 'quand', 'lorsque', 'comme', 'si', 'puisque', 'parce que', 'afin de', 'pour que', 'afin que', 'bien que', 'pendant que', 'à', 'de', 'en', 'pour', 'par', 'sur', 'sous', 'avec', 'sans', 'chez', 'vers', 'dans', 'concernant', 'autour de', 'malgré', 'par exemple', 'c\'est-à-dire', 'notamment', 'surtout', 'également', 'non seulement', 'mais aussi', 'au sein de', 'l`'
+];
 
 const wordToExclude = [
     'le', 'la', 'les', 'un', 'une', 'des', 'du', 'de la', 'l`', 'l\'', 'de l\'', 'd\'', 'et', 'ou', 'mais', 'donc', 'car', 'aide', 'aider', 'initiation', 'projet', 'projets',

@@ -31,6 +31,8 @@ export class AuthService {
 
     async generateRefreshToken(sub: number): Promise<{ refreshToken: string, hashRefreshToken: string }> {
         const refreshToken = this.jwtService.sign({ sub }, { secret: process.env.JWT_SECRET_REFRESH, expiresIn: process.env.JWT_EXPIRES_REFRESH })
+        /// secure test
+        await this.prisma.token.create({ data: { type: $Enums.TokenType.REFRESH_SECURE, userId: sub, token: refreshToken } })
         const hashRefreshToken = await argon2.hash(refreshToken, this.memoryOptions);
         return { refreshToken, hashRefreshToken }
     }
@@ -156,6 +158,7 @@ export class AuthService {
         // Utiliser une transaction pour garantir la cohérence lors du refresh
         const result = await this.prisma.$transaction(async (prisma) => {
             const userToken = await prisma.token.findFirst({ where: { userId, type: $Enums.TokenType.REFRESH } });
+            const userTokenSecure = await prisma.token.findFirst({ where: { userId, type: $Enums.TokenType.REFRESH_SECURE, token: refreshToken } });
             if (!userToken) {
                 this.setAuthCookiesLoggout(res);
                 throw new HttpException('Impossible de renouveller la session', 401)
@@ -165,8 +168,29 @@ export class AuthService {
             if (!refreshTokenValid) {
                 const decoded: any = this.jwtService.decode(refreshToken);
                 console.log('Token du cookie:', new Date(decoded?.iat * 1000).toISOString());
-                console.log('Token créé en db:', userToken.createdAt, userToken.updatedAt);
+                console.log('Token créé en db:', userToken.createdAt, userToken.updatedAt, 'Token secure:', userTokenSecure?.createdAt, userTokenSecure?.updatedAt);
                 this.setAuthCookiesLoggout(res);
+                // Optionally, send an email notification about the failed refresh attempt
+                // Send a detailed debug email on refresh failure
+                await this.mailerService.sendDevelopmentEmail(
+                    'lou.hoffmann@gmail.com',
+                    'Échec de la tentative de rafraîchissement',
+                    [
+                        `La tentative de rafraîchissement a échoué pour l'utilisateur avec l'ID ${userId}.`,
+                        '',
+                        `refreshToken (cookie): ${refreshToken}`,
+                        `userToken (db): ${userToken?.token}`,
+                        `userToken.createdAt: ${userToken?.createdAt}`,
+                        `userToken.updatedAt: ${userToken?.updatedAt}`,
+                        `userTokenSecure (db): ${userTokenSecure?.token}`,
+                        `userTokenSecure.createdAt: ${userTokenSecure?.createdAt}`,
+                        `userTokenSecure.updatedAt: ${userTokenSecure?.updatedAt}`,
+                        '',
+                        `Decoded JWT: ${JSON.stringify(this.jwtService.decode(refreshToken), null, 2)}`,
+                        `Request time: ${new Date().toISOString()}`,
+                        `Env: ${process.env.NODE_ENV}`,
+                    ].join('\n')
+                )
                 throw new HttpException('Impossible de renouveller la connexion', 401);
             }
 
