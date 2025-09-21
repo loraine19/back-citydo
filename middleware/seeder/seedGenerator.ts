@@ -461,14 +461,9 @@ const titleWords: TitleWords = {
             'Collectif',
             'Club',
             'Association',
-            'Participez',
-            'Rejoignez-nous'
         ],
         suf: [
-            'vous attend',
-            'ouvert à tous',
-            'dans le quartier',
-            'ensemble'
+            '',
         ]
     },
     pool: {
@@ -1782,9 +1777,9 @@ export async function genereContent(
     let verb = !rev ? piocherElement(Element.verbe ?? []) : piocherElement(Element.verbeRev ?? []);
     !verb && (verb = securVerb);
     let baseTitre = piocherElement(wordsForTitle);
-    let add = piocherElement(Element.adjectif) || '';
+    let add = baseTitre.length > 30 ? '' : piocherElement(Element.adjectif) || '';
     let nom = Element.nom + ' ' + add;
-    titre = pref ? `${baseTitre} ${nom}` : `${nom} ${baseTitre}`;
+    titre = (nom.length > 30 || sujet === FakerSubjects.GROUP) ? nom : pref ? `${baseTitre} ${nom}` : `${nom} ${baseTitre}`;
     const descIntro = rev ? finaliserPhrase(`${nom} ${verb}`) : finaliserPhrase(`${verb} ${nom}`);
     description = descIntro + ' ' + generShortSentence(ContextPhrases, Element, options, nombrePhrasesDescription - 1);
 

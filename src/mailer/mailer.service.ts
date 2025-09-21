@@ -83,7 +83,7 @@ export class MailerService {
 
 
     public async sendNotificationEmail(to: string[], Notification: Notification) {
-        const subject = `Notification de City\'Zen : ${Notification.title}`;
+        const subject = `Notification de City\'do : ${Notification.title}`;
         const html = this.generateEmailHtml(`${Notification.title} ,<br>
             ${Notification.description ?? 'veuillez consulter l\'application pour plus de détails.'}`,
             Notification.link && `<a style="text-decoration: none; color: #fff"  href="${process.env.FRONT_URL}/${Notification.link}">Ouvrir dans l'application</a>`);

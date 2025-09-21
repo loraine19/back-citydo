@@ -14,7 +14,7 @@ export class PostsService {
   private postIncludeConfig(userId?: number) {
     return {
       User: { select: { id: true, GroupUser: { include: { Group: { select: { name: true, id: true } } } }, email: true, Profile: { include: { Address: true } } } },
-      Flags: { where: { target: $Enums.FlagTarget.EVENT, userId } },
+      Flags: { where: { target: $Enums.FlagTarget.POST, userId } },
       Likes: true,
       Group: { include: { GroupUser: true, Address: true } }
     };
