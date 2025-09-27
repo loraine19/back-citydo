@@ -92,7 +92,7 @@ export class EventsService {
       where,
       include: this.eventIncludeConfig(userId),
       orderBy
-    }) || [];
+    });
     return { events, count }
   }
 

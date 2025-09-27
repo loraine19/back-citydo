@@ -143,7 +143,7 @@ model Event {
   User            User          @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   Address         Address       @relation(fields: [addressId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   Participants    Participant[]
-  Flags           Flag[]        @relation(name: "EventFlag", map: "EventFlag")
+  Flags           Flag[]        @relation(name: "EventFlag", map: "Flag_targetId_event_fkey")
   status          EventStatus   @default(PENDING)
   groupId         Int
   Group           Group?        @relation(fields: [groupId], references: [id], onUpdate: Cascade, onDelete: Cascade)
@@ -179,7 +179,7 @@ model Service {
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
   Issue       Issue[]
-  Flags       Flag[]          @relation(name: "ServiceFlag", map: "ServiceFlag")
+  Flags       Flag[]          @relation(name: "ServiceFlag", map: "Flag_targetId_service_fkey")
   points      Int?            @default(0)
   groupId     Int
   Group       Group?          @relation(fields: [groupId], references: [id], onUpdate: Cascade, onDelete: Cascade)
@@ -215,7 +215,7 @@ model Survey {
   updatedAt   DateTime         @updatedAt
   User        User             @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   Votes       Vote[]           @relation(name: "SurveyVote", map: "surveyVote")
-  Flags       Flag[]           @relation(name: "SurveyFlag", map: "SurveyFlag")
+  Flags       Flag[]           @relation(name: "SurveyFlag", map: "Flag_targetId_survey_fkey")
   status      PoolSurveyStatus @default(PENDING)
   groupId     Int
   Group       Group?           @relation(fields: [groupId], references: [id], onUpdate: Cascade, onDelete: Cascade)
@@ -266,7 +266,7 @@ model Post {
   User        User         @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   Likes       Like[]
   share       Share        @default(EMAIL)
-  Flags       Flag[]       @relation(name: "PostFlag", map: "PostFlag")
+  Flags       Flag[]       @relation(name: "PostFlag", map: "Flag_targetId_post_fkey")
   groupId     Int
   Group       Group?       @relation(fields: [groupId], references: [id], onUpdate: Cascade, onDelete: Cascade)
 }
@@ -283,19 +283,21 @@ model Like {
 
 ///// FLAG 
 model Flag {
-  targetId  Int
   userId    Int
+  targetId  Int
   target    FlagTarget
   reason    FlagReason
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
   User      User       @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Cascade)
-  Post      Post?      @relation(fields: [targetId], references: [id], onUpdate: Cascade, onDelete: Cascade, name: "PostFlag", map: "PostFlag")
-  Event     Event?     @relation(fields: [targetId], references: [id], onUpdate: Cascade, onDelete: Cascade, name: "EventFlag", map: "EventFlag")
-  Survey    Survey?    @relation(fields: [targetId], references: [id], onUpdate: Cascade, onDelete: Cascade, name: "SurveyFlag", map: "SurveyFlag")
-  Service   Service?   @relation(fields: [targetId], references: [id], onUpdate: Cascade, onDelete: Cascade, name: "ServiceFlag", map: "ServiceFlag")
+  // Relations to each target type (optional, only one will be set depending on 'target')
+  Post      Post?      @relation(fields: [targetId], references: [id], name: "PostFlag", onUpdate: Cascade, onDelete: Cascade, map: "Flag_targetId_post_fkey")
+  Event     Event?     @relation(fields: [targetId], references: [id], name: "EventFlag", onUpdate: Cascade, onDelete: Cascade, map: "Flag_targetId_event_fkey")
+  Survey    Survey?    @relation(fields: [targetId], references: [id], name: "SurveyFlag", onUpdate: Cascade, onDelete: Cascade, map: "Flag_targetId_survey_fkey")
+  Service   Service?   @relation(fields: [targetId], references: [id], name: "ServiceFlag", onUpdate: Cascade, onDelete: Cascade, map: "Flag_targetId_service_fkey")
 
   @@id([userId, target, targetId])
+  @@index([target, targetId])
 }
 
 ////// NOTIFICATION

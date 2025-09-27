@@ -23,28 +23,55 @@ export class FlagsService {
     const exist = await this.prisma.flag.findUnique({ where: { userId_target_targetId: { userId, target, targetId } } });
     if (exist) throw new HttpException('msg: Vous avez deja signalé ce contenu', HttpStatus.CONFLICT);
     const d = { ...flag, User: { connect: { id: userId } }, target }
-    let data2: { data: any, include: any };
-    if (target === $Enums.FlagTarget.EVENT) {
-      const eventExists = await this.prisma.event.findUnique({ where: { id: targetId } });
-      if (!eventExists) throw new HttpException('msg: l\'evenement n\'existe pas', HttpStatus.BAD_REQUEST);
-      data2 = { data: { ...d, Event: { connect: { id: targetId } } }, include: { Event: true } };
+    console.log(target, $Enums.FlagTarget.POST, target === $Enums.FlagTarget.POST)
+
+    let flagCreated = null
+    switch (target) {
+      case $Enums.FlagTarget.EVENT: {
+        const eventExists = await this.prisma.event.findUnique({ where: { id: targetId } });
+        if (!eventExists) throw new HttpException('msg: l\'evenement n\'existe pas', HttpStatus.BAD_REQUEST);
+        flagCreated = await this.prisma.flag.create({ data: { ...d, Event: { connect: { id: targetId } } }, include: { Event: true } });
+        break;
+      }
+      case $Enums.FlagTarget.POST: {
+        const postExists = await this.prisma.post.findUnique({ where: { id: targetId } });
+        if (!postExists) throw new HttpException(`msg: l'annonce ${targetId} n\'existe pas`, HttpStatus.BAD_REQUEST);
+        flagCreated = await this.prisma.flag.create({ data: { ...d, Post: { connect: { id: targetId } } }, include: { Post: true } });
+        break;
+      }
+      case $Enums.FlagTarget.SERVICE: {
+        const serviceExists = await this.prisma.service.findUnique({ where: { id: targetId } });
+        if (!serviceExists) throw new HttpException(`msg: le service ${targetId} n\'existe pas`, HttpStatus.BAD_REQUEST);
+        flagCreated = await this.prisma.flag.create({ data: { ...d, Service: { connect: { id: targetId } } }, include: { Service: true } });
+        break;
+      }
+      case $Enums.FlagTarget.SURVEY: {
+        const surveyExists = await this.prisma.survey.findUnique({ where: { id: targetId } });
+        if (!surveyExists) throw new HttpException(`msg: le sondage ${targetId} n\'existe pas`, HttpStatus.BAD_REQUEST);
+        flagCreated = await this.prisma.flag.create({ data: { ...d, Survey: { connect: { id: targetId } } }, include: { Survey: true } });
+        break;
+      }
+      default:
+        throw new HttpException('msg: Type de cible non supporté', HttpStatus.BAD_REQUEST);
     }
-    if (target === $Enums.FlagTarget.POST) {
-      const postExists = await this.prisma.post.findUnique({ where: { id: targetId } });
-      if (!postExists) throw new HttpException(`msg: l'annonce ${targetId} n\'existe pas`, HttpStatus.BAD_REQUEST);
-      data2 = { data: { ...d, Post: { connect: { id: targetId } } }, include: { Post: true } };
-    }
-    if (target === $Enums.FlagTarget.SERVICE) {
-      const serviceExists = await this.prisma.service.findUnique({ where: { id: targetId } });
-      if (!serviceExists) throw new HttpException(`msg: le service ${targetId} n\'existe pas`, HttpStatus.BAD_REQUEST);
-      data2 = { data: { ...d, Service: { connect: { id: targetId } } }, include: { Service: true } };
-    }
-    if (target === $Enums.FlagTarget.SURVEY) {
-      const surveyExists = await this.prisma.survey.findUnique({ where: { id: targetId } });
-      if (!surveyExists) throw new HttpException(`msg: le sondage ${targetId} n\'existe pas`, HttpStatus.BAD_REQUEST);
-      data2 = { data: { ...d, Survey: { connect: { id: targetId } } }, include: { Survey: true } };
-    }
-    const flagCreated = await this.prisma.flag.create({ data: data2.data, include: data2.include });
+    ///// FLAG 
+    // model Flag {
+    //   targetId  Int
+    //   userId    Int
+    //   target    FlagTarget
+    //   reason    FlagReason
+    //   createdAt DateTime   @default(now())
+    //   updatedAt DateTime   @updatedAt
+    //   User      User       @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+    //   Post      Post?      @relation(fields: [targetId], references: [id], onUpdate: Cascade, onDelete: Cascade, name: "PostFlag", map: "PostFlag")
+    //   Event     Event?     @relation(fields: [targetId], references: [id], onUpdate: Cascade, onDelete: Cascade, name: "EventFlag", map: "EventFlag")
+    //   Survey    Survey?    @relation(fields: [targetId], references: [id], onUpdate: Cascade, onDelete: Cascade, name: "SurveyFlag", map: "SurveyFlag")
+    //   Service   Service?   @relation(fields: [targetId], references: [id], onUpdate: Cascade, onDelete: Cascade, name: "ServiceFlag", map: "ServiceFlag")
+
+    //   @@id([userId, target, targetId])
+
+
+    //const flagCreated = await this.prisma.flag.create({ data: data2.data, include: data2.include });
     const flagCount = await this.prisma.flag.count({ where: { targetId, target, reason: flag.reason } });
     if (flagCount >= 3) {
       const deleted = await this.prisma[FlagTarget[target]].delete({ where: { id: targetId }, include: { User: { select: this.select } } });

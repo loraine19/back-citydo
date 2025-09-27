@@ -79,7 +79,7 @@ CREATE TABLE `Profile` (
 CREATE TABLE `Token` (
     `userId` INTEGER NOT NULL,
     `token` VARCHAR(191) NOT NULL,
-    `type` ENUM('REFRESH', 'RESET', 'VERIFY', 'DELETE', 'REFRESH_GOOGLE') NOT NULL,
+    `type` ENUM('REFRESH', 'REFRESH_SECURE', 'RESET', 'VERIFY', 'DELETE', 'REFRESH_GOOGLE') NOT NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
     `expiredAt` DATETIME(3) NULL,
@@ -227,13 +227,14 @@ CREATE TABLE `Like` (
 
 -- CreateTable
 CREATE TABLE `Flag` (
-    `targetId` INTEGER NOT NULL,
     `userId` INTEGER NOT NULL,
+    `targetId` INTEGER NOT NULL,
     `target` ENUM('EVENT', 'POST', 'SURVEY', 'SERVICE') NOT NULL,
     `reason` ENUM('REASON_1', 'REASON_2', 'REASON_3', 'REASON_4', 'REASON_5') NOT NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
 
+    INDEX `Flag_target_targetId_idx`(`target`, `targetId`),
     PRIMARY KEY (`userId`, `target`, `targetId`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -362,16 +363,16 @@ ALTER TABLE `Like` ADD CONSTRAINT `Like_postId_fkey` FOREIGN KEY (`postId`) REFE
 ALTER TABLE `Flag` ADD CONSTRAINT `Flag_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `Flag` ADD CONSTRAINT `PostFlag` FOREIGN KEY (`targetId`) REFERENCES `Post`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `Flag` ADD CONSTRAINT `Flag_targetId_post_fkey` FOREIGN KEY (`targetId`) REFERENCES `Post`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `Flag` ADD CONSTRAINT `EventFlag` FOREIGN KEY (`targetId`) REFERENCES `Event`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `Flag` ADD CONSTRAINT `Flag_targetId_event_fkey` FOREIGN KEY (`targetId`) REFERENCES `Event`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `Flag` ADD CONSTRAINT `SurveyFlag` FOREIGN KEY (`targetId`) REFERENCES `Survey`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `Flag` ADD CONSTRAINT `Flag_targetId_survey_fkey` FOREIGN KEY (`targetId`) REFERENCES `Survey`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `Flag` ADD CONSTRAINT `ServiceFlag` FOREIGN KEY (`targetId`) REFERENCES `Service`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `Flag` ADD CONSTRAINT `Flag_targetId_service_fkey` FOREIGN KEY (`targetId`) REFERENCES `Service`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `Notification` ADD CONSTRAINT `Notification_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
