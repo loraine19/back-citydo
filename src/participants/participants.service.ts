@@ -42,7 +42,7 @@ export class ParticipantsService {
       type: $Enums.NotificationType.PARTICIPANT,
       level: $Enums.NotificationLevel.SUB_2,
       title: `Participation confirmée`,
-      description: `à l'événement ${event.title} le ${event.start.toLocaleDateString()} ${isValided && "l'événement} a été validé"}`,
+      description: `vous êtes inscrit à l'événement ${event.title} le ${event.start.toLocaleDateString()} ${isValided && "l'événement} a été validé"}`,
       link: `/evenement/${eventId}`,
       addressId: event.Address.id
     }

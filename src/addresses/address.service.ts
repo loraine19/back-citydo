@@ -7,9 +7,11 @@ import { PrismaService } from '../prisma/prisma.service';
 export class AddressService {
   constructor(private prisma: PrismaService) { }
   async create(data: CreateAddressDto): Promise<Address> {
-    return await this.prisma.address.create({
+    const address = await this.prisma.address.create({
       data
     });
+    console.log(address);
+    return address;
   }
 
   async findAll(): Promise<Address[]> {
@@ -31,7 +33,9 @@ export class AddressService {
     const { address, zipcode } = data;
     const exist = await this.prisma.address.findUnique({ where: { address_zipcode: { address, zipcode } } })
     if (exist) return exist.id;
+    console.log(data, exist)
     const newAddress = await this.prisma.address.create({ data })
+    console.log(newAddress)
     return newAddress.id;
   }
 

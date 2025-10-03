@@ -135,6 +135,7 @@ export class EventsService {
 
   async update(updateId: number, data: UpdateEventDto, userIdC: number): Promise<Event> {
     const { userId, addressId, Address, groupId, ...event } = data;
+    console.log(data)
     if (userIdC !== userId) throw new HttpException('msg: Vous n\'avez pas les droits de modifier cet évènement', 403)
     const addressIdVerified = await this.addressService.verifyAddress(Address);
     const eventUpdated = await this.prisma.event.update({

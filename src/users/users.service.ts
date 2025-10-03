@@ -15,7 +15,7 @@ export class UsersService {
   private userSelectConfig = {
     id: true,
     email: true,
-    GroupUser: { include: { Group: { select: { name: true, id: true } } } },
+    GroupUser: { include: { Group: { select: { name: true, id: true, GroupUser: { include: { User: { select: { email: true } } } } } } } },
     Profile: { include: { Address: true } }
   }
 
@@ -66,7 +66,7 @@ export class UsersService {
         lastConnection: true,
         status: true,
         Profile: { include: { Address: true } },
-        GroupUser: { include: { Group: true } }
+        GroupUser: { include: { Group: { include: { GroupUser: { include: { User: { select: { email: true } } } } } } } }
       },
     });
   }
