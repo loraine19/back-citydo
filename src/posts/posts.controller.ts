@@ -22,7 +22,7 @@ export class PostsController {
   @ApiBearerAuth()
   @ApiOkResponse({ type: PostEntity })
   @ApiBody({ type: CreatePostDto })
-  @UseInterceptors(ImageInterceptor.create('posts'))
+  @UseInterceptors(ImageInterceptor.create('post'))
   @ApiConsumes('multipart/form-data', 'application/json')
   async create(
     @Body() data: CreatePostDto,
@@ -42,7 +42,7 @@ export class PostsController {
   @ApiBearerAuth()
   @ApiOkResponse({ type: PostEntity })
   @ApiBody({ type: UpdatePostDto })
-  @UseInterceptors(ImageInterceptor.create('posts'))
+  @UseInterceptors(ImageInterceptor.create('post'))
   @ApiConsumes('multipart/form-data', 'application/json')
   async update(
     @Param('id', ParseIntPipe) id: number,
@@ -51,7 +51,7 @@ export class PostsController {
     @User() userId: number): Promise<PostEntity> {
     data.userId = userId
     const post = await this.postsService.findOne(id, data.userId)
-    post.image && image && ImageInterceptor.deleteImage(post.image)
+    post.image && image && ImageInterceptor.deleteImage(post.image, 'post')
     data = await parseData(data, image)
     return this.postsService.update(id, data)
   }

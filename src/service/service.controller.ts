@@ -46,7 +46,7 @@ export class ServicesController {
     @Body() data: UpdateServiceDto,
     @UploadedFile() image: Express.Multer.File,): Promise<Service> {
     const service = await this.serviceService.findOne(id, data.userId)
-    service.image && image && ImageInterceptor.deleteImage(service.image)
+    service.image && image && ImageInterceptor.deleteImage(service.image, 'service')
     data = parseData(data, image)
     return this.serviceService.update(id, data)
   }

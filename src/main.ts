@@ -41,6 +41,7 @@ async function bootstrap() {
   app.setBaseViewsDir(join('../public'));
   const allowedOrigins = [
     process.env.FRONT_URL,
+    'http://localhost:4173',
   ];
 
   app.enableCors({

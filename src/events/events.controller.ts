@@ -21,7 +21,7 @@ export class EventsController {
   @ApiBearerAuth()
   @ApiOkResponse({ type: EventEntity })
   @ApiBody({ type: CreateEventDto })
-  @UseInterceptors(ImageInterceptor.create('events'))
+  @UseInterceptors(ImageInterceptor.create('event'))
   @ApiConsumes('multipart/form-data')
   async create(
     @Body() data: CreateEventDto,
@@ -30,7 +30,6 @@ export class EventsController {
     Promise<Event> {
     data.userId = userId
     data = await parseData(data, image)
-    console.log('Creating event with data:', data)
     return this.eventsService.create(data)
   }
 
@@ -38,7 +37,7 @@ export class EventsController {
   @ApiBearerAuth()
   @ApiOkResponse({ type: EventEntity })
   @ApiBody({ type: UpdateEventDto })
-  @UseInterceptors(ImageInterceptor.create('events'))
+  @UseInterceptors(ImageInterceptor.create('event'))
   @ApiConsumes('multipart/form-data')
   async update(
     @Param('id', ParseIntPipe) id: number,
@@ -46,7 +45,7 @@ export class EventsController {
     @UploadedFile() image: Express.Multer.File,
     @User() userId: number,): Promise<Event> {
     const event = await this.eventsService.findOne(id, userId)
-    event.image && image && ImageInterceptor.deleteImage(event.image)
+    event.image && image && ImageInterceptor.deleteImage(event.image, 'event')
     data = await parseData(data, image)
     return this.eventsService.update(id, data, userId)
   }

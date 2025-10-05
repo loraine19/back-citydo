@@ -25,7 +25,7 @@ export class ProfilesController {
   @ApiBearerAuth()
   @ApiOkResponse({ type: ProfileEntity })
   @ApiBody({ type: CreateProfileDto })
-  @UseInterceptors(ImageInterceptor.create('profiles'))
+  @UseInterceptors(ImageInterceptor.create('profile'))
   @ApiConsumes('multipart/form-data')
   async create(
     @Body() data: any,
@@ -40,14 +40,14 @@ export class ProfilesController {
   @ApiBearerAuth()
   @ApiOkResponse({ type: ProfileEntity })
   @ApiBody({ type: UpdateProfileDto })
-  @UseInterceptors(ImageInterceptor.create('profiles'))
+  @UseInterceptors(ImageInterceptor.create('profile'))
   @ApiConsumes('multipart/form-data')
   async update(
     @Body() data: UpdateProfileDto,
     @UploadedFile() image: Express.Multer.File,
     @User() userId: number): Promise<Profile> {
     const profileVerify = await this.profilesService.findOneByUserId(userId)
-    if (profileVerify.image && image) { ImageInterceptor.deleteImage(profileVerify.image, 'profiles') }
+    if (profileVerify.image && image) { ImageInterceptor.deleteImage(profileVerify.image, 'profile') }
     data.userId = userId
     data = await parseData(data, image)
     return this.profilesService.update(data, userId);

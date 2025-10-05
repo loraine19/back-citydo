@@ -8,6 +8,7 @@ import * as path from 'path';
 @Injectable()
 export class ImageInterceptor {
     static create(element: string) {
+        console.log('element', element);
         const dir = `./dist/public/images/${element}`;
         if (!fs.existsSync(dir)) {
             fs.mkdirSync(dir, { recursive: true });
@@ -30,6 +31,7 @@ export class ImageInterceptor {
         const dirName = directory ?? path.dirname(fullPath).split(path.sep).pop();
         const rootPath = path.join(__dirname, '..', 'public')
         const dir = path.join(rootPath, 'images', dirName);
+        if (!fs.existsSync(dir)) return true;
         const files = fs.readdirSync(dir);
         if (!files) return true;
         else fs.unlink(fullPath, (err) => {

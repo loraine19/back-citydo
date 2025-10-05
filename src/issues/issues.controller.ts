@@ -20,7 +20,7 @@ export class IssuesController {
   @ApiBearerAuth()
   @ApiOkResponse({ type: IssueEntity })
   @ApiBody({ type: CreateIssueDto })
-  @UseInterceptors(ImageInterceptor.create('issues'))
+  @UseInterceptors(ImageInterceptor.create('issue'))
   @ApiConsumes('multipart/form-data')
   async create(
     @Body() data: any,
@@ -35,7 +35,7 @@ export class IssuesController {
   @ApiBearerAuth()
   @ApiOkResponse({ type: IssueEntity })
   @ApiBody({ type: UpdateIssueDto })
-  @UseInterceptors(ImageInterceptor.create('issues'))
+  @UseInterceptors(ImageInterceptor.create('issue'))
   @ApiConsumes('multipart/form-data')
   async update(
     @Param('id', ParseIntPipe) id: number,
