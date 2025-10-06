@@ -65,13 +65,28 @@ export class MessagesService {
       include: this.includeUsersConfig,
       orderBy: { createdAt: 'desc' }
     });
-    const conversations = data.reduce((acc, message) => {
+    let conversations = data.reduce((acc, message) => {
       const { userId, userIdRec } = message;
       if (!acc.some(m => (m.userId === userId && m.userIdRec === userIdRec) || (m.userId === userIdRec && m.userIdRec === userId))) {
         acc.push(message);
       }
       return acc;
     }, []);
+
+    // Add unread count for each conversation
+    const conversationsWithUnread = await Promise.all(conversations.map(async (conv) => {
+      const otherUserId = conv.userId === userId ? conv.userIdRec : conv.userId;
+      const unreadCount = await this.prisma.message.count({
+        where: {
+          userId: otherUserId,
+          userIdRec: userId,
+          read: false
+        }
+      });
+      return { ...conv, unreadCount };
+    }));
+
+    conversations = conversationsWithUnread;
 
     return { conversations, count: conversations.length };
   }
