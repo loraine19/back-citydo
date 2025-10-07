@@ -29,7 +29,6 @@ export class UsersController {
   async findAll(
     @Param('groupId', ParseIntPipe) groupId: number,
     @UserDec() userId: number): Promise<Partial<User>[]> {
-    console.log(`Finding users in group ${groupId} for user ${userId}`);
     return await this.usersService.usersInGroup(userId, groupId) || []
   }
 

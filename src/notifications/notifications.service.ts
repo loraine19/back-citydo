@@ -57,7 +57,6 @@ export class NotificationsService {
     const countOther = await this.prisma.notification.count({ where: { userId, type: { not: $Enums.NotificationType.MESSAGE }, read: false } });
     const take = (page && page !== 0) ? this.limit : count;
     const notifs = await this.prisma.notification.findMany({ where, skip, take, orderBy: { createdAt: 'desc' }, include: { Address: true } });
-    console.log({ count, countMsg, countOther });
     return { notifs, count, countMsg, countOther };
   }
 

@@ -174,7 +174,6 @@ export class ServicesService {
       include: this.serviceIncludeConfig(userId),
       data: { UserResp: { disconnect: true }, status: $Enums.ServiceStep.STEP_0 }
     })
-    console.log(update)
     if (update) {
       const notification = {
         title: 'annulation de prise en charge de service',

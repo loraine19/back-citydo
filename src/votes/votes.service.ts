@@ -80,7 +80,6 @@ export class VotesService {
 
 
   async update(userId: number, data: UpdateVoteDto): Promise<Vote> {
-    console.log(data)
     const { targetId, target, opinion } = data
     const targetFind = target === $Enums.VoteTarget.POOL ? await this.prisma.pool.findUnique({ where: { id: targetId } }) : await this.prisma.survey.findUnique({ where: { id: targetId } });
     const vote = await this.prisma.vote.findUnique({ where: { userId_target_targetId: { userId, targetId: data.targetId, target: data.target } } });
