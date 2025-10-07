@@ -71,6 +71,7 @@ export class IssuesController {
     @User() userId: any,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page?: number,
     @Query('filter') filter?: any): Promise<{ issues: Issue[], count: number }> {
+    console.log(filter, 'filter controller')
     return await this.issuesService.findAll(userId, page, filter);
   }
 

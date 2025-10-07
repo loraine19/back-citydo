@@ -78,6 +78,7 @@ export class IssuesService {
   }
 
   async findAll(userId: number, page: number, filter?: string): Promise<{ issues: Issue[], count: number }> {
+    console.log(filter, 'filter')
     let OR = [];
     filter === IssueFilter.MINE ?
       OR = [{ Service: { is: { userId } } },
@@ -110,6 +111,7 @@ export class IssuesService {
     const count = await this.prisma.issue.count({ where });
     const take = page ? this.limit : count;
     const issues = await this.prisma.issue.findMany({ take, skip, where, include: this.issueIncludeConfig })
+    console.log(issues, 'issues', where)
     return { issues, count };
   }
 

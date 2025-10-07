@@ -38,8 +38,8 @@ export class UsersController {
   @ApiBearerAuth()
   async findAllModo(
     @Param('groupId', ParseIntPipe) groupId: number,
-    @UserDec() userId: number): Promise<Partial<User>[]> {
-    return await this.usersService.findAllModo(userId, groupId) || []
+    @UserDec() userId: number): Promise<{ modos: Partial<User>[], count: number }> {
+    return await this.usersService.findAllModo(userId, groupId) || { modos: [], count: 0 };
   }
 
   @Get('count/:groupId')

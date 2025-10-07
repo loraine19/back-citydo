@@ -19,6 +19,10 @@ export class UsersService {
     Profile: { include: { Address: true } }
   }
 
+
+  limit = parseInt(process.env.LIMIT)
+  skip(page: number) { return (page - 1) * this.limit }
+
   async create(data: CreateUserDto): Promise<Partial<User>> {
     let user = { ...data };
     const userFind = await this.prisma.user.findUnique({ where: { email: user.email } });
@@ -32,27 +36,33 @@ export class UsersService {
     return await this.prisma.user.findMany({ include: this.userSelectConfig });
   }
 
-  async findAllModo(id: number, groupId: number): Promise<Partial<User>[]> {
+  async findAllModo(id: number, groupId: number, page?: number): Promise<{ modos: Partial<User>[], count: number }> {
+    const skip = page ? this.skip(page) : 0;
     const user = await this.prisma.user.findUnique({ where: { id }, include: { GroupUser: true } });
     if (user.GroupUser.every(g => g.groupId !== groupId)) throw new HttpException('msg: Vous ne faites pas partie de ce groupe', HttpStatus.FORBIDDEN);
-    const modos = await this.prisma.user.findMany({
-      where: {
-        id: { not: id },
-        GroupUser: {
-          some: {
-            groupId,
-            role: { equals: $Enums.Role.MODO }
-          }
+    const where = {
+      id: { not: id },
+      GroupUser: {
+        some: {
+          groupId,
+          role: { equals: $Enums.Role.MODO }
         }
-      },
-      select: {
-        id: true,
-        email: true,
-        GroupUser: true,
-        Profile: { include: { Address: true } }
-      },
+      }
+    }
+    const select = {
+      id: true,
+      email: true,
+      GroupUser: true,
+      Profile: { include: { Address: true } }
+    }
+    const count = await this.prisma.user.count({ where });
+    const modos = await this.prisma.user.findMany({
+      where,
+      select,
+      skip,
+      take: this.limit
     });
-    return modos || [];
+    return { modos, count };
   }
 
 
