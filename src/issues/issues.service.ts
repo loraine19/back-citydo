@@ -78,7 +78,6 @@ export class IssuesService {
   }
 
   async findAll(userId: number, page: number, filter?: string): Promise<{ issues: Issue[], count: number }> {
-    console.log(filter, 'filter')
     let OR = [];
     filter === IssueFilter.MINE ?
       OR = [{ Service: { is: { userId } } },

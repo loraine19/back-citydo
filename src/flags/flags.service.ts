@@ -23,7 +23,6 @@ export class FlagsService {
     const exist = await this.prisma.flag.findUnique({ where: { userId_target_targetId: { userId, target, targetId } } });
     if (exist) throw new HttpException('msg: Vous avez deja signalé ce contenu', HttpStatus.CONFLICT);
     const d = { ...flag, User: { connect: { id: userId } }, target }
-    console.log(target, $Enums.FlagTarget.POST, target === $Enums.FlagTarget.POST)
 
     let flagCreated = null
     switch (target) {
