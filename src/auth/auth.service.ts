@@ -30,7 +30,8 @@ export class AuthService {
     }
 
     async generateRefreshToken(sub: number, tx?: Prisma.TransactionClient): Promise<{ refreshToken: string, hashRefreshToken: string }> {
-        const client = tx ?? this.prisma; // Utilise la transaction si fournie, sinon le global
+        console.log(tx)
+        const client = this.prisma; // Utilise la transaction si fournie, sinon le global
 
         const refreshToken = this.jwtService.sign({ sub }, { secret: process.env.JWT_SECRET_REFRESH, expiresIn: process.env.JWT_EXPIRES_REFRESH })
         /// secure test

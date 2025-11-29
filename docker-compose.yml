@@ -32,7 +32,7 @@ services:
     container_name: citydo-back
     image: lorainep/citydo-back:latest
     build:
-      dockerfile: Dockerfile.nest
+      dockerfile: Dockerfile
       context: .
     networks:
       - back
