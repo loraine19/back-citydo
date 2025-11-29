@@ -4,7 +4,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import * as argon2 from 'argon2';
 import { SignInDto } from './dto/signIn.dto';
-import { $Enums, Profile, User, UserStatus } from '@prisma/client';
+import { $Enums, Profile, User, UserStatus, Prisma } from '@prisma/client';
 import { MailerService } from 'src/mailer/mailer.service';
 import { AuthUserGoogle } from './dto/authUserGoogle.dto';
 
@@ -29,14 +29,16 @@ export class AuthService {
         return this.jwtService.sign({ sub }, { secret: process.env.JWT_SECRET, expiresIn: process.env.JWT_EXPIRES_ACCESS })
     }
 
-    async generateRefreshToken(sub: number): Promise<{ refreshToken: string, hashRefreshToken: string }> {
+    async generateRefreshToken(sub: number, tx?: Prisma.TransactionClient): Promise<{ refreshToken: string, hashRefreshToken: string }> {
+        const client = tx ?? this.prisma; // Utilise la transaction si fournie, sinon le global
+
         const refreshToken = this.jwtService.sign({ sub }, { secret: process.env.JWT_SECRET_REFRESH, expiresIn: process.env.JWT_EXPIRES_REFRESH })
         /// secure test
-        const findToken = await this.prisma.token.findUnique({ where: { userId_type: { userId: sub, type: $Enums.TokenType.REFRESH_SECURE } } })
+        const findToken = await client.token.findUnique({ where: { userId_type: { userId: sub, type: $Enums.TokenType.REFRESH_SECURE } } })
         if (!findToken) {
-            await this.prisma.token.create({ data: { userId: sub, token: refreshToken, type: $Enums.TokenType.REFRESH_SECURE } })
+            await client.token.create({ data: { userId: sub, token: refreshToken, type: $Enums.TokenType.REFRESH_SECURE } })
         }
-        else await this.prisma.token.update({ where: { userId_type: { userId: sub, type: $Enums.TokenType.REFRESH_SECURE } }, data: { type: $Enums.TokenType.REFRESH_SECURE, token: refreshToken } })
+        else await client.token.update({ where: { userId_type: { userId: sub, type: $Enums.TokenType.REFRESH_SECURE } }, data: { type: $Enums.TokenType.REFRESH_SECURE, token: refreshToken } })
         const hashRefreshToken = await argon2.hash(refreshToken, this.memoryOptions);
         return { refreshToken, hashRefreshToken }
     }
@@ -199,7 +201,7 @@ export class AuthService {
             }
 
             const accessToken = await this.generateAccessToken(userId);
-            const newRefresh = await this.generateRefreshToken(userId);
+            const newRefresh = await this.generateRefreshToken(userId, prisma);
 
             const updateRefreshToken = await prisma.token.create({
                 data: { userId, token: newRefresh.hashRefreshToken, type: $Enums.TokenType.REFRESH, expiredAt: this.expiredAt(process.env.COOKIE_EXPIRES_REFRESH) }
