@@ -1,5 +1,5 @@
 
-FROM node:24-slim AS build
+FROM node:slim AS build
 
 WORKDIR /app
 
@@ -17,11 +17,9 @@ RUN npx prisma generate
 
 RUN npm run build
 
-FROM node:24-slim
+FROM node:slim
 
 WORKDIR /app
-
-RUN apt-get update -y && apt-get install -y openssl ca-certificates
 
 COPY package*.json ./
 
