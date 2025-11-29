@@ -121,6 +121,7 @@ export class CronTaskService {
         })
     }
 
+    /// DELETE OLD PHOTOS
     @Cron(CronExpression.EVERY_WEEK)
     async deleteOldPhotos() {
         const rootPath = path.join(__dirname, '..', '..', 'public')
@@ -134,6 +135,7 @@ export class CronTaskService {
                     console.log('file not in db', file);
                     fs.unlinkSync(path.join(dir, file));
                 }
+                else console.log('file in db', file);
             }
         }
         await clean('issues', (file: string) => this.prisma.issue.findFirst({ where: { image: file } }));
