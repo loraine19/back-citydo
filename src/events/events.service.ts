@@ -13,7 +13,7 @@ import { EventFilter, EventFindParams, EventSort } from './constant';
 export class EventsService {
   constructor(private prisma: PrismaService, private notificationsService: NotificationsService, private addressService: AddressService) { }
 
-  private eventIncludeConfig(userId?: number) {
+  private eventIncludeConfig(userId: number) {
     return {
       User: { select: { email: true, Profile: { include: { Address: true } } } },
       Participants: { include: { User: { select: { email: true, Profile: { include: { Address: true } }, id: true, GroupUser: { include: { Group: { select: { name: true, id: true } } } } } } } },
@@ -55,9 +55,9 @@ export class EventsService {
 
 
   //// CONSULT
-  async findAll(userId: number, page?: number,
-    params?: EventFindParams):
+  async findAll(userId: number, page?: number, params?: EventFindParams):
     Promise<{ events: Event[], count: number }> {
+    console.log(userId)
     const { category, filter, sort, reverse, search } = params;
     const skip = page ? this.skip(page) : 0;
     const Group = this.groupSelectConfig(userId);

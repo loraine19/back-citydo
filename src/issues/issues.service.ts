@@ -110,7 +110,6 @@ export class IssuesService {
     const count = await this.prisma.issue.count({ where });
     const take = page ? this.limit : count;
     const issues = await this.prisma.issue.findMany({ take, skip, where, include: this.issueIncludeConfig })
-    console.log(issues, 'issues', where)
     return { issues, count };
   }
 

@@ -22,7 +22,6 @@ export class FlagsController {
     @Body() data: CreateFlagDto | any,
     @User() userId: number): Promise<Flag> {
     data.userId = userId
-    console.log('Creating flag with data:', data)
     return this.flagsService.create(data)
   }
 

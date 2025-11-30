@@ -30,9 +30,7 @@ export class AuthService {
     }
 
     async generateRefreshToken(sub: number, tx?: Prisma.TransactionClient): Promise<{ refreshToken: string, hashRefreshToken: string }> {
-        console.log(tx)
-        const client = this.prisma; // Utilise la transaction si fournie, sinon le global
-
+        const client = tx ?? this.prisma;
         const refreshToken = this.jwtService.sign({ sub }, { secret: process.env.JWT_SECRET_REFRESH, expiresIn: process.env.JWT_EXPIRES_REFRESH } as any)
         /// secure test
         const findToken = await client.token.findUnique({ where: { userId_type: { userId: sub, type: $Enums.TokenType.REFRESH_SECURE } } })
@@ -215,7 +213,11 @@ export class AuthService {
             }
 
             return { accessToken, refreshToken: newRefresh.refreshToken };
-        });
+        },
+            {
+                maxWait: 5000, // Temps max pour obtenir une connexion du pool
+                timeout: 20000 // Temps max pour exécuter la transaction (20s)
+            });
         this.setAuthCookies(res, result.accessToken, result.refreshToken);
         return { message: 'Token rafraichi' }
     }

@@ -9,6 +9,7 @@ export const User = createParamDecorator(
             const jwtService = new JwtService();
             try {
                 const payload = jwtService.verify(token, { secret: process.env.JWT_SECRET });
+                console.log('Payload déco', payload);
                 return parseInt(payload.sub);
             } catch (error) {
                 console.error('Erreur de décodage du token:', error);
@@ -34,6 +35,7 @@ export const GetRefreshToken = createParamDecorator(
         const jwtService = new JwtService();
         try {
             const payload = jwtService.decode(refreshToken) as { sub: string };
+            console.log('Payload décorateur de refresh token:', payload);
             const userId = payload.sub;
             return { refreshToken, userId };
         } catch (error) {

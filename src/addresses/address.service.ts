@@ -9,8 +9,7 @@ export class AddressService {
   async create(data: CreateAddressDto): Promise<Address> {
     const address = await this.prisma.address.create({
       data
-    });
-    console.log(address);
+    })
     return address;
   }
 
@@ -32,10 +31,8 @@ export class AddressService {
   async verifyAddress(data: CreateAddressDto): Promise<number> {
     const { address, zipcode } = data;
     const exist = await this.prisma.address.findUnique({ where: { address_zipcode: { address, zipcode } } })
-    if (exist) return exist.id;
-    console.log(data, exist)
+    if (exist) return exist.id
     const newAddress = await this.prisma.address.create({ data })
-    console.log(newAddress)
     return newAddress.id;
   }
 

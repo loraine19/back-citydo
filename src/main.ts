@@ -13,14 +13,6 @@ import { IoAdapter } from '@nestjs/platform-socket.io';
 //
 async function bootstrap() {
 
-  // --- AJOUT DEBUG ---
-  console.log('--- DEBUG STARTUP ---');
-  console.log('NODE_ENV:', process.env.NODE_ENV);
-  console.log('DATABASE_URL (Check limit):', process.env.DATABASE_URL ? process.env.DATABASE_URL.split('@')[1] : 'UNDEFINED');
-  console.log('OpenSSL Version (Node):', process.versions.openssl);
-  console.log('---------------------');
-  // -------------------
-
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     logger: new LoggerService()
   });
