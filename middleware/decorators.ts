@@ -42,26 +42,29 @@ export const GetRefreshToken = createParamDecorator(
         }
     })
 
+export interface DeviceInfo {
+    deviceId: string;
+    deviceName: string;
+}
 export const DeviceId = createParamDecorator(
-    (data: unknown, ctx: ExecutionContext) => {
+    (data: unknown, ctx: ExecutionContext): DeviceInfo => {
         const request = ctx.switchToHttp().getRequest();
 
-        // 1. CAS PRIORITAIRE : Le Front l'envoie explicitement (ex: dans le Body pour /refresh)
-        if (request.body && request.body.deviceId) {
-            return request.body.deviceId;
-        }
+        // if (request.body && request.body.deviceId) {
+        //     return request.body.deviceId;
+        // }
 
-        // 2. CAS GOOGLE (Optionnel) : Si tu utilises le cookie relais temporaire
-        if (request.cookies && request.cookies['temp_device_id']) {
-            return request.cookies['temp_device_id'];
-        }
+        // // 2. CAS GOOGLE (Optionnel) : Si tu utilises le cookie relais temporaire
+        // if (request.cookies && request.cookies['temp_device_id']) {
+        //     return request.cookies['temp_device_id'];
+        // }
 
         // 3. CAS AUTOMATIQUE (Fallback) : Génération depuis le User-Agent
         // C'est ta solution "magique" qui marche tout le temps sans config front
         const userAgent = request.headers['user-agent'] || 'unknown-agent';
 
         // On crée une signature unique (Hash MD5) basée sur le navigateur/OS
-        return crypto.createHash('md5').update(userAgent).digest('hex');
+        return { deviceId: crypto.createHash('md5').update(userAgent).digest('hex'), deviceName: userAgent }
     },
 
 

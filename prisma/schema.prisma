@@ -114,15 +114,16 @@ model Profile {
 }
 
 model Token {
-  userId    Int
-  deviceId  String    @default("legacy_device") @db.VarChar(100)
-  token     String
-  type      TokenType
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  expiredAt DateTime?
-  ip        String?
-  User      User      @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  userId     Int
+  deviceId   String    @default("legacy_device") @db.VarChar(100)
+  deviceName String?   @db.VarChar(500)
+  token      String
+  type       TokenType
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  expiredAt  DateTime?
+  ip         String?
+  User       User      @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Cascade)
 
   @@id([userId, type, deviceId])
 }

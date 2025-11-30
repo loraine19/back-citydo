@@ -7,7 +7,7 @@ import { UsersService } from '../../src/users/users.service';
 import { SignInDto, SignInVerifyDto } from './dto/signIn.dto';
 import { SignUpDto } from './dto/signUp.dto';
 import { AuthGuard, AuthGuardGoogle, AuthGuardRefresh } from '../auth/auth.guard';
-import { DeviceId, GetRefreshToken, User } from 'middleware/decorators';
+import { DeviceId, DeviceInfo, GetRefreshToken, User } from 'middleware/decorators';
 import { DeleteAccountDto } from './dto/deleteAccount.dto';
 import { $Enums, User as UserObj } from '@prisma/client';
 import { RefreshDto } from './dto/refresh.dto';
@@ -29,29 +29,31 @@ export class AuthController {
   async signinVerify(
     @Body() data: SignInVerifyDto,
     @Ip() ip: string,
-    @DeviceId() deviceId: string,
+    @DeviceId() deviceInfo: DeviceInfo,
     @Res({ passthrough: true }) res: Response): Promise<{ user: Partial<UserObj> } | { message: string }> {
-    return this.authService.signInVerify(data, res, deviceId, ip);
+    return this.authService.signInVerify(data, res, deviceInfo, ip);
   }
 
   @Post('signin')
   @ApiOkResponse({ type: AuthEntity })
   async signin(
     @Body() data: SignInDto,
-    @DeviceId() deviceId: string,
+
+    @DeviceId() deviceInfo: DeviceInfo,
     @Ip() ip: string,
     @Res({ passthrough: true }) res: Response): Promise<{ user: Partial<UserObj> } | { message: string }> {
-    return this.authService.signIn(data, res, deviceId, ip);
+    return this.authService.signIn(data, res, deviceInfo, ip);
   }
 
   @Post('signup')
   @ApiOkResponse({ type: AuthEntity })
   async signup(
     @Body() data: SignUpDto,
-    @DeviceId() deviceId: string,
+
+    @DeviceId() deviceInfo: DeviceInfo,
     @Ip() ip: string)
     : Promise<AuthEntity | { message: string }> {
-    return this.authService.signUp(data, deviceId, ip);
+    return this.authService.signUp(data, deviceInfo, ip);
   }
 
   //  @UseGuards(AuthGuard)
@@ -59,9 +61,10 @@ export class AuthController {
   @Post('logout')
   async logout(
     @User() userId: number,
-    @DeviceId() deviceId: string,
+
+    @DeviceId() deviceInfo: DeviceInfo,
     @Res({ passthrough: true }) res: Response): Promise<{ message: string }> {
-    return this.authService.logOut(userId, deviceId, res);
+    return this.authService.logOut(userId, deviceInfo, res);
   }
 
 
@@ -72,12 +75,13 @@ export class AuthController {
   async refresh(
     @GetRefreshToken() data: RefreshDto,
     @Ip() ip: string,
-    @DeviceId() deviceId: string,
+
+    @DeviceId() deviceInfo: DeviceInfo,
     @User() userId: number,
     @Res({ passthrough: true }) res: Response): Promise<{ message: string }> {
     try {
       const { refreshToken, } = data
-      return this.authService.refresh(refreshToken, userId, deviceId, ip, res);
+      return this.authService.refresh(refreshToken, userId, deviceInfo, ip, res);
     }
     catch (error) {
       throw new HttpException(error.message, 401);
@@ -90,9 +94,10 @@ export class AuthController {
   @Post('deleteAccount')
   @ApiOkResponse()
   async deleteAccount(
-    @DeviceId() deviceId: string,
+
+    @DeviceId() deviceInfo: DeviceInfo,
     @User() userId: number): Promise<{ message: string }> {
-    return this.authService.deletAccount(userId, deviceId);
+    return this.authService.deletAccount(userId, deviceInfo);
   }
 
 
@@ -102,10 +107,10 @@ export class AuthController {
   @ApiOkResponse()
   async deleteAccountConfirm(
     @Body() data: DeleteAccountDto,
-    @DeviceId() deviceId: string,
+    @DeviceId() deviceInfo: DeviceInfo,
     @User() userId: number): Promise<{ message: string }> {
     const { email, deleteToken } = data;
-    return this.authService.deletAccountConfirm(userId, email, deleteToken, deviceId);
+    return this.authService.deletAccountConfirm(userId, email, deleteToken, deviceInfo);
   }
 
   @Delete('tester')
@@ -127,7 +132,8 @@ export class AuthController {
   async googleAuthRedirect(
     @Req() req: Request,
     @Res() res: Response,
-    @DeviceId() deviceId: string,
+
+    @DeviceId() deviceInfo: DeviceInfo,
     @Ip() ip: string) {
     const appUser = req.user as UserObj
     console.log('Google Auth Redirect called', appUser)
@@ -139,7 +145,7 @@ export class AuthController {
 
     try {
       // Étape 1: Générer les JWT de VOTRE application pour cet utilisateur.
-      const { accessToken, refreshToken } = await this.authService.login(appUser, deviceId, ip);
+      const { accessToken, refreshToken } = await this.authService.login(appUser, deviceInfo, ip);
 
       this.authService.setAuthCookies(res, accessToken, refreshToken)
 
