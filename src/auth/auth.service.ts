@@ -26,14 +26,14 @@ export class AuthService {
     private expiredAt = (duration: string) => (new Date(Date.now() + parseInt(duration))).toISOString();
 
     async generateAccessToken(sub: number) {
-        return this.jwtService.sign({ sub }, { secret: process.env.JWT_SECRET, expiresIn: process.env.JWT_EXPIRES_ACCESS })
+        return this.jwtService.sign({ sub }, { secret: process.env.JWT_SECRET, expiresIn: process.env.JWT_EXPIRES_ACCESS } as any)
     }
 
     async generateRefreshToken(sub: number, tx?: Prisma.TransactionClient): Promise<{ refreshToken: string, hashRefreshToken: string }> {
         console.log(tx)
         const client = this.prisma; // Utilise la transaction si fournie, sinon le global
 
-        const refreshToken = this.jwtService.sign({ sub }, { secret: process.env.JWT_SECRET_REFRESH, expiresIn: process.env.JWT_EXPIRES_REFRESH })
+        const refreshToken = this.jwtService.sign({ sub }, { secret: process.env.JWT_SECRET_REFRESH, expiresIn: process.env.JWT_EXPIRES_REFRESH } as any)
         /// secure test
         const findToken = await client.token.findUnique({ where: { userId_type: { userId: sub, type: $Enums.TokenType.REFRESH_SECURE } } })
         if (!findToken) {
@@ -45,7 +45,7 @@ export class AuthService {
     }
 
     async generateVerifyToken(sub: number) {
-        const token = this.jwtService.sign({ sub }, { secret: process.env.JWT_SECRET, expiresIn: process.env.JWT_EXPIRES_VERIFY })
+        const token = this.jwtService.sign({ sub }, { secret: process.env.JWT_SECRET, expiresIn: process.env.JWT_EXPIRES_VERIFY } as any)
         const hashToken = await argon2.hash(token, this.memoryOptions);
         return { token, hashToken }
     }

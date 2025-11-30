@@ -14,7 +14,7 @@ export class ResetPasswordService {
     const payload = { email };
     const secret = process.env.JWT_SECRET;
     const options = { expiresIn: '1h' };
-    return jwt.sign(payload, secret, options);
+    return jwt.sign(payload, secret, options as any);
   };
 
   saveResetToken = async (email: string, token: string): Promise<Token> => {
