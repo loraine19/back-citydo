@@ -57,7 +57,6 @@ export class EventsService {
   //// CONSULT
   async findAll(userId: number, page?: number, params?: EventFindParams):
     Promise<{ events: Event[], count: number }> {
-    console.log(userId)
     const { category, filter, sort, reverse, search } = params;
     const skip = page ? this.skip(page) : 0;
     const Group = this.groupSelectConfig(userId);

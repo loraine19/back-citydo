@@ -8,5 +8,4 @@ export class RefreshDto {
   @IsString()
   @MinLength(6, { message: 'to short token' })
   refreshToken: string;
-
 }

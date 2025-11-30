@@ -12,7 +12,6 @@ import { DeleteAccountDto } from './dto/deleteAccount.dto';
 import { $Enums, User as UserObj } from '@prisma/client';
 import { RefreshDto } from './dto/refresh.dto';
 
-// Extend the Request interface to include the user property
 declare module 'express' {
   export interface Request {
     user?: any;
@@ -73,9 +72,8 @@ export class AuthController {
   @Post('refresh')
   @ApiOkResponse({ type: RefreshEntity })
   async refresh(
-    @GetRefreshToken() data: RefreshDto,
+    @GetRefreshToken() data:any,
     @Ip() ip: string,
-
     @DeviceId() deviceInfo: DeviceInfo,
     @User() userId: number,
     @Res({ passthrough: true }) res: Response): Promise<{ message: string }> {
@@ -132,7 +130,6 @@ export class AuthController {
   async googleAuthRedirect(
     @Req() req: Request,
     @Res() res: Response,
-
     @DeviceId() deviceInfo: DeviceInfo,
     @Ip() ip: string) {
     const appUser = req.user as UserObj

@@ -31,17 +31,17 @@ export class AuthService {
         return this.jwtService.sign({ sub }, { secret: process.env.JWT_SECRET, expiresIn: process.env.JWT_EXPIRES_ACCESS } as any)
     }
 
-    async generateRefreshToken(sub: number, deviceInfo: DeviceInfo, ip: string, tx?: Prisma.TransactionClient): Promise<{ refreshToken: string, hashRefreshToken: string }> {
+    async generateRefreshToken(userId: number, deviceInfo: DeviceInfo, ip: string, tx?: Prisma.TransactionClient): Promise<{ refreshToken: string, hashRefreshToken: string }> {
         const { deviceId, deviceName } = deviceInfo
         const client = tx ?? this.prisma;
-        const refreshToken = this.jwtService.sign({ sub }, { secret: process.env.JWT_SECRET_REFRESH, expiresIn: process.env.JWT_EXPIRES_REFRESH } as any)
+        const refreshToken = this.jwtService.sign({ sub: userId }, { secret: process.env.JWT_SECRET_REFRESH, expiresIn: process.env.JWT_EXPIRES_REFRESH } as any)
         /// secure test
-        const findToken = await client.token.findUnique({ where: { userId_type_deviceId: { userId: sub, type: $Enums.TokenType.REFRESH_SECURE, deviceId } } })
+        const findToken = await client.token.findUnique({ where: { userId_type_deviceId: { userId, type: $Enums.TokenType.REFRESH_SECURE, deviceId } } })
         if (!findToken) {
             await client.token.create({
                 data:
                 {
-                    userId: sub,
+                    userId,
                     token: refreshToken,
                     type: $Enums.TokenType.REFRESH_SECURE,
                     deviceId,
@@ -51,8 +51,7 @@ export class AuthService {
             })
         }
         else await client.token.update({
-            where:
-                { userId_type_deviceId: { userId: sub, type: $Enums.TokenType.REFRESH_SECURE, deviceId } },
+            where:  { userId_type_deviceId: { userId, type: $Enums.TokenType.REFRESH_SECURE, deviceId } },
             data: { type: $Enums.TokenType.REFRESH_SECURE, token: refreshToken, ip, deviceId }
         })
         const hashRefreshToken = await argon2.hash(refreshToken, this.memoryOptions);
@@ -67,7 +66,7 @@ export class AuthService {
 
     errorCredentials = { message: 'Identifiants incorrect' }
 
-    setAuthCookies(res: Response, accessToken: string, refreshToken: string) {
+    setAuthCookies(res: Response, accessToken: string, refreshToken: string, userId?: number) {
         res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
         res.setHeader('Pragma', 'no-cache');
         res.setHeader('Expires', '0');
@@ -79,6 +78,13 @@ export class AuthService {
             path: '/',
         });
         res.cookie(process.env.REFRESH_COOKIE_NAME, refreshToken, {
+            httpOnly: true,
+            secure: true,
+            sameSite: process.env.NODE_ENV === 'prod' ? 'strict' : 'none',
+            maxAge: parseInt(process.env.COOKIE_EXPIRES_REFRESH),
+            path: '/',
+        });
+            res.cookie('userId', userId, {
             httpOnly: true,
             secure: true,
             sameSite: process.env.NODE_ENV === 'prod' ? 'strict' : 'none',
@@ -167,7 +173,7 @@ export class AuthService {
                 expiredAt: this.expiredAt(process.env.COOKIE_EXPIRES_REFRESH)
             }
         });
-        this.setAuthCookies(res, accessToken, refreshToken);
+        this.setAuthCookies(res, accessToken, refreshToken, user.id );
         user.password = ''
         return { user }
     }
@@ -191,13 +197,14 @@ export class AuthService {
         await this.prisma.token.create({
             data: { userId: user.id, token: hashRefreshToken, type: $Enums.TokenType.REFRESH, deviceId, ip, expiredAt: this.expiredAt(process.env.COOKIE_EXPIRES_REFRESH) }
         })
-        this.setAuthCookies(res, accessToken, refreshToken);
+        this.setAuthCookies(res, accessToken, refreshToken, user.id);
         user.password = ''
         return { user }
     }
 
     //// REFRESH
     async refresh(refreshToken: string, userId: number, deviceInfo: DeviceInfo, ip: string, res: Response): Promise<{ message: string }> {
+        console.log('Début du processus de rafraîchissement pour l\'utilisateur ID:', userId);
         // Utiliser une transaction pour garantir la cohérence lors du refresh
         const result = await this.prisma.$transaction(async (prisma) => {
             const { deviceId, deviceName } = deviceInfo
@@ -264,7 +271,7 @@ export class AuthService {
                 maxWait: 5000, // Temps max pour obtenir une connexion du pool
                 timeout: 20000 // Temps max pour exécuter la transaction (20s)
             });
-        this.setAuthCookies(res, result.accessToken, result.refreshToken);
+        this.setAuthCookies(res, result.accessToken, result.refreshToken, userId);
         return { message: 'Token rafraichi' }
     }
 

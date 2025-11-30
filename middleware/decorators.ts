@@ -3,19 +3,27 @@ import { JwtService } from '@nestjs/jwt';
 import * as crypto from 'crypto';
 
 export const User = createParamDecorator(
-    (data: unknown, ctx: ExecutionContext) => {
+    (data: unknown, ctx: ExecutionContext): number => {
         const request = ctx.switchToHttp().getRequest()
-        const token = request.cookies[process.env.ACCESS_COOKIE_NAME];
+        const userId = request.cookies['userId']
+        return parseInt(userId)
+        const token = request.cookies[process.env.ACCESS_COOKIE_NAME] 
+      
         if (token) {
             const jwtService = new JwtService();
-            try {
+         try {
                 const payload = jwtService.verify(token, { secret: process.env.JWT_SECRET });
-                return parseInt(payload.sub);
+                console.log('payload', payload)
+                if (payload.sub) {
+                    return parseInt(payload.sub);
+                }
+                return parseInt(payload);
             } catch (error) {
                 console.error('Erreur de décodage du token:', error);
                 return null;
             }
-        } else {
+        }
+        else {
             return null;
         }
     },
