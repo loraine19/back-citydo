@@ -22,36 +22,35 @@ model GroupUser {
 }
 
 model User {
-  id             Int      @id @default(autoincrement())
-  email          String   @unique
+  id             Int            @id @default(autoincrement())
+  email          String         @unique
   password       String?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-  lastConnection DateTime @default(now())
-
-  status        UserStatus     @default(INACTIVE)
-  provider      UserProvider   @default(LOCAL)
-  providerId    String? // ID unique de l'utilisateur chez le fournisseur
-  Token         Token[]
-  GroupUser     GroupUser[]
-  Event         Event[]
-  Post          Post[]
-  Like          Like[]
-  Flag          Flag[]
-  Vote          Vote[]
-  Participant   Participant[]
-  Survey        Survey[]
-  Service       Service[]      @relation("Service")
-  ServiceResp   Service[]      @relation("ServiceResp")
-  IssueModo     Issue[]        @relation("Modo")
-  IssueModoOn   Issue[]        @relation("ModoOn")
-  Issue         Issue[]        @relation("Issue")
-  Pool          Pool[]         @relation("Pool")
-  Benef         Pool[]         @relation("PoolBenef")
-  Profile       Profile?       @relation("Profile")
-  Notifications Notification[]
-  Messages      Message[]      @relation("MessageUser")
-  MessagesDest  Message[]      @relation("MessageUserRec")
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  lastConnection DateTime       @default(now())
+  status         UserStatus     @default(INACTIVE)
+  provider       UserProvider   @default(LOCAL)
+  providerId     String?
+  Token          Token[]
+  GroupUser      GroupUser[]
+  Event          Event[]
+  Post           Post[]
+  Like           Like[]
+  Flag           Flag[]
+  Vote           Vote[]
+  Participant    Participant[]
+  Survey         Survey[]
+  Service        Service[]      @relation("Service")
+  ServiceResp    Service[]      @relation("ServiceResp")
+  IssueModo      Issue[]        @relation("Modo")
+  IssueModoOn    Issue[]        @relation("ModoOn")
+  Issue          Issue[]        @relation("Issue")
+  Pool           Pool[]         @relation("Pool")
+  Benef          Pool[]         @relation("PoolBenef")
+  Profile        Profile?       @relation("Profile")
+  Notifications  Notification[]
+  Messages       Message[]      @relation("MessageUser")
+  MessagesDest   Message[]      @relation("MessageUserRec")
 
   @@unique([provider, providerId])
 }
@@ -116,14 +115,16 @@ model Profile {
 
 model Token {
   userId    Int
+  deviceId  String    @default("legacy_device") @db.VarChar(100)
   token     String
   type      TokenType
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   expiredAt DateTime?
+  ip        String?
   User      User      @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Cascade)
 
-  @@id([userId, type])
+  @@id([userId, type, deviceId])
 }
 
 /////// EVENTS 

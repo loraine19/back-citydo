@@ -1,5 +1,6 @@
 import { createParamDecorator, ExecutionContext, HttpException } from "@nestjs/common";
 import { JwtService } from '@nestjs/jwt';
+import * as crypto from 'crypto';
 
 export const User = createParamDecorator(
     (data: unknown, ctx: ExecutionContext) => {
@@ -9,7 +10,6 @@ export const User = createParamDecorator(
             const jwtService = new JwtService();
             try {
                 const payload = jwtService.verify(token, { secret: process.env.JWT_SECRET });
-                console.log('Payload déco', payload);
                 return parseInt(payload.sub);
             } catch (error) {
                 console.error('Erreur de décodage du token:', error);
@@ -35,13 +35,34 @@ export const GetRefreshToken = createParamDecorator(
         const jwtService = new JwtService();
         try {
             const payload = jwtService.decode(refreshToken) as { sub: string };
-            console.log('Payload décorateur de refresh token:', payload);
             const userId = payload.sub;
             return { refreshToken, userId };
         } catch (error) {
             throw new Error('Invalid refresh token');
         }
-    }
+    })
+
+export const DeviceId = createParamDecorator(
+    (data: unknown, ctx: ExecutionContext) => {
+        const request = ctx.switchToHttp().getRequest();
+
+        // 1. CAS PRIORITAIRE : Le Front l'envoie explicitement (ex: dans le Body pour /refresh)
+        if (request.body && request.body.deviceId) {
+            return request.body.deviceId;
+        }
+
+        // 2. CAS GOOGLE (Optionnel) : Si tu utilises le cookie relais temporaire
+        if (request.cookies && request.cookies['temp_device_id']) {
+            return request.cookies['temp_device_id'];
+        }
+
+        // 3. CAS AUTOMATIQUE (Fallback) : Génération depuis le User-Agent
+        // C'est ta solution "magique" qui marche tout le temps sans config front
+        const userAgent = request.headers['user-agent'] || 'unknown-agent';
+
+        // On crée une signature unique (Hash MD5) basée sur le navigateur/OS
+        return crypto.createHash('md5').update(userAgent).digest('hex');
+    },
 
 
 )

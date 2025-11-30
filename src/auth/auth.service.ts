@@ -7,6 +7,7 @@ import { SignInDto } from './dto/signIn.dto';
 import { $Enums, Profile, User, UserStatus, Prisma } from '@prisma/client';
 import { MailerService } from 'src/mailer/mailer.service';
 import { AuthUserGoogle } from './dto/authUserGoogle.dto';
+import { SignUpDto } from './dto/signUp.dto';
 
 
 @Injectable()
@@ -29,15 +30,28 @@ export class AuthService {
         return this.jwtService.sign({ sub }, { secret: process.env.JWT_SECRET, expiresIn: process.env.JWT_EXPIRES_ACCESS } as any)
     }
 
-    async generateRefreshToken(sub: number, tx?: Prisma.TransactionClient): Promise<{ refreshToken: string, hashRefreshToken: string }> {
+    async generateRefreshToken(sub: number, deviceId: string, ip: string, tx?: Prisma.TransactionClient): Promise<{ refreshToken: string, hashRefreshToken: string }> {
         const client = tx ?? this.prisma;
         const refreshToken = this.jwtService.sign({ sub }, { secret: process.env.JWT_SECRET_REFRESH, expiresIn: process.env.JWT_EXPIRES_REFRESH } as any)
         /// secure test
-        const findToken = await client.token.findUnique({ where: { userId_type: { userId: sub, type: $Enums.TokenType.REFRESH_SECURE } } })
+        const findToken = await client.token.findUnique({ where: { userId_type_deviceId: { userId: sub, type: $Enums.TokenType.REFRESH_SECURE, deviceId } } })
         if (!findToken) {
-            await client.token.create({ data: { userId: sub, token: refreshToken, type: $Enums.TokenType.REFRESH_SECURE } })
+            await client.token.create({
+                data:
+                {
+                    userId: sub,
+                    token: refreshToken,
+                    type: $Enums.TokenType.REFRESH_SECURE,
+                    deviceId,
+                    ip,
+                }
+            })
         }
-        else await client.token.update({ where: { userId_type: { userId: sub, type: $Enums.TokenType.REFRESH_SECURE } }, data: { type: $Enums.TokenType.REFRESH_SECURE, token: refreshToken } })
+        else await client.token.update({
+            where:
+                { userId_type_deviceId: { userId: sub, type: $Enums.TokenType.REFRESH_SECURE, deviceId } },
+            data: { type: $Enums.TokenType.REFRESH_SECURE, token: refreshToken, ip, deviceId }
+        })
         const hashRefreshToken = await argon2.hash(refreshToken, this.memoryOptions);
         return { refreshToken, hashRefreshToken }
     }
@@ -97,7 +111,7 @@ export class AuthService {
     includeConfigUser = { Profile: { include: { Address: true } }, GroupUser: { include: { Group: true } } }
 
     /// SIGN UP
-    async signUp(data: SignInDto): Promise<{ message: string }> {
+    async signUp(data: SignUpDto, deviceId: string, ip: string): Promise<{ message: string }> {
         const { email, password } = data
         const user = await this.prisma.user.findUnique({ where: { email: email } });
         if (user) return { message: 'Vous avez déjà un compte' };
@@ -106,7 +120,11 @@ export class AuthService {
         const verifyToken = await this.generateVerifyToken(createdUser.id);
         await this.prisma.token.create({
             data: {
-                userId: createdUser.id, token: verifyToken.hashToken, type: $Enums.TokenType.VERIFY,
+                userId: createdUser.id,
+                token: verifyToken.hashToken,
+                type: $Enums.TokenType.VERIFY,
+                ip,
+                deviceId,
                 expiredAt: this.expiredAt('60000')
             },
         })
@@ -115,7 +133,7 @@ export class AuthService {
     }
 
     //// SIGN IN
-    async signIn(data: SignInDto, res: Response): Promise<{ user: Partial<User> } | { message: string }> {
+    async signIn(data: SignInDto, res: Response, deviceId: string, ip: string): Promise<{ user: Partial<User> } | { message: string }> {
         const { email, password } = data
         const user = await this.prisma.user.findUnique({ where: { email }, include: this.includeConfigUser });
         if (!user) return this.errorCredentials
@@ -124,46 +142,58 @@ export class AuthService {
         if (user.status === $Enums.UserStatus.INACTIVE) {
             const newVerifyToken = await this.generateVerifyToken(user.id);
             this.mailerService.sendVerificationEmail(email, newVerifyToken.token);
-            await this.prisma.token.update({ where: { userId_type: { userId: user.id, type: $Enums.TokenType.VERIFY } }, data: { token: newVerifyToken.hashToken } })
+            await this.prisma.token.update({ where: { userId_type_deviceId: { userId: user.id, type: $Enums.TokenType.VERIFY, deviceId } }, data: { token: newVerifyToken.hashToken } })
             this.setAuthCookiesLoggout(res);
             return { message: 'Votre compte est inactif, veuillez verifier votre email' }
         }
-        const { refreshToken, hashRefreshToken } = await this.generateRefreshToken(user.id);
+        const { refreshToken, hashRefreshToken } = await this.generateRefreshToken(user.id, deviceId, ip);
         const accessToken = await this.generateAccessToken(user.id);
-        await this.prisma.token.deleteMany({ where: { userId: user.id, type: $Enums.TokenType.REFRESH } });
-        await this.prisma.token.create({ data: { userId: user.id, token: hashRefreshToken, type: $Enums.TokenType.REFRESH, expiredAt: this.expiredAt(process.env.COOKIE_EXPIRES_REFRESH) } });
+        await this.prisma.token.deleteMany({ where: { userId: user.id, type: $Enums.TokenType.REFRESH, deviceId } });
+        await this.prisma.token.create({
+            data:
+            {
+                userId: user.id,
+                token: hashRefreshToken,
+                type: $Enums.TokenType.REFRESH,
+                ip,
+                deviceId,
+                expiredAt: this.expiredAt(process.env.COOKIE_EXPIRES_REFRESH)
+            }
+        });
         this.setAuthCookies(res, accessToken, refreshToken);
         user.password = ''
         return { user }
     }
 
     //// SIGN IN VERIFY
-    async signInVerify(data: SignInDto & { verifyToken: string }, res: Response): Promise<{ user: Partial<User> } | { message: string }> {
+    async signInVerify(data: SignInDto & { verifyToken: string }, res: Response, deviceId: string, ip: string): Promise<{ user: Partial<User> } | { message: string }> {
         const { email, password, verifyToken } = data
         const user = await this.prisma.user.findUniqueOrThrow({ where: { email: email }, include: this.includeConfigUser });
         if (!user) return this.errorCredentials
-        const userToken = await this.prisma.token.findFirst({ where: { userId: user.id, type: $Enums.TokenType.VERIFY } })
+        const userToken = await this.prisma.token.findFirst({ where: { userId: user.id, type: $Enums.TokenType.VERIFY, deviceId } })
         if (!userToken) return this.errorCredentials
         const refreshTokenValid = await argon2.verify(userToken.token, verifyToken)
         if (!refreshTokenValid) return this.errorCredentials
         const isPasswordValid = await argon2.verify(user.password, password)
         if (!isPasswordValid) return this.errorCredentials
         const accessToken = await this.generateAccessToken(user.id);
-        const { refreshToken, hashRefreshToken } = await this.generateRefreshToken(user.id);
+        const { refreshToken, hashRefreshToken } = await this.generateRefreshToken(user.id, deviceId, ip);
         await this.prisma.user.update({ where: { id: user.id }, data: { status: $Enums.UserStatus.ACTIVE } })
-        await this.prisma.token.deleteMany({ where: { userId: user.id, type: $Enums.TokenType.REFRESH } })
-        await this.prisma.token.create({ data: { userId: user.id, token: hashRefreshToken, type: $Enums.TokenType.REFRESH, expiredAt: this.expiredAt(process.env.COOKIE_EXPIRES_REFRESH) } })
+        await this.prisma.token.deleteMany({ where: { userId: user.id, type: $Enums.TokenType.REFRESH, deviceId } })
+        await this.prisma.token.create({
+            data: { userId: user.id, token: hashRefreshToken, type: $Enums.TokenType.REFRESH, deviceId, ip, expiredAt: this.expiredAt(process.env.COOKIE_EXPIRES_REFRESH) }
+        })
         this.setAuthCookies(res, accessToken, refreshToken);
         user.password = ''
         return { user }
     }
 
     //// REFRESH
-    async refresh(refreshToken: string, userId: number, res: Response): Promise<{ message: string }> {
+    async refresh(refreshToken: string, userId: number, deviceId: string, ip: string, res: Response): Promise<{ message: string }> {
         // Utiliser une transaction pour garantir la cohérence lors du refresh
         const result = await this.prisma.$transaction(async (prisma) => {
-            const userToken = await prisma.token.findFirst({ where: { userId, type: $Enums.TokenType.REFRESH } });
-            const userTokenSecure = await prisma.token.findFirst({ where: { userId, type: $Enums.TokenType.REFRESH_SECURE, token: refreshToken } });
+            const userToken = await prisma.token.findFirst({ where: { userId, type: $Enums.TokenType.REFRESH, deviceId } });
+            const userTokenSecure = await prisma.token.findFirst({ where: { userId, type: $Enums.TokenType.REFRESH_SECURE, token: refreshToken, deviceId } });
             if (!userToken) {
                 this.setAuthCookiesLoggout(res);
                 throw new HttpException('Impossible de renouveller la session', 401)
@@ -200,7 +230,7 @@ export class AuthService {
             }
 
             const accessToken = await this.generateAccessToken(userId);
-            const newRefresh = await this.generateRefreshToken(userId, prisma);
+            const newRefresh = await this.generateRefreshToken(userId, deviceId, ip, prisma);
 
             const updateRefreshToken = await prisma.token.create({
                 data: { userId, token: newRefresh.hashRefreshToken, type: $Enums.TokenType.REFRESH, expiredAt: this.expiredAt(process.env.COOKIE_EXPIRES_REFRESH) }
@@ -223,28 +253,28 @@ export class AuthService {
     }
 
     ////LOGOUT
-    async logOut(userId: number, res: Response): Promise<{ message: string }> {
-        if (userId) await this.prisma.token.deleteMany({ where: { userId } });
+    async logOut(userId: number, deviceId: string, res: Response): Promise<{ message: string }> {
+        if (userId) await this.prisma.token.deleteMany({ where: { userId, deviceId, type: $Enums.TokenType.REFRESH } });
         res.clearCookie(process.env.ACCESS_COOKIE_NAME);
         res.clearCookie(process.env.REFRESH_COOKIE_NAME);
         this.setAuthCookiesLoggout(res);
         return { message: 'Vous etes deconnecté' }
     }
 
-    async deletAccount(userId: number): Promise<{ message: string }> {
+    async deletAccount(userId: number, deviceId: string): Promise<{ message: string }> {
         const user = await this.prisma.user.findUniqueOrThrow({ where: { id: userId } });
         const deleteToken = await this.generateVerifyToken(user.id);
-        const userToken = await this.prisma.token.findFirst({ where: { userId: userId, type: $Enums.TokenType.DELETE } });
-        userToken && await this.prisma.token.delete({ where: { userId_type: { userId: userId, type: $Enums.TokenType.DELETE } } });
-        await this.prisma.token.create({ data: { userId: user.id, token: deleteToken.hashToken, type: $Enums.TokenType.DELETE } })
+        const userToken = await this.prisma.token.findFirst({ where: { userId: userId, type: $Enums.TokenType.DELETE, deviceId } });
+        userToken && await this.prisma.token.delete({ where: { userId_type_deviceId: { userId: userId, type: $Enums.TokenType.DELETE, deviceId } } });
+        await this.prisma.token.create({ data: { userId: user.id, token: deleteToken.hashToken, type: $Enums.TokenType.DELETE, deviceId } })
         this.mailerService.sendDeleteAccountEmail(user.email, deleteToken.token);
         return { message: 'Un email avec le lien de suppression vous a été envoyé' }
     }
 
-    async deletAccountConfirm(userId: number, email: string, deleteToken: string): Promise<{ message: string }> {
+    async deletAccountConfirm(userId: number, email: string, deleteToken: string, deviceId: string): Promise<{ message: string }> {
         const user = await this.prisma.user.findUniqueOrThrow({ where: { id: userId } });
         if (user.email !== email) throw new HttpException('msg: Vous n\'avez pas le droit de supprimer ce compte', 403);
-        const userToken = await this.prisma.token.findFirst({ where: { userId: userId, type: $Enums.TokenType.DELETE } });
+        const userToken = await this.prisma.token.findFirst({ where: { userId: userId, type: $Enums.TokenType.DELETE, deviceId } });
         const deleteTokenValid = await argon2.verify(userToken.token, deleteToken.trim());
         if (!deleteTokenValid) throw new HttpException('msg: Vous n\'avez pas le droit de supprimer ce compte', 403);
         await this.prisma.user.delete({ where: { id: userId } });
@@ -339,15 +369,17 @@ export class AuthService {
         });
     }
 
-    async login(user: User): Promise<{ accessToken: string; refreshToken: string, user: User }> {
+    async login(user: User, deviceId: string, ip: string): Promise<{ accessToken: string; refreshToken: string, user: User }> {
         const accessToken = await this.generateAccessToken(user.id);
-        const refreshToken = await this.generateRefreshToken(user.id);
-        await this.prisma.token.deleteMany({ where: { userId: user.id, type: $Enums.TokenType.REFRESH } });
+        const refreshToken = await this.generateRefreshToken(user.id, deviceId, ip);
+        await this.prisma.token.deleteMany({ where: { userId: user.id, type: $Enums.TokenType.REFRESH, deviceId } });
         await this.prisma.token.create({
             data: {
                 userId: user.id,
                 token: refreshToken.hashRefreshToken,
                 type: $Enums.TokenType.REFRESH,
+                ip,
+                deviceId,
                 expiredAt: this.expiredAt(process.env.COOKIE_EXPIRES_REFRESH),
             }
         });
