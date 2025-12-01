@@ -7,4 +7,5 @@ export type AuthUserGoogle = {
     firstName?: string;
     lastName?: string;
     image?: string;
+    userId?: number;
 }

@@ -380,7 +380,7 @@ export class AuthService {
             return this.prisma.user.findUniqueOrThrow({ where: { id: user.id }, include: { Profile: true } });
         }
 
-        // 3. Aucun utilisateur existant (ni par providerId, ni par email). Créer un nouvel utilisateur.
+        // 3. Utilisateur NON trouvé par email. Créer un nouvel utilisateur.
         this.logger.log(`[OIDC-${provider}] Aucun utilisateur. Création pour: ${email}`);
         if (!firstName || !lastName) throw new HttpException('Prénom et nom sont requis du fournisseur OIDC pour créer un profil.', 400)
         return this.prisma.user.create({

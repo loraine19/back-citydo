@@ -72,7 +72,7 @@ export class AuthController {
   @Post('refresh')
   @ApiOkResponse({ type: RefreshEntity })
   async refresh(
-    @GetRefreshToken() data:any,
+    @GetRefreshToken() data: any,
     @Ip() ip: string,
     @DeviceId() deviceInfo: DeviceInfo,
     @User() userId: number,
@@ -143,9 +143,7 @@ export class AuthController {
     try {
       // Étape 1: Générer les JWT de VOTRE application pour cet utilisateur.
       const { accessToken, refreshToken } = await this.authService.login(appUser, deviceInfo, ip);
-
-      this.authService.setAuthCookies(res, accessToken, refreshToken)
-
+      this.authService.setAuthCookies(res, accessToken, refreshToken, appUser.id)
       res.redirect(process.env.FRONT_URL)
 
     } catch (error) {
