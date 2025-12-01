@@ -51,7 +51,7 @@ export class AuthService {
             })
         }
         else await client.token.update({
-            where:  { userId_type_deviceId: { userId, type: $Enums.TokenType.REFRESH_SECURE, deviceId } },
+            where: { userId_type_deviceId: { userId, type: $Enums.TokenType.REFRESH_SECURE, deviceId } },
             data: { type: $Enums.TokenType.REFRESH_SECURE, token: refreshToken, ip, deviceId }
         })
         const hashRefreshToken = await argon2.hash(refreshToken, this.memoryOptions);
@@ -84,7 +84,7 @@ export class AuthService {
             maxAge: parseInt(process.env.COOKIE_EXPIRES_REFRESH),
             path: '/',
         });
-            res.cookie('userId', userId, {
+        res.cookie('userId', userId, {
             httpOnly: true,
             secure: true,
             sameSite: process.env.NODE_ENV === 'prod' ? 'strict' : 'none',
@@ -159,8 +159,9 @@ export class AuthService {
             return { message: 'Votre compte est inactif, veuillez verifier votre email' }
         }
         const { refreshToken, hashRefreshToken } = await this.generateRefreshToken(user.id, deviceInfo, ip);
+        await this.prisma.token.deleteMany({ where: { userId: user.id, deviceId } });
         const accessToken = await this.generateAccessToken(user.id);
-        await this.prisma.token.deleteMany({ where: { userId: user.id, type: $Enums.TokenType.REFRESH, deviceId } });
+
         await this.prisma.token.create({
             data:
             {
@@ -173,7 +174,7 @@ export class AuthService {
                 expiredAt: this.expiredAt(process.env.COOKIE_EXPIRES_REFRESH)
             }
         });
-        this.setAuthCookies(res, accessToken, refreshToken, user.id );
+        this.setAuthCookies(res, accessToken, refreshToken, user.id);
         user.password = ''
         return { user }
     }
