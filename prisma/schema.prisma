@@ -5,6 +5,7 @@ generator client {
 
 datasource db {
   provider = "mysql"
+  // Sets the database connection string from the .env file
   url      = env("DATABASE_URL")
 }
 

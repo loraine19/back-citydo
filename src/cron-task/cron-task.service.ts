@@ -122,7 +122,7 @@ export class CronTaskService {
     }
 
     /// DELETE OLD PHOTOS
-    @Cron(CronExpression.EVERY_WEEK)
+    @Cron(CronExpression.EVERY_YEAR)
     async deleteOldPhotos() {
         const rootPath = path.join(__dirname, '..', '..', 'public')
         const clean = async (dirName: string, genericPrisma: any) => {
