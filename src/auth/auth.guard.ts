@@ -18,7 +18,10 @@ export class AuthGuard implements CanActivate {
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const request = await context.switchToHttp().getRequest();
         const token = request.cookies[process.env.ACCESS_COOKIE_NAME];
-        if (!token) throw new HttpException('Unauthorized access, missing token', 401);
+        if (!token) {
+            console.log(request.cookies);
+            throw new HttpException('missing access token', 401);
+        }
         try {
             const payload = await this.jwtService.verifyAsync(token, { secret: process.env.JWT_SECRET });
             request['user'] = payload;
@@ -36,7 +39,6 @@ export class AuthGuardRefresh implements CanActivate {
     constructor(private jwtService: JwtService) { }
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const request = await context.switchToHttp().getRequest();
-        //  const token = this.extractTokenFromHeader(request);
         const token = request.cookies[process.env.REFRESH_COOKIE_NAME];
         if (!token) throw new HttpException('Refresh token not found guard ' + process.env.REFRESH_COOKIE_NAME, 401);
         try {

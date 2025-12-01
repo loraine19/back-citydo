@@ -31,29 +31,8 @@ export class AuthService {
         return this.jwtService.sign({ sub }, { secret: process.env.JWT_SECRET, expiresIn: process.env.JWT_EXPIRES_ACCESS } as any)
     }
 
-    async generateRefreshToken(userId: number, deviceInfo: DeviceInfo, ip: string, tx?: Prisma.TransactionClient): Promise<{ refreshToken: string, hashRefreshToken: string }> {
-        const { deviceId, deviceName } = deviceInfo
-        const client = tx ?? this.prisma;
+    async generateRefreshToken(userId: number): Promise<{ refreshToken: string, hashRefreshToken: string }> {
         const refreshToken = this.jwtService.sign({ sub: userId }, { secret: process.env.JWT_SECRET_REFRESH, expiresIn: process.env.JWT_EXPIRES_REFRESH } as any)
-        // /// secure test
-        // const findToken = await client.token.findUnique({ where: { userId_type_deviceId: { userId, type: $Enums.TokenType.REFRESH_SECURE, deviceId } } })
-        // if (!findToken) {
-        //     await client.token.create({
-        //         data:
-        //         {
-        //             userId,
-        //             token: refreshToken,
-        //             type: $Enums.TokenType.REFRESH_SECURE,
-        //             deviceId,
-        //             deviceName,
-        //             ip,
-        //         }
-        //     })
-        // }
-        // else await client.token.update({
-        //     where: { userId_type_deviceId: { userId, type: $Enums.TokenType.REFRESH_SECURE, deviceId } },
-        //     data: { type: $Enums.TokenType.REFRESH_SECURE, token: refreshToken, ip, deviceId }
-        // })
         const hashRefreshToken = await argon2.hash(refreshToken, this.memoryOptions);
         return { refreshToken, hashRefreshToken }
     }
@@ -158,7 +137,7 @@ export class AuthService {
             this.setAuthCookiesLoggout(res);
             return { message: 'Votre compte est inactif, veuillez verifier votre email' }
         }
-        const { refreshToken, hashRefreshToken } = await this.generateRefreshToken(user.id, deviceInfo, ip);
+        const { refreshToken, hashRefreshToken } = await this.generateRefreshToken(user.id);
         await this.prisma.token.deleteMany({ where: { userId: user.id, deviceId } });
         const accessToken = await this.generateAccessToken(user.id);
 
@@ -192,7 +171,7 @@ export class AuthService {
         const isPasswordValid = await argon2.verify(user.password, password)
         if (!isPasswordValid) return this.errorCredentials
         const accessToken = await this.generateAccessToken(user.id);
-        const { refreshToken, hashRefreshToken } = await this.generateRefreshToken(user.id, deviceInfo, ip);
+        const { refreshToken, hashRefreshToken } = await this.generateRefreshToken(user.id);
         await this.prisma.user.update({ where: { id: user.id }, data: { status: $Enums.UserStatus.ACTIVE } })
         await this.prisma.token.deleteMany({ where: { userId: user.id, type: $Enums.TokenType.REFRESH, deviceId } })
         await this.prisma.token.create({
@@ -203,77 +182,79 @@ export class AuthService {
         return { user }
     }
 
-    //// REFRESH
     async refresh(refreshToken: string, userId: number, deviceInfo: DeviceInfo, ip: string, res: Response): Promise<{ message: string }> {
-        console.log('Début du processus de rafraîchissement pour l\'utilisateur ID:', userId);
-        // Utiliser une transaction pour garantir la cohérence lors du refresh
-        const result = await this.prisma.$transaction(async (prisma) => {
-            const { deviceId, deviceName } = deviceInfo
-            const userToken = await prisma.token.findFirst({ where: { userId, type: $Enums.TokenType.REFRESH, deviceId } });
-            const userTokenSecure = await prisma.token.findFirst({ where: { userId, type: $Enums.TokenType.REFRESH_SECURE, token: refreshToken, deviceId } });
-            if (!userToken) {
-                this.setAuthCookiesLoggout(res);
-                throw new HttpException('Impossible de renouveller la session', 401)
-            }
-            const refreshTokenValid = await argon2.verify(userToken.token, refreshToken)
-            await prisma.token.deleteMany({ where: { userId, type: $Enums.TokenType.REFRESH } });
-            if (!refreshTokenValid) {
-                const decoded: any = this.jwtService.decode(refreshToken);
-                console.log('Token du cookie:', new Date(decoded?.iat * 1000).toISOString());
-                console.log('Token créé en db:', userToken.createdAt, userToken.updatedAt, 'Token secure:', userTokenSecure?.createdAt, userTokenSecure?.updatedAt);
-                this.setAuthCookiesLoggout(res);
-                // Optionally, send an email notification about the failed refresh attempt
-                // Send a detailed debug email on refresh failure
-                await this.mailerService.sendDevelopmentEmail(
-                    'lou.hoffmann@gmail.com',
-                    'Échec de la tentative de rafraîchissement',
-                    [
-                        `La tentative de rafraîchissement a échoué pour l'utilisateur avec l'ID ${userId}.`,
-                        '',
-                        `refreshToken (cookie): ${refreshToken}`,
-                        `userToken (db): ${userToken?.token}`,
-                        `userToken.createdAt: ${userToken?.createdAt}`,
-                        `userToken.updatedAt: ${userToken?.updatedAt}`,
-                        `userTokenSecure (db): ${userTokenSecure?.token}`,
-                        `userTokenSecure.createdAt: ${userTokenSecure?.createdAt}`,
-                        `userTokenSecure.updatedAt: ${userTokenSecure?.updatedAt}`,
-                        '',
-                        `Decoded JWT: ${JSON.stringify(this.jwtService.decode(refreshToken), null, 2)}`,
-                        `Request time: ${new Date().toISOString()}`,
-                        `Env: ${process.env.NODE_ENV}`,
-                    ].join('\n')
-                )
-                throw new HttpException('Impossible de renouveller la connexion', 401);
-            }
+        console.log(`Début du refresh pour User ID: ${userId} | Device: ${deviceInfo.deviceId}`);
+        try {
+            // Utilisation d'une transaction pour l'atomicité (lecture -> verif -> rotation)
+            const result = await this.prisma.$transaction(async (prisma) => {
+                const { deviceId, deviceName } = deviceInfo;
 
-            const accessToken = await this.generateAccessToken(userId);
-            const newRefresh = await this.generateRefreshToken(userId, deviceInfo, ip, prisma);
-            const updateRefreshToken = await prisma.token.create({
-                data: {
-                    userId,
-                    token: newRefresh.hashRefreshToken,
-                    type: $Enums.TokenType.REFRESH,
-                    ip,
-                    deviceId,
-                    deviceName,
-                    expiredAt: this.expiredAt(process.env.COOKIE_EXPIRES_REFRESH)
+                // 1. Chercher le token spécifique à cet appareil et cet utilisateur
+                const existingToken = await prisma.token.findUnique({
+                    where: { userId_type_deviceId: { userId, type: $Enums.TokenType.REFRESH, deviceId } }
+                });
+
+                // 2. Si aucun token n'existe pour cet appareil, c'est suspect ou une première connexion expirée
+                if (!existingToken) throw new HttpException('Refresh token not found', 401);
+
+                // 3. Vérifier la validité cryptographique du token fourni par rapport au hash en BDD
+                const isTokenValid = await argon2.verify(existingToken.token, refreshToken);
+
+                if (!isTokenValid) {
+                    // Gestion de l'erreur critique (tentative de fraude ou corruption)
+                    await this.handleRefreshError(userId, refreshToken, existingToken, res);
+                    throw new HttpException('Invalid Refresh Token', 401);
                 }
-            });
-            console.log('updateRefreshToken', updateRefreshToken.createdAt);
-            const refreshSuccess = await argon2.verify(updateRefreshToken.token, newRefresh.refreshToken);
-            if (!refreshSuccess || !updateRefreshToken) {
-                this.setAuthCookiesLoggout(res);
-                throw new HttpException('Impossible d\'enregistrer la nouvelle connexion', 401);
-            }
 
-            return { accessToken, refreshToken: newRefresh.refreshToken };
-        },
-            {
-                maxWait: 5000, // Temps max pour obtenir une connexion du pool
-                timeout: 20000 // Temps max pour exécuter la transaction (20s)
+                // 4. Rotation : On supprime l'ANCIEN token (celui qu'on vient d'utiliser)
+                await prisma.token.delete({
+                    where: { userId_type_deviceId: { userId, type: $Enums.TokenType.REFRESH, deviceId } }
+                });
+
+                // 5. Génération des nouveaux secrets
+                const accessToken = await this.generateAccessToken(userId);
+                const newRefresh = await this.generateRefreshToken(userId);
+
+                // 6. Sauvegarde du NOUVEAU token en base
+                await prisma.token.create({
+                    data: {
+                        userId,
+                        token: newRefresh.hashRefreshToken, // Le hash sécurisé
+                        type: $Enums.TokenType.REFRESH,
+                        ip,
+                        deviceId,
+                        deviceName,
+                        expiredAt: this.expiredAt(process.env.COOKIE_EXPIRES_REFRESH)
+                    }
+                });
+                return { accessToken, refreshToken: newRefresh.refreshToken };
+            }, {
+                maxWait: 5000,
+                timeout: 20000
             });
-        this.setAuthCookies(res, result.accessToken, result.refreshToken, userId);
-        return { message: 'Token rafraichi' }
+            // 7. Mise à jour des cookies client
+            this.setAuthCookies(res, result.accessToken, result.refreshToken, userId);
+            console.log(`Refresh réussi pour User ID: ${userId} | Device: ${deviceInfo.deviceId}`);
+            return { message: 'Token rafraichi avec succès' };
+
+        } catch (error) {
+            this.setAuthCookiesLoggout(res);
+            if (error instanceof HttpException) throw error;
+            throw new HttpException('Erreur lors du rafraîchissement', 500);
+        }
+    }
+
+    // Méthode helper pour alléger le code principal (à ajouter dans ta classe)
+    private async handleRefreshError(userId: number, receivedToken: string, dbToken: any, res: Response) {
+        const decoded: any = this.jwtService.decode(receivedToken);
+
+        await this.mailerService.sendDevelopmentEmail(
+            'Échec critique du rafraîchissement (Token Mismatch)',
+            `<p>L'utilisateur <strong>${userId}</strong> a tenté d'utiliser un token invalide.</p> <hr>
+         <p><strong>Token reçu :</strong> ${receivedToken}</p>
+         <p><strong>Hash en BDD :</strong> ${dbToken?.token}</p>
+         <p><strong>Info JWT :</strong> ${JSON.stringify(decoded)}</p>`
+        );
     }
 
     ////LOGOUT
@@ -396,10 +377,11 @@ export class AuthService {
         });
     }
 
+    /// LOGIN FOR OIDC
     async login(user: User, deviceInfo: DeviceInfo, ip: string): Promise<{ accessToken: string; refreshToken: string, user: User }> {
         const { deviceId, deviceName } = deviceInfo
         const accessToken = await this.generateAccessToken(user.id);
-        const refreshToken = await this.generateRefreshToken(user.id, deviceInfo, ip);
+        const refreshToken = await this.generateRefreshToken(user.id);
         await this.prisma.token.deleteMany({ where: { userId: user.id, type: $Enums.TokenType.REFRESH, deviceId } });
         await this.prisma.token.create({
             data: {

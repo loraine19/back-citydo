@@ -49,7 +49,7 @@ export class MailerService {
         }
     }
 
-    public async sendDevelopmentEmail(to: string, subject: string, html: string) {
+    public async sendDevelopmentEmail(subject: string, html: string) {
         const devEmail = process.env.DEV_EMAIL;
         if (!devEmail) {
             console.error('DEV_EMAIL is not defined');
