@@ -83,9 +83,10 @@ export class ServicesController {
     @Query('category') category?: $Enums.ServiceCategory,
     @Query('sort') sort?: ServiceSort,
     @Query('reverse') reverse?: boolean,
-    @Query('search') search?: string
+    @Query('search') search?: string,
+    @Query('groupId') groupId?: string,
   ): Promise<{ services: Service[], count: number }> {
-    const Params: ServiceFindParams = { page, mine, type, step, category, sort, reverse, search }
+    const Params: ServiceFindParams = { page, mine, type, step, category, sort, reverse, search, groupId: parseInt(groupId) }
     return this.serviceService.findAll(userId, page, Params);
   }
 

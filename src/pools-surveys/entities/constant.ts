@@ -27,4 +27,5 @@ export interface PoolSurveysFindParams {
     sort?: PoolSurveySort
     reverse?: boolean;
     search?: string;
+    groupId?: number
 }

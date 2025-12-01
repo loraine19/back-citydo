@@ -102,4 +102,5 @@ export interface ServiceFindParams {
     sort?: ServiceSort;
     reverse?: boolean;
     search?: string;
+    groupId?: number;
 }

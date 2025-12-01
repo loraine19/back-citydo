@@ -27,4 +27,5 @@ export interface EventFindParams {
     sort?: EventSort;
     reverse?: boolean;
     search?: string;
+    groupId?: number;
 }

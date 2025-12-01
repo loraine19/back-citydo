@@ -57,9 +57,9 @@ export class EventsService {
   //// CONSULT
   async findAll(userId: number, page?: number, params?: EventFindParams):
     Promise<{ events: Event[], count: number }> {
-    const { category, filter, sort, reverse, search } = params;
+    const { category, filter, sort, reverse, search, groupId } = params;
     const skip = page ? this.skip(page) : 0;
-    const Group = this.groupSelectConfig(userId);
+    const Group = groupId ? { id: groupId } : this.groupSelectConfig(userId);
     let where: Prisma.EventWhereInput = { Group, category };
     const whereSearch: Prisma.EventWhereInput = {
       OR: [

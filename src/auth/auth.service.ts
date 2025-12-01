@@ -35,25 +35,25 @@ export class AuthService {
         const { deviceId, deviceName } = deviceInfo
         const client = tx ?? this.prisma;
         const refreshToken = this.jwtService.sign({ sub: userId }, { secret: process.env.JWT_SECRET_REFRESH, expiresIn: process.env.JWT_EXPIRES_REFRESH } as any)
-        /// secure test
-        const findToken = await client.token.findUnique({ where: { userId_type_deviceId: { userId, type: $Enums.TokenType.REFRESH_SECURE, deviceId } } })
-        if (!findToken) {
-            await client.token.create({
-                data:
-                {
-                    userId,
-                    token: refreshToken,
-                    type: $Enums.TokenType.REFRESH_SECURE,
-                    deviceId,
-                    deviceName,
-                    ip,
-                }
-            })
-        }
-        else await client.token.update({
-            where: { userId_type_deviceId: { userId, type: $Enums.TokenType.REFRESH_SECURE, deviceId } },
-            data: { type: $Enums.TokenType.REFRESH_SECURE, token: refreshToken, ip, deviceId }
-        })
+        // /// secure test
+        // const findToken = await client.token.findUnique({ where: { userId_type_deviceId: { userId, type: $Enums.TokenType.REFRESH_SECURE, deviceId } } })
+        // if (!findToken) {
+        //     await client.token.create({
+        //         data:
+        //         {
+        //             userId,
+        //             token: refreshToken,
+        //             type: $Enums.TokenType.REFRESH_SECURE,
+        //             deviceId,
+        //             deviceName,
+        //             ip,
+        //         }
+        //     })
+        // }
+        // else await client.token.update({
+        //     where: { userId_type_deviceId: { userId, type: $Enums.TokenType.REFRESH_SECURE, deviceId } },
+        //     data: { type: $Enums.TokenType.REFRESH_SECURE, token: refreshToken, ip, deviceId }
+        // })
         const hashRefreshToken = await argon2.hash(refreshToken, this.memoryOptions);
         return { refreshToken, hashRefreshToken }
     }

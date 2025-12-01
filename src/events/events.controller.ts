@@ -60,9 +60,10 @@ export class EventsController {
     @Query('category') category?: EventCategory,
     @Query('sort') sort?: EventSort,
     @Query('reverse') reverse?: boolean,
-    @Query('search') search?: string
+    @Query('search') search?: string,
+    @Query('groupId') groupId?: string,
   ): Promise<{ events: Event[], count: number }> {
-    const params: EventFindParams = { filter, category, sort, reverse, search }
+    const params: EventFindParams = { filter, category, sort, reverse, search, groupId: parseInt(groupId) }
     return this.eventsService.findAll(userId, page, params);
   }
 

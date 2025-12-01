@@ -66,9 +66,10 @@ export class PostsController {
     @Query('category') category?: PostCategory,
     @Query('sort') sort?: PostSort,
     @Query('reverse') reverse?: boolean,
-    @Query('search') search?: string
+    @Query('search') search?: string,
+    @Query('groupId') groupId?: string,
   ): Promise<{ posts: PostI[], count: number }> {
-    const params = { filter, category, sort, reverse, search }
+    const params = { filter, category, sort, reverse, search, groupId: parseInt(groupId) }
     return this.postsService.findAll(userId, page, params);
 
   }

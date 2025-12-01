@@ -72,9 +72,9 @@ export class PostsService {
   }
 
   async findAll(userId: number, page?: number, params?: PostFindParams): Promise<{ posts: Post[], count: number }> {
-    const { category, filter, sort, reverse, search } = params;
+    const { category, filter, sort, reverse, search, groupId } = params;
     const skip = page ? this.skip(page) : 0;
-    const Group = this.groupSelectConfig(userId);
+    const Group = groupId ? { id: groupId } : this.groupSelectConfig(userId);
     const orderBy = this.sortBy(sort, reverse);
     let where: Prisma.PostWhereInput = {
       Group,

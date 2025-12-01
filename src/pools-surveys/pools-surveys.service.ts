@@ -59,7 +59,7 @@ export class PoolsSurveysService {
   skip(page: number) { return (page - 1) * this.limit }
 
   async findAll(userId: number, page?: number, params?: PoolSurveysFindParams): Promise<{ poolsSurveys: (Pool | Survey)[], count: number }> {
-    const { filter, step, sort, reverse, search } = params
+    const { filter, step, sort, reverse, search, groupId } = params
     if (!step) return { poolsSurveys: [], count: 0 }
     const skip = page ? this.skip(page) : 0;
     const orderBy = this.sortBy(sort, reverse)
@@ -68,7 +68,7 @@ export class PoolsSurveysService {
     if (step.includes(PoolSurveyStep.PENDING)) OR.push({ createdAt: { lt: getDate(7) } })
     if (step.includes(PoolSurveyStep.VALIDATED)) OR.push({ status: $Enums.PoolSurveyStatus.VALIDATED })
     if (step.includes(PoolSurveyStep.REJECTED)) OR.push({ status: $Enums.PoolSurveyStatus.REJECTED })
-    const Group = this.groupSelectConfig(userId)
+    const Group = groupId ? { id: groupId } : this.groupSelectConfig(userId)
     let where: any = { OR, Group }
     if (filter === PoolSurveyFilter.MINE) {
       where = {

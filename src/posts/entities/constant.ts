@@ -20,4 +20,5 @@ export interface PostFindParams {
     sort?: PostSort;
     reverse?: boolean;
     search?: string;
+    groupId?: number;
 }

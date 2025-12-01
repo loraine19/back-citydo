@@ -53,13 +53,13 @@ export class ServicesService {
   }
 
   async findAll(userId: number, page?: number, params?: ServiceFindParams): Promise<{ services: Service[], count: number }> {
-    const { mine, type, step, category, sort, reverse, search } = params;
+    const { mine, type, step, category, sort, reverse, search, groupId } = params;
     const skip = page ? this.skip(page) : 0;
     const types = type ? type.includes(',') ? { in: type.split(',').map(t => $Enums.ServiceType[t]) } :
       $Enums.ServiceType[type] : {};
     const status = step ? step.includes(',') ? { in: step.split(',').map(s => $Enums.ServiceStep[s]) }
       : $Enums.ServiceStep[step] : {};
-    const Group = this.groupSelectConfig(userId);
+    const Group = groupId ? { id: groupId } : this.groupSelectConfig(userId);
     let where: Prisma.ServiceWhereInput = { type: types, status, category, Group }
     let whereSearch: Prisma.ServiceWhereInput = {
       OR: [
