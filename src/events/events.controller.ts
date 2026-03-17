@@ -1,5 +1,24 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, UploadedFile, UseInterceptors, UseGuards, Query } from '@nestjs/common';
-import { ApiOkResponse, ApiTags, ApiBearerAuth, ApiBody, ApiConsumes } from '@nestjs/swagger';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  ParseIntPipe,
+  UploadedFile,
+  UseInterceptors,
+  UseGuards,
+  Query,
+} from '@nestjs/common';
+import {
+  ApiOkResponse,
+  ApiTags,
+  ApiBearerAuth,
+  ApiBody,
+  ApiConsumes,
+} from '@nestjs/swagger';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { EventEntity } from './entities/event.entity';
@@ -11,12 +30,12 @@ import { Event, EventCategory } from '@prisma/client';
 import { User } from '../../middleware/decorators';
 import { EventFilter, EventFindParams, EventSort } from './constant';
 
-const route = 'events'
+const route = 'events';
 @Controller(route)
 @ApiTags(route)
 @UseGuards(AuthGuard)
 export class EventsController {
-  constructor(private readonly eventsService: EventsService) { }
+  constructor(private readonly eventsService: EventsService) {}
   @Post()
   @ApiBearerAuth()
   @ApiOkResponse({ type: EventEntity })
@@ -26,11 +45,11 @@ export class EventsController {
   async create(
     @Body() data: CreateEventDto,
     @UploadedFile() image: Express.Multer.File,
-    @User() userId: number):
-    Promise<Event> {
-    data.userId = userId
-    data = await parseData(data, image)
-    return this.eventsService.create(data)
+    @User() userId: number,
+  ): Promise<Event> {
+    data.userId = userId;
+    data = await parseData(data, image);
+    return this.eventsService.create(data);
   }
 
   @Patch(':id')
@@ -43,11 +62,13 @@ export class EventsController {
     @Param('id', ParseIntPipe) id: number,
     @Body() data: UpdateEventDto,
     @UploadedFile() image: Express.Multer.File,
-    @User() userId: number,): Promise<Event> {
-    const event = await this.eventsService.findOne(id, userId)
-    event.image && image && ImageInterceptor.deleteImage(event.image, 'event')
-    data = await parseData(data, image)
-    return this.eventsService.update(id, data, userId)
+    @User() userId: number,
+  ): Promise<Event> {
+    const event = await this.eventsService.findOne(id, userId);
+    if (event.image && image)
+      ImageInterceptor.deleteImage(event.image, 'event');
+    data = await parseData(data, image);
+    return this.eventsService.update(id, data, userId);
   }
 
   @Get()
@@ -62,8 +83,15 @@ export class EventsController {
     @Query('reverse') reverse?: boolean,
     @Query('search') search?: string,
     @Query('groupId') groupId?: string,
-  ): Promise<{ events: Event[], count: number }> {
-    const params: EventFindParams = { filter, category, sort, reverse, search, groupId: parseInt(groupId) }
+  ): Promise<{ events: Event[]; count: number }> {
+    const params: EventFindParams = {
+      filter,
+      category,
+      sort,
+      reverse,
+      search,
+      groupId: parseInt(groupId),
+    };
     return this.eventsService.findAll(userId, page, params);
   }
 
@@ -72,9 +100,9 @@ export class EventsController {
   @ApiOkResponse({ type: EventEntity })
   async findOne(
     @Param('id', ParseIntPipe) id: number,
-    @User() userId: number,):
-    Promise<Event> {
-    return this.eventsService.findOne(id, userId)
+    @User() userId: number,
+  ): Promise<Event> {
+    return this.eventsService.findOne(id, userId);
   }
 
   @Delete(':id')
@@ -82,11 +110,8 @@ export class EventsController {
   @ApiOkResponse({ type: EventEntity })
   async remove(
     @Param('id', ParseIntPipe) id: number,
-    @User() userId: number): Promise<Event> {
-    return this.eventsService.remove(id, userId)
+    @User() userId: number,
+  ): Promise<Event> {
+    return this.eventsService.remove(id, userId);
   }
-
 }
-
-
-

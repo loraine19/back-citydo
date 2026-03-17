@@ -9,4 +9,4 @@ import { NotifsGateway } from 'src/notifs/notifs.gateway';
   controllers: [FlagsController],
   providers: [FlagsService, NotificationsService, MailerService, NotifsGateway],
 })
-export class FlagsModule { }
+export class FlagsModule {}

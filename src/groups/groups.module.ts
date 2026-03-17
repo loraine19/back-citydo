@@ -7,4 +7,4 @@ import { AddressService } from '../addresses/address.service';
   controllers: [GroupsController],
   providers: [GroupsService, AddressService],
 })
-export class GroupsModule { }
+export class GroupsModule {}

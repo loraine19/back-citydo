@@ -1,4 +1,18 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpException, HttpStatus, ValidationPipe, NotFoundException, ParseIntPipe, UseGuards, Req, Query, DefaultValuePipe, } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  HttpException,
+  HttpStatus,
+  ParseIntPipe,
+  UseGuards,
+  Req,
+  Query,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { CreateGroupDto } from './dto/create-group.dto';
 import { UpdateGroupDto } from './dto/update-group.dto';
@@ -10,13 +24,16 @@ import { RequestWithUser } from '../../src/auth/auth.entities/auth.entity';
 import { Group } from '@prisma/client';
 import { User } from 'middleware/decorators';
 
-//// CONTROLLER DO ROUTE 
-const route = 'groups'
+//// CONTROLLER DO ROUTE
+const route = 'groups';
 @Controller(route)
 @ApiTags(route)
 @UseGuards(AuthGuard)
 export class GroupsController {
-  constructor(private readonly groupsService: GroupsService, readonly addressService: AddressService) { }
+  constructor(
+    private readonly groupsService: GroupsService,
+    readonly addressService: AddressService,
+  ) {}
 
   @Post()
   @ApiBearerAuth()
@@ -29,8 +46,12 @@ export class GroupsController {
   @ApiBearerAuth()
   @ApiOkResponse({ type: GroupEntity, isArray: true })
   async findAll(): Promise<Group[]> {
-    const groups = await this.groupsService.findAll()
-    if (!groups.length) throw new HttpException(`msg: Aucun groupe trouvé.`, HttpStatus.NO_CONTENT);
+    const groups = await this.groupsService.findAll();
+    if (!groups.length)
+      throw new HttpException(
+        `msg: Aucun groupe trouvé.`,
+        HttpStatus.NO_CONTENT,
+      );
     return groups;
   }
 
@@ -38,48 +59,56 @@ export class GroupsController {
   @ApiBearerAuth()
   @ApiOkResponse({ type: GroupEntity, isArray: true })
   async findNearestGroups(
-    @User() userId: number, @Query('page', ParseIntPipe) page?: number,
+    @User() userId: number,
+    @Query('page', ParseIntPipe) page?: number,
     @Query('filter') filter?: string,
-    @Query('category') category?: string):
-    Promise<{ groups: Group[]; count: number }> {
-    const groups = await this.groupsService.findNearestGroups(userId, page, filter, category)
-    return groups
+    @Query('category') category?: string,
+  ): Promise<{ groups: Group[]; count: number }> {
+    const groups = await this.groupsService.findNearestGroups(
+      userId,
+      page,
+      filter,
+      category,
+    );
+    return groups;
   }
-
 
   @Get(':id')
   @ApiBearerAuth()
   @ApiOkResponse({ type: GroupEntity })
   async findOne(@Param('id', ParseIntPipe) id: number): Promise<Group> {
-    return this.groupsService.findOne(id)
+    return this.groupsService.findOne(id);
   }
 
   @Get('mines')
   @ApiBearerAuth()
   @ApiOkResponse({ type: GroupEntity, isArray: true })
   async findMine(@Req() req: RequestWithUser): Promise<Group[]> {
-    const id = req.user.sub
-    return this.groupsService.findAllByUserId(id)
+    const id = req.user.sub;
+    return this.groupsService.findAllByUserId(id);
   }
 
   @Get('/user/:id')
   @ApiBearerAuth()
   @ApiOkResponse({ type: GroupEntity, isArray: true })
-  async findAllByUserId(@Param('id', ParseIntPipe) id: number): Promise<Group[]> {
-    return this.groupsService.findAllByUserId(id)
+  async findAllByUserId(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<Group[]> {
+    return this.groupsService.findAllByUserId(id);
   }
 
   @Patch(':id')
   @ApiBearerAuth()
-  update(@Param('id', ParseIntPipe) id: number, @Body() data: UpdateGroupDto): Promise<Group> {
-    return this.groupsService.update(id, data)
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() data: UpdateGroupDto,
+  ): Promise<Group> {
+    return this.groupsService.update(id, data);
   }
 
   @Delete(':id')
   @ApiBearerAuth()
   remove(@Param('id', ParseIntPipe) id: number): Promise<Group> {
-    return this.groupsService.remove(id)
+    return this.groupsService.remove(id);
   }
 }
-
-

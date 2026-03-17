@@ -7,6 +7,11 @@ import { NotifsGateway } from 'src/notifs/notifs.gateway';
 
 @Module({
   controllers: [LikesController],
-  providers: [LikesService, ImageInterceptor, NotificationsService, NotifsGateway],
+  providers: [
+    LikesService,
+    ImageInterceptor,
+    NotificationsService,
+    NotifsGateway,
+  ],
 })
-export class LikesModule { }
+export class LikesModule {}

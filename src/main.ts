@@ -8,18 +8,19 @@ import { ErrorFilter } from '../middleware/filter/error.filter';
 import { join } from 'path';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { LoggerService } from './logger/logger.service';
-import * as cookieParser from 'cookie-parser'
+import * as cookieParser from 'cookie-parser';
 import { IoAdapter } from '@nestjs/platform-socket.io';
 //
 async function bootstrap() {
-
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
-    logger: new LoggerService()
+    logger: new LoggerService(),
   });
 
   const config = new DocumentBuilder()
-    .setTitle('City\'Do API ')
-    .setDescription('Please first login to use the API {"email":"test@mail.com","password":"passwordtest"} to get the token and use the token in Authorize button')
+    .setTitle("City'Do API ")
+    .setDescription(
+      'Please first login to use the API {"email":"test@mail.com","password":"passwordtest"} to get the token and use the token in Authorize button',
+    )
     .setVersion('test')
     .addBearerAuth()
     .build();
@@ -40,14 +41,15 @@ async function bootstrap() {
     prefix: '/public',
   });
   app.setBaseViewsDir(join('../public'));
-  const allowedOrigins = [
-    process.env.FRONT_URL,
-    'http://localhost:4173',
-  ];
+  const allowedOrigins = [process.env.FRONT_URL, 'http://localhost:4173'];
 
   app.enableCors({
     origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin) || process.env.NODE_ENV !== 'prod') {
+      if (
+        !origin ||
+        allowedOrigins.includes(origin) ||
+        process.env.NODE_ENV !== 'prod'
+      ) {
         callback(null, true);
       } else {
         callback(new Error('Not allowed by CORS'));
@@ -56,9 +58,9 @@ async function bootstrap() {
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE, OPTIONS',
     allowedHeaders: 'Authorization,Content-Type, AcceptX-Requested-With', // Ajout de Origin, X-Requested-With
     credentials: true,
-    preflightContinue: false
-  })
-  app.useWebSocketAdapter(new IoAdapter(app))
+    preflightContinue: false,
+  });
+  app.useWebSocketAdapter(new IoAdapter(app));
   await app.listen(parseInt(process.env.PORT) || 3000);
 }
 bootstrap();

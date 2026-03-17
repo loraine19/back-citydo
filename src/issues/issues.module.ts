@@ -9,6 +9,11 @@ import { NotifsGateway } from 'src/notifs/notifs.gateway';
 @Module({
   imports: [NotificationsModule],
   controllers: [IssuesController],
-  providers: [IssuesService, ImageInterceptor, NotificationsService, NotifsGateway],
+  providers: [
+    IssuesService,
+    ImageInterceptor,
+    NotificationsService,
+    NotifsGateway,
+  ],
 })
-export class IssuesModule { }
+export class IssuesModule {}

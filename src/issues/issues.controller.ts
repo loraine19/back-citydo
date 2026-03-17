@@ -1,8 +1,29 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, UploadedFile, UseInterceptors, ParseIntPipe, Query, DefaultValuePipe, Put } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  UploadedFile,
+  UseInterceptors,
+  ParseIntPipe,
+  Query,
+  DefaultValuePipe,
+  Put,
+} from '@nestjs/common';
 import { IssuesService } from './issues.service';
 import { CreateIssueDto } from './dto/create-issue.dto';
 import { UpdateIssueDto } from './dto/update-issue.dto';
-import { ApiTags, ApiBearerAuth, ApiConsumes, ApiOkResponse, ApiBody } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiBearerAuth,
+  ApiConsumes,
+  ApiOkResponse,
+  ApiBody,
+} from '@nestjs/swagger';
 import { AuthGuard } from '../auth/auth.guard';
 import { parseData } from 'middleware/BodyParser';
 import { IssueEntity } from './entities/issue.entity';
@@ -14,7 +35,7 @@ import { Issue, IssueStep } from '@prisma/client';
 @Controller('issues')
 @UseGuards(AuthGuard)
 export class IssuesController {
-  constructor(private readonly issuesService: IssuesService) { }
+  constructor(private readonly issuesService: IssuesService) {}
 
   @Post()
   @ApiBearerAuth()
@@ -25,9 +46,10 @@ export class IssuesController {
   async create(
     @Body() data: any,
     @UploadedFile() image: Express.Multer.File,
-    @User() userId: number) {
-    data.userid && (data.userId = userId);
-    data = await parseData(data, image)
+    @User() userId: number,
+  ) {
+    if (data.userid) data.userId = userId;
+    data = await parseData(data, image);
     return this.issuesService.create(data);
   }
 
@@ -41,13 +63,14 @@ export class IssuesController {
     @Param('id', ParseIntPipe) id: number,
     @Body() data: UpdateIssueDto,
     @UploadedFile() image: Express.Multer.File,
-    @User() userId: number) {
+    @User() userId: number,
+  ) {
     const issue = await this.issuesService.findOneById(id, userId);
     if (issue.image && data.image) {
       ImageInterceptor.deleteImage(issue.image);
     }
     data.userId = userId;
-    data = await parseData(data, image)
+    data = await parseData(data, image);
     return this.issuesService.update(id, data, userId);
   }
 
@@ -58,11 +81,12 @@ export class IssuesController {
     @Param('id', ParseIntPipe) id: number,
     @Query('step') step: IssueStep,
     @User() userId: number,
-    @Body() data: { pourcent: number }): Promise<Issue> {
+    @Body() data: { pourcent: number },
+  ): Promise<Issue> {
     if (step) {
       return this.issuesService.updateValidModo(id, userId);
     }
-    return this.issuesService.updateFinish(id, userId, data.pourcent,);
+    return this.issuesService.updateFinish(id, userId, data.pourcent);
   }
 
   @Get()
@@ -70,24 +94,20 @@ export class IssuesController {
   async findAll(
     @User() userId: any,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page?: number,
-    @Query('filter') filter?: any): Promise<{ issues: Issue[], count: number }> {
+    @Query('filter') filter?: any,
+  ): Promise<{ issues: Issue[]; count: number }> {
     return await this.issuesService.findAll(userId, page, filter);
   }
 
   @Get(':id')
   @ApiBearerAuth()
-  findOneById(
-    @Param('id', ParseIntPipe) id: number,
-    @User() userId: number) {
+  findOneById(@Param('id', ParseIntPipe) id: number, @User() userId: number) {
     return this.issuesService.findOneById(id, userId);
   }
 
   @Delete(':id')
   @ApiBearerAuth()
-  remove(
-    @Param('id', ParseIntPipe) id: number,
-    @User() userId: number) {
+  remove(@Param('id', ParseIntPipe) id: number, @User() userId: number) {
     return this.issuesService.remove(id, userId);
   }
-
 }

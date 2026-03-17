@@ -22,4 +22,4 @@ import { GoogleAuthStrategy } from './authGoogle.strategy';
   controllers: [AuthController],
   providers: [AuthService, UsersService, MailerService, GoogleAuthStrategy],
 })
-export class AuthModule { }
+export class AuthModule {}

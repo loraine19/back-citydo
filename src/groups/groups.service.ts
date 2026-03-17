@@ -9,26 +9,31 @@ import { GroupFilter } from './constant';
 export class GroupsService {
   constructor(private prisma: PrismaService) { }
 
-
   private groupIncludeConfig = {
-    GroupUser: { include: { User: { select: { id: true, email: true, Profile: true } } } },
-    Address: true
-  }
+    GroupUser: {
+      include: { User: { select: { id: true, email: true, Profile: true } } },
+    },
+    Address: true,
+  };
 
   private userSelectConfig = {
     id: true,
     email: true,
-    Profile: { select: { mailSub: true, Address: true } }
-  }
-
+    Profile: { select: { mailSub: true, Address: true } },
+  };
 
   async create(data: CreateGroupDto): Promise<Group> {
-    const { addressId, ...group } = data
-    return await this.prisma.group.create({ data: { ...group, Address: { connect: { id: addressId } } }, include: this.groupIncludeConfig });
+    const { addressId, ...group } = data;
+    return await this.prisma.group.create({
+      data: { ...group, Address: { connect: { id: addressId } } },
+      include: this.groupIncludeConfig,
+    });
   }
 
-  limit = parseInt(process.env.LIMIT)
-  skip(page: number) { return (page - 1) * this.limit }
+  limit = parseInt(process.env.LIMIT);
+  skip(page: number) {
+    return (page - 1) * this.limit;
+  }
 
   async findAll(): Promise<Group[]> {
     return await this.prisma.group.findMany({
@@ -40,42 +45,65 @@ export class GroupsService {
     return await this.prisma.group.findUniqueOrThrow({
       where: { id },
       include: this.groupIncludeConfig,
-    })
+    });
   }
 
   async findAllByUserId(userId: number): Promise<Group[]> {
     const groups = await this.prisma.group.findMany({
       where: { GroupUser: { every: { User: { id: userId } } } },
       include: this.groupIncludeConfig,
-    })
-    if (groups.length === 0) throw new HttpException('msg: Vous n\'avez aucun groupe', HttpStatus.NO_CONTENT)
-    return groups
+    });
+    if (groups.length === 0)
+      throw new HttpException(
+        "msg: Vous n'avez aucun groupe",
+        HttpStatus.NO_CONTENT,
+      );
+    return groups;
   }
 
-  async findNearestGroups(userId: number, page?: number, filter?: string, category?: string): Promise<{ groups: Group[], count: number }> {
-    const skip = (page && page !== 0) ? this.skip(page) : 0;
-    const user = await this.prisma.user.findUnique({ where: { id: userId }, select: this.userSelectConfig })
-    const Address = { city: user.Profile.Address.city }
-    let where: any = { Address }
-    category ? where = { ...where, category: GroupCategory[category] } : null
+  async findNearestGroups(
+    userId: number,
+    page?: number,
+    filter?: string,
+    category?: string,
+  ): Promise<{ groups: Group[]; count: number }> {
+    const skip = page && page !== 0 ? this.skip(page) : 0;
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: this.userSelectConfig,
+    });
+    const Address = { city: user.Profile.Address.city };
+    let where: any = { Address };
+    if (category) {
+      where = { ...where, category: GroupCategory[category] };
+    }
     switch (filter) {
       case GroupFilter.IMIN:
-        where = { ...where, GroupUser: { some: { userId: userId } } }; break;
+        where = { ...where, GroupUser: { some: { userId: userId } } };
+        break;
       case GroupFilter.IMODO:
-        where = { ...where, GroupUser: { some: { userId: userId, role: 'MODO' } } }; break;
+        where = {
+          ...where,
+          GroupUser: { some: { userId: userId, role: 'MODO' } },
+        };
+        break;
       default:
-        where = { ...where }
+        where = { ...where };
     }
-    const count = await this.prisma.group.count({ where })
-    const take = (page && page !== 0) ? this.limit : count;
-    const groups = await this.prisma.group.findMany({ where, skip, take, include: this.groupIncludeConfig }) || []
-    return { groups, count }
+    const count = await this.prisma.group.count({ where });
+    const take = page && page !== 0 ? this.limit : count;
+    const groups =
+      (await this.prisma.group.findMany({
+        where,
+        skip,
+        take,
+        include: this.groupIncludeConfig,
+      })) || [];
+    return { groups, count };
   }
 
-
-
   async update(id: number, data: UpdateGroupDto): Promise<Group> {
-    const { addressId, ...group } = data
+    const { addressId, ...group } = data;
     return await this.prisma.group.update({
       where: { id },
       data: { ...group, Address: { connect: { id: addressId } } },

@@ -6,7 +6,12 @@ import { NotificationsService } from 'src/notifications/notifications.service';
 import { NotifsGateway } from 'src/notifs/notifs.gateway';
 
 @Module({
-  controllers: [ServicesController,],
-  providers: [ServicesService, ImageInterceptor, NotificationsService, NotifsGateway],
+  controllers: [ServicesController],
+  providers: [
+    ServicesService,
+    ImageInterceptor,
+    NotificationsService,
+    NotifsGateway,
+  ],
 })
-export class ServiceModule { }
+export class ServiceModule {}

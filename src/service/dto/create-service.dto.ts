@@ -1,68 +1,88 @@
-import { ApiProperty } from "@nestjs/swagger";
-import { $Enums } from "@prisma/client";
-import { Transform, Type } from "class-transformer";
-import { IsNotEmpty, IsNumber, IsEnum, IsString, IsOptional, IsDate } from "class-validator";
+import { ApiProperty } from '@nestjs/swagger';
+import { $Enums } from '@prisma/client';
+import { Transform, Type } from 'class-transformer';
+import {
+  IsNotEmpty,
+  IsNumber,
+  IsEnum,
+  IsString,
+  IsOptional,
+  IsDate,
+} from 'class-validator';
 
 export class CreateServiceDto {
+  ///FOR DTO
+  @ApiProperty()
+  @IsOptional()
+  @IsNumber({}, { message: 'user id must be a number' })
+  @Type(() => Number)
+  userId: number;
 
-    ///FOR DTO
-    @ApiProperty()
-    @IsOptional()
-    @IsNumber({}, { message: 'user id must be a number' })
-    @Type(() => Number)
-    userId: number;
+  @ApiProperty({ enum: $Enums.ServiceType })
+  @IsNotEmpty({ message: 'Type is required' })
+  @IsEnum($Enums.ServiceType, {
+    message:
+      'Type must be part of ' + Object.values($Enums.ServiceType).join(', '),
+  })
+  type: $Enums.ServiceType;
 
+  @ApiProperty({ type: 'string' })
+  @IsNotEmpty({ message: 'title is required' })
+  @IsString({ message: 'title must be a string' })
+  title: string;
 
-    @ApiProperty({ enum: $Enums.ServiceType })
-    @IsNotEmpty({ message: 'Type is required' })
-    @IsEnum($Enums.ServiceType, { message: 'Type must be part of ' + Object.values($Enums.ServiceType).join(', ') })
-    type: $Enums.ServiceType;
+  @ApiProperty()
+  @IsNotEmpty({ message: 'description is required' })
+  @IsString({ message: 'description must be a string' })
+  description: string;
 
-    @ApiProperty({ type: 'string' })
-    @IsNotEmpty({ message: 'title is required' })
-    @IsString({ message: 'title must be a string' })
-    title: string;
+  @ApiProperty({ enum: $Enums.ServiceCategory })
+  @IsNotEmpty({ message: 'category is required' })
+  @IsEnum($Enums.ServiceCategory, {
+    message:
+      'category must be part of ' +
+      Object.values($Enums.ServiceCategory).join(', '),
+  })
+  category: $Enums.ServiceCategory;
 
-    @ApiProperty()
-    @IsNotEmpty({ message: 'description is required' })
-    @IsString({ message: 'description must be a string' })
-    description: string;
+  @ApiProperty({ enum: $Enums.SkillLevel })
+  @IsNotEmpty({ message: 'skill is required' })
+  @IsEnum($Enums.SkillLevel, {
+    message:
+      'skill must be part of ' + Object.values($Enums.SkillLevel).join(', '),
+  })
+  skill: $Enums.SkillLevel;
 
-    @ApiProperty({ enum: $Enums.ServiceCategory })
-    @IsNotEmpty({ message: 'category is required' })
-    @IsEnum($Enums.ServiceCategory, { message: 'category must be part of ' + Object.values($Enums.ServiceCategory).join(', ') })
-    category: $Enums.ServiceCategory;
+  @ApiProperty({ enum: $Enums.HardLevel })
+  @IsNotEmpty({ message: 'hard is required' })
+  @IsEnum($Enums.HardLevel, {
+    message:
+      'hard must be part of ' + Object.values($Enums.HardLevel).join(', '),
+  })
+  hard: $Enums.HardLevel;
 
-    @ApiProperty({ enum: $Enums.SkillLevel })
-    @IsNotEmpty({ message: 'skill is required' })
-    @IsEnum($Enums.SkillLevel, { message: 'skill must be part of ' + Object.values($Enums.SkillLevel).join(', ') })
-    skill: $Enums.SkillLevel;
+  @ApiProperty({ enum: $Enums.ServiceStep })
+  @IsNotEmpty({ message: 'status is required' })
+  @IsEnum($Enums.ServiceStep, {
+    message:
+      'status must be part of ' + Object.values($Enums.ServiceStep).join(', '),
+  })
+  status: $Enums.ServiceStep;
 
-    @ApiProperty({ enum: $Enums.HardLevel })
-    @IsNotEmpty({ message: 'hard is required' })
-    @IsEnum($Enums.HardLevel, { message: 'hard must be part of ' + Object.values($Enums.HardLevel).join(', ') })
-    hard: $Enums.HardLevel;
+  @ApiProperty({ type: 'string', format: 'binary', required: false })
+  @IsOptional()
+  @IsString({ message: 'image must be a link' })
+  image: string;
 
-    @ApiProperty({ enum: $Enums.ServiceStep })
-    @IsNotEmpty({ message: 'status is required' })
-    @IsEnum($Enums.ServiceStep, { message: 'status must be part of ' + Object.values($Enums.ServiceStep).join(', ') })
-    status: $Enums.ServiceStep;
+  @ApiProperty()
+  @IsNotEmpty()
+  @Transform(({ value }) => parseInt(value))
+  @IsNumber()
+  groupId: number;
 
-    @ApiProperty({ type: 'string', format: 'binary', required: false })
-    @IsOptional()
-    @IsString({ message: 'image must be a link' })
-    image: string;
-
-    @ApiProperty()
-    @IsNotEmpty()
-    @Transform(({ value }) => parseInt(value))
-    @IsNumber()
-    groupId: number;
-
-    @ApiProperty({ type: Date })
-    @IsOptional()
-    @Transform(({ value }) => new Date(value))
-    @IsDate({ message: 'Start date is not conformè' })
-    createdAt: Date
-
+  @ApiProperty({ type: Date })
+  @IsOptional()
+  @Transform(({ value }) => new Date(value))
+  @IsDate({ message: 'Start date is not conformè' })
+  createdAt: Date;
 }

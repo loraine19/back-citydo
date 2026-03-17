@@ -5,6 +5,6 @@ import { MailerService } from 'src/mailer/mailer.service';
 
 @Module({
   controllers: [ResetPasswordController],
-  providers: [ResetPasswordService, MailerService]
+  providers: [ResetPasswordService, MailerService],
 })
-export class ResetPasswordModule { }
+export class ResetPasswordModule {}

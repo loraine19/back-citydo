@@ -1,12 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsDate, IsNotEmpty, IsNumber, IsString } from 'class-validator';
 import { Address } from '@prisma/client';
-import { Decimal, DecimalJsLike } from '@prisma/client/runtime/library';
+import { Decimal } from '@prisma/client/runtime/library';
 import { Type } from 'class-transformer';
 
-
 export class AddressEntity implements Address {
-
   @ApiProperty()
   @IsNotEmpty()
   @IsNumber()
@@ -20,7 +18,7 @@ export class AddressEntity implements Address {
   @IsDate()
   updatedAt: Date;
 
-  /// FOR DTO 
+  /// FOR DTO
   @ApiProperty()
   @IsNotEmpty({ message: 'Address is required' })
   @IsString({ message: 'Address must be a string' })
@@ -37,7 +35,6 @@ export class AddressEntity implements Address {
   @IsNumber({}, { message: 'Latitude must be a number' })
   lat: Decimal;
 
-
   @ApiProperty()
   @IsNotEmpty({ message: 'Longitude is required' })
   @Type(() => Decimal)
@@ -47,5 +44,5 @@ export class AddressEntity implements Address {
   @ApiProperty()
   @IsNotEmpty({ message: 'Zipcode is required' })
   @IsString({ message: 'Zipcode must be a string' })
-  zipcode: string
+  zipcode: string;
 }

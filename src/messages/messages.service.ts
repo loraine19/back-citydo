@@ -1,6 +1,5 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { CreateMessageDto } from './dto/create-message.dto';
-import { UpdateMessageDto } from './dto/update-message.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { NotificationsService } from 'src/notifications/notifications.service';
 import { $Enums } from '@prisma/client';
@@ -9,141 +8,212 @@ import { Message } from './entities/message.entity';
 
 @Injectable()
 export class MessagesService {
-
-  constructor(private prisma: PrismaService, private notificationsService: NotificationsService) { }
+  constructor(
+    private prisma: PrismaService,
+    private notificationsService: NotificationsService,
+  ) {}
 
   includeUsersConfig = {
-    User:
-      { select: { id: true, email: true, Profile: { select: { mailSub: true, image: true, firstName: true, lastName: true } } } },
-    UserRec:
-      { select: { id: true, email: true, Profile: { select: { mailSub: true, image: true, firstName: true, lastName: true } } } }
-  }
+    User: {
+      select: {
+        id: true,
+        email: true,
+        Profile: {
+          select: {
+            mailSub: true,
+            image: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
+      },
+    },
+    UserRec: {
+      select: {
+        id: true,
+        email: true,
+        Profile: {
+          select: {
+            mailSub: true,
+            image: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
+      },
+    },
+  };
 
-  limit = parseInt(process.env.LIMIT)
-  skip(page: number) { return (page - 1) * this.limit }
+  limit = parseInt(process.env.LIMIT);
+  skip(page: number) {
+    return (page - 1) * this.limit;
+  }
 
   async create(data: CreateMessageDto) {
     const { userId, userIdRec, ...message } = data;
     const messageCreated = await this.prisma.message.create({
-      data: { ...message, User: { connect: { id: userId } }, UserRec: { connect: { id: userIdRec } } },
-      include: this.includeUsersConfig
+      data: {
+        ...message,
+        User: { connect: { id: userId } },
+        UserRec: { connect: { id: userIdRec } },
+      },
+      include: this.includeUsersConfig,
     });
-    const user = await this.prisma.user.findUnique({ where: { id: userId }, select: { id: true, email: true, Profile: { select: { mailSub: true, image: true, firstName: true, lastName: true } } } });
-    const userRec = await this.prisma.user.findUnique({ where: { id: userIdRec }, select: { id: true, email: true, Profile: { select: { mailSub: true, image: true, firstName: true, lastName: true } } } });
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        Profile: {
+          select: {
+            mailSub: true,
+            image: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
+      },
+    });
+    const userRec = await this.prisma.user.findUnique({
+      where: { id: userIdRec },
+      select: {
+        id: true,
+        email: true,
+        Profile: {
+          select: {
+            mailSub: true,
+            image: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
+      },
+    });
     const notification = {
       type: $Enums.NotificationType.MESSAGE,
       level: $Enums.NotificationLevel.SUB_2,
       title: `Nouveau message de ${user.Profile.firstName}`,
       description: `${user.Profile.firstName} : ${message.message}`,
       link: `/chat?with=${userId}`,
-
-    }
-    await this.notificationsService.create(new UserNotifInfo(userRec), notification);
-    return messageCreated
+    };
+    await this.notificationsService.create(
+      new UserNotifInfo(userRec),
+      notification,
+    );
+    return messageCreated;
   }
 
-  async findAll(userId: number, page: number): Promise<{ conversations: Message[], count: number }> {
-    const skip = (page && page !== 0) ? this.skip(page) : 0;
+  async findAll(
+    userId: number,
+    page: number,
+  ): Promise<{ conversations: Message[]; count: number }> {
+    const skip = page && page !== 0 ? this.skip(page) : 0;
     const where = {
-      OR: [
-        { userId },
-        { userIdRec: userId }
-      ],
+      OR: [{ userId }, { userIdRec: userId }],
       NOT: {
-        AND: [
-          { userId: { in: [userId] } },
-          { userIdRec: { in: [userId] } }
-        ]
-      }
-    }
+        AND: [{ userId: { in: [userId] } }, { userIdRec: { in: [userId] } }],
+      },
+    };
     const count = await this.prisma.message.count({ where });
-    const take = (page && page !== 0) ? this.limit : count;
+    const take = page && page !== 0 ? this.limit : count;
     const data = await this.prisma.message.findMany({
       skip,
       take,
       where,
       include: this.includeUsersConfig,
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
     });
     let conversations = data.reduce((acc, message) => {
       const { userId, userIdRec } = message;
-      if (!acc.some(m => (m.userId === userId && m.userIdRec === userIdRec) || (m.userId === userIdRec && m.userIdRec === userId))) {
+      if (
+        !acc.some(
+          (m) =>
+            (m.userId === userId && m.userIdRec === userIdRec) ||
+            (m.userId === userIdRec && m.userIdRec === userId),
+        )
+      ) {
         acc.push(message);
       }
       return acc;
     }, []);
 
     // Add unread count for each conversation
-    const conversationsWithUnread = await Promise.all(conversations.map(async (conv) => {
-      const otherUserId = conv.userId === userId ? conv.userIdRec : conv.userId;
-      const unreadCount = await this.prisma.message.count({
-        where: {
-          userId: otherUserId,
-          userIdRec: userId,
-          read: false
-        }
-      });
-      return { ...conv, unreadCount };
-    }));
+    const conversationsWithUnread = await Promise.all(
+      conversations.map(async (conv) => {
+        const otherUserId =
+          conv.userId === userId ? conv.userIdRec : conv.userId;
+        const unreadCount = await this.prisma.message.count({
+          where: {
+            userId: otherUserId,
+            userIdRec: userId,
+            read: false,
+          },
+        });
+        return { ...conv, unreadCount };
+      }),
+    );
 
     conversations = conversationsWithUnread;
 
     return { conversations, count: conversations.length };
   }
 
-
-  async findConversation(userId: number, id: number, page: number): Promise<{ messages: Message[], count: number }> {
-    const skip = (page && page !== 0) ? this.skip(page) : 0;
+  async findConversation(
+    userId: number,
+    id: number,
+    page: number,
+  ): Promise<{ messages: Message[]; count: number }> {
+    const skip = page && page !== 0 ? this.skip(page) : 0;
     const where = {
       OR: [
         { userId, userIdRec: id },
-        { userId: id, userIdRec: userId }
-      ]
-    }
+        { userId: id, userIdRec: userId },
+      ],
+    };
     const count = await this.prisma.message.count({ where });
-    const take = (page && page !== 0) ? this.limit : count;
+    const take = page && page !== 0 ? this.limit : count;
     const messages = await this.prisma.message.findMany({
       skip,
       take,
       where,
       include: this.includeUsersConfig,
-      orderBy: { createdAt: 'desc' }
-    },
-    );
+      orderBy: { createdAt: 'desc' },
+    });
     return { messages, count };
   }
 
-  async removeMessage(userId: number, id: number,) {
-    const message = await this.prisma.message.findUniqueOrThrow({ where: { id, userId } });
+  async removeMessage(userId: number, id: number) {
+    const message = await this.prisma.message.findUniqueOrThrow({
+      where: { id, userId },
+    });
     if (!message) throw new HttpException(`msg: Ce message n'existe pas`, 409);
     return await this.prisma.message.update({
       where: { id, userId },
       data: { message: 'Ce message a été supprimé', read: true },
-    })
+    });
   }
   async readConversation(userId: number, id: number) {
     const messages = await this.prisma.message.updateMany({
       where: {
         userId: id,
-        userIdRec: userId
+        userIdRec: userId,
       },
       data: {
-        read: true
-      }
-    })
-    const nov = await this.prisma.notification.updateMany({
-      where: {
-        userId,
-        type: $Enums.NotificationType.MESSAGE,
-        link: `/chat?with=${id}`
+        read: true,
       },
-      data: {
-        read: true
-      }
-    })
-    return messages
+    });
+    // const nov = await this.prisma.notification.updateMany({
+    //   where: {
+    //     userId,
+    //     type: $Enums.NotificationType.MESSAGE,
+    //     link: `/chat?with=${id}`,
+    //   },
+    //   data: {
+    //     read: true,
+    //   },
+    // });
+    return messages;
   }
-
 
   remove(id: number) {
     return `This action removes a #${id} message`;

@@ -7,6 +7,11 @@ import { UsersService } from 'src/users/users.service';
 
 @Module({
   controllers: [ParticipantsController],
-  providers: [ParticipantsService, NotificationsService, NotifsGateway, UsersService],
+  providers: [
+    ParticipantsService,
+    NotificationsService,
+    NotifsGateway,
+    UsersService,
+  ],
 })
-export class ParticipantsModule { }
+export class ParticipantsModule {}

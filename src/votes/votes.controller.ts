@@ -7,23 +7,23 @@ import { VoteEntity } from './entities/vote.entity';
 import { Vote } from '@prisma/client';
 import { AuthGuard } from '../auth/auth.guard';
 import { User } from 'middleware/decorators';
-import { timeStamp } from 'console';
 
-const route = "votes"
+const route = 'votes';
 @UseGuards(AuthGuard)
 @Controller(route)
 @ApiTags(route)
 export class VotesController {
-  constructor(private readonly votesService: VotesService) { }
+  constructor(private readonly votesService: VotesService) {}
 
   @Post()
   @ApiBearerAuth()
   @ApiResponse({ type: VoteEntity })
   async create(
     @Body() data: CreateVoteDto,
-    @User() userId: number): Promise<Vote> {
-    data.userId = userId
-    return this.votesService.create(data)
+    @User() userId: number,
+  ): Promise<Vote> {
+    data.userId = userId;
+    return this.votesService.create(data);
   }
 
   @Patch()
@@ -31,10 +31,9 @@ export class VotesController {
   @ApiResponse({ type: VoteEntity })
   async update(
     @Body() data: UpdateVoteDto,
-    @User() userId: number): Promise<Vote> {
+    @User() userId: number,
+  ): Promise<Vote> {
     const vote = this.votesService.update(userId, data);
-    return vote
+    return vote;
   }
-
-
 }

@@ -7,6 +7,11 @@ import { NotifsGateway } from 'src/notifs/notifs.gateway';
 
 @Module({
   controllers: [MessagesController],
-  providers: [MessagesService, ChatGateway, NotificationsService, NotifsGateway],
+  providers: [
+    MessagesService,
+    ChatGateway,
+    NotificationsService,
+    NotifsGateway,
+  ],
 })
-export class MessagesModule { }
+export class MessagesModule {}

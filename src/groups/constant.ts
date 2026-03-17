@@ -1,7 +1,5 @@
-
 export enum GroupFilter {
-    MINE = 'MINE',
-    IMIN = 'IMIN',
-    IMODO = 'IMODO',
+  MINE = 'MINE',
+  IMIN = 'IMIN',
+  IMODO = 'IMODO',
 }
-

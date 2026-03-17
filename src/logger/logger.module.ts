@@ -4,4 +4,4 @@ import { LoggerService } from './logger.service';
 @Module({
   providers: [LoggerService],
 })
-export class LoggerModule { }
+export class LoggerModule {}

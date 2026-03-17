@@ -1,5 +1,20 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, ParseIntPipe, HttpException, HttpStatus, Req } from '@nestjs/common';
-import { ApiCreatedResponse, ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  ParseIntPipe,
+} from '@nestjs/common';
+import {
+  ApiCreatedResponse,
+  ApiBearerAuth,
+  ApiOkResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UsersService } from './users.service';
@@ -8,19 +23,18 @@ import { AuthGuard } from '../../src/auth/auth.guard';
 import { User } from '@prisma/client';
 import { User as UserDec } from 'middleware/decorators';
 
-
-//// CONTROLLER DO ROUTE 
-const route = 'users'
+//// CONTROLLER DO ROUTE
+const route = 'users';
 @Controller(route)
 @ApiTags(route)
 @UseGuards(AuthGuard)
 export class UsersController {
-  constructor(private readonly usersService: UsersService) { }
+  constructor(private readonly usersService: UsersService) {}
 
   @Post()
   @ApiCreatedResponse({ type: UserEntity })
   async create(@Body() data: CreateUserDto): Promise<Partial<User>> {
-    const user = await this.usersService.findUnique(data.email)
+    //  const user = await this.usersService.findUnique(data.email);
     return await this.usersService.create(data);
   }
 
@@ -28,32 +42,39 @@ export class UsersController {
   @ApiBearerAuth()
   async findAll(
     @Param('groupId', ParseIntPipe) groupId: number,
-    @UserDec() userId: number): Promise<Partial<User>[]> {
-    return await this.usersService.usersInGroup(userId, groupId) || []
+    @UserDec() userId: number,
+  ): Promise<Partial<User>[]> {
+    return (await this.usersService.usersInGroup(userId, groupId)) || [];
   }
-
 
   @Get('modos/:groupId')
   @ApiBearerAuth()
   async findAllModo(
     @Param('groupId', ParseIntPipe) groupId: number,
-    @UserDec() userId: number): Promise<{ modos: Partial<User>[], count: number }> {
-    return await this.usersService.findAllModo(userId, groupId) || { modos: [], count: 0 };
+    @UserDec() userId: number,
+  ): Promise<{ modos: Partial<User>[]; count: number }> {
+    return (
+      (await this.usersService.findAllModo(userId, groupId)) || {
+        modos: [],
+        count: 0,
+      }
+    );
   }
 
   @Get('count/:groupId')
   @ApiBearerAuth()
   async count(
     @Param('groupId', ParseIntPipe) groupId: number,
-    @UserDec() userId: number): Promise<number> {
-    return await this.usersService.count(groupId, userId)
+    @UserDec() userId: number,
+  ): Promise<number> {
+    return await this.usersService.count(groupId, userId);
   }
 
   @Get('me')
   @ApiBearerAuth()
   @ApiOkResponse({ type: UserEntity })
   async FindMe(@UserDec() userId: number): Promise<Partial<User>> {
-    return this.usersService.findOne(userId)
+    return this.usersService.findOne(userId);
   }
 
   @Get(':id')
@@ -61,21 +82,26 @@ export class UsersController {
   @ApiOkResponse({ type: UserEntity })
   async FindOne(
     @Param('id', ParseIntPipe) id: number,
-    @UserDec() userId: number): Promise<Partial<User>> {
-    return this.usersService.findOne(id)
+    // @UserDec() userId: number,
+  ): Promise<Partial<User>> {
+    return this.usersService.findOne(id);
   }
 
   @Patch(':id')
   @ApiBearerAuth()
-  async update(@Param('id', ParseIntPipe) id: number, @Body() data: UpdateUserDto): Promise<User> {
-    return this.usersService.update(id, data)
+  async update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() data: UpdateUserDto,
+  ): Promise<User> {
+    return this.usersService.update(id, data);
   }
 
   @Delete(':id')
   @ApiBearerAuth()
   async remove(
     @Param('id', ParseIntPipe) id: number,
-    @UserDec() userId: number): Promise<{ message: string }> {
-    return await this.usersService.remove(id, userId)
+    @UserDec() userId: number,
+  ): Promise<{ message: string }> {
+    return await this.usersService.remove(id, userId);
   }
 }

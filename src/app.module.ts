@@ -26,7 +26,6 @@ import { CronTaskModule } from './cron-task/cron-task.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ConfigModule } from '@nestjs/config';
 
-
 @Module({
   imports: [
     MulterModule.register({
@@ -65,4 +64,4 @@ import { ConfigModule } from '@nestjs/config';
   ],
   // providers: [NotifsGateway],
 })
-export class AppModule { }
+export class AppModule {}

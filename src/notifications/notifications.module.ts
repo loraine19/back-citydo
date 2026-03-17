@@ -8,6 +8,6 @@ import { NotifsGateway } from 'src/notifs/notifs.gateway';
 @Module({
   controllers: [NotificationsController],
   providers: [NotificationsService, MailerService, NotifsGateway],
-  exports: [NotificationsService]
+  exports: [NotificationsService],
 })
-export class NotificationsModule { }
+export class NotificationsModule {}

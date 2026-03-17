@@ -6,6 +6,6 @@ import { NotifsGateway } from 'src/notifs/notifs.gateway';
 
 @Module({
   imports: [ScheduleModule],
-  providers: [CronTaskService, NotificationsService, NotifsGateway]
+  providers: [CronTaskService, NotificationsService, NotifsGateway],
 })
-export class CronTaskModule { }
+export class CronTaskModule {}

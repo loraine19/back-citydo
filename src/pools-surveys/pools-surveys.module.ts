@@ -8,4 +8,4 @@ import { NotifsGateway } from 'src/notifs/notifs.gateway';
   controllers: [PoolsSurveysController],
   providers: [PoolsSurveysService, NotificationsService, NotifsGateway],
 })
-export class PoolsSurveysModule { }
+export class PoolsSurveysModule {}

@@ -10,7 +10,7 @@ import {
 import { Server, Socket } from 'socket.io';
 import { WsAuthGuard } from 'src/auth/auth.guard';
 
-const WS = 'notifs'
+const WS = 'notifs';
 @UseGuards(WsAuthGuard)
 @WebSocketGateway({
   namespace: '/' + WS,
@@ -37,11 +37,11 @@ export class NotifsGateway {
 
     if (!this.users.includes(userId)) {
       this.users.push(userId);
-      this.server.emit(`${WS}-message`, { users: this.users })
+      this.server.emit(`${WS}-message`, { users: this.users });
     }
 
     client.on('disconnect', () => {
-      this.users = this.users.filter(user => user !== userId);
+      this.users = this.users.filter((user) => user !== userId);
       this.server.emit(`${WS}-message`, { users: this.users });
     });
 
@@ -51,7 +51,7 @@ export class NotifsGateway {
   }
 
   private getRoomName(userId: string): string {
-    const roomName = `${userId}-${WS}`
+    const roomName = `${userId}-${WS}`;
     return roomName;
   }
 

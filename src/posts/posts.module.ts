@@ -7,6 +7,11 @@ import { NotifsGateway } from 'src/notifs/notifs.gateway';
 
 @Module({
   controllers: [PostsController],
-  providers: [PostsService, ImageInterceptor, NotificationsService, NotifsGateway],
+  providers: [
+    PostsService,
+    ImageInterceptor,
+    NotificationsService,
+    NotifsGateway,
+  ],
 })
-export class PostsModule { }
+export class PostsModule {}

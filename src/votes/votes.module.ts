@@ -8,6 +8,12 @@ import { UsersService } from 'src/users/users.service';
 
 @Module({
   controllers: [VotesController],
-  providers: [VotesService, NotificationsService, MailerService, NotifsGateway, UsersService],
+  providers: [
+    VotesService,
+    NotificationsService,
+    MailerService,
+    NotifsGateway,
+    UsersService,
+  ],
 })
-export class VotesModule { }
+export class VotesModule {}
