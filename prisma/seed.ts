@@ -131,21 +131,69 @@ const CreateRandomAddress = async (): Promise<CreateAddressDto> => {
   let city: string;
   let address: string;
 
-  const fetchGPS = async () => {
+  const fetchGPS = async (retryCount = 0): Promise<{ lat: Decimal; lng: Decimal }> => {
     zipcode = newFaker.location.zipCode();
     city = newFaker.location.city();
     address = newFaker.location.streetAddress();
     console.log(`Fetching GPS for ${address}, ${city}, ${zipcode}`);
-    const response = await fetch(`https://nominatim.openstreetmap.org/search?street=${encodeURIComponent(address)}&city=${encodeURIComponent(city)}&postalcode=${encodeURIComponent(zipcode)}&format=json`);
-    const data = await response.json();
-    if (data.length > 0) {
-      return {
-        lat: new Decimal(data[0].lat),
-        lng: new Decimal(data[0].lon)
-      };
-    } else {
-      console.log('No GPS found, retrying...');
-      return fetchGPS();
+
+    try {
+      // Add delay to avoid rate limiting
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?street=${encodeURIComponent(address)}&city=${encodeURIComponent(city)}&postalcode=${encodeURIComponent(zipcode)}&format=json`,
+        {
+          headers: {
+            'User-Agent': 'CityDo-App/1.0 (contact@citydo.app)' // Required by Nominatim
+          }
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const text = await response.text();
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (parseError) {
+        console.log(`Failed to parse JSON response: ${text.substring(0, 100)}...`);
+        throw new Error(`Invalid JSON response: ${text.substring(0, 50)}`);
+      }
+
+      if (data && Array.isArray(data) && data.length > 0) {
+        return {
+          lat: new Decimal(data[0].lat),
+          lng: new Decimal(data[0].lon)
+        };
+      } else {
+        if (retryCount < 3) {
+          console.log(`No GPS found, retrying... (${retryCount + 1}/3)`);
+          return fetchGPS(retryCount + 1);
+        } else {
+          // Fallback to default coordinates (Paris, France)
+          console.log('Using fallback coordinates after 3 retries');
+          return {
+            lat: new Decimal('48.8566'),
+            lng: new Decimal('2.3522')
+          };
+        }
+      }
+    } catch (error) {
+      if (retryCount < 3) {
+        console.log(`Error fetching GPS (${error instanceof Error ? error.message : error}), retrying... (${retryCount + 1}/3)`);
+        await new Promise(resolve => setTimeout(resolve, 2000)); // Longer delay on error
+        return fetchGPS(retryCount + 1);
+      } else {
+        console.log(`Failed to fetch GPS after 3 retries: ${error instanceof Error ? error.message : error}. Using fallback coordinates.`);
+        // Fallback to default coordinates (Paris, France)
+        return {
+          lat: new Decimal('48.8566'),
+          lng: new Decimal('2.3522')
+        };
+      }
     }
   };
 
